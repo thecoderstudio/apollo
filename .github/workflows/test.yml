@@ -28,4 +28,6 @@ jobs:
           python3 -m coverage xml
 
       - name: Upload coverage report
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: bash <(curl -s https://codecov.io/bash)
