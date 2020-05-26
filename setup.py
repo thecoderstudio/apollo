@@ -7,7 +7,8 @@ with open(os.path.join(here, 'VERSION')) as f:
     version = f.read().strip()
 
 requires = [
-    'fastapi'
+    'fastapi',
+    'sqlalchemy'
 ]
 
 test_requires = [
