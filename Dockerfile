@@ -1,7 +1,5 @@
 FROM python:3.8
 
-RUN apt-get update
-
 RUN addgroup apollo
 RUN useradd -g apollo apollo
 
