@@ -12,9 +12,14 @@ requires = [
 ]
 
 test_requires = [
+    'coverage',
     'pytest',
     'requests'
 ]
+
+extras = {
+    'tests': test_requires
+}
 
 setup(
     name='apollo',
@@ -22,5 +27,6 @@ setup(
     author='Code R',
     author_email='hello@coderstudio.nl',
     install_requires=requires,
-    tests_require=test_requires
+    tests_require=test_requires,
+    extras_require=extras
 )
