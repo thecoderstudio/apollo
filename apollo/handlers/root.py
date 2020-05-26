@@ -1,6 +1,10 @@
-from apollo import app, version
+from fastapi import APIRouter
+
+from apollo.lib.version import version
+
+router = APIRouter()
 
 
-@app.get("/")
+@router.get("/")
 def get_root():
     return {'version': version}
