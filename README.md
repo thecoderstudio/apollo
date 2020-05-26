@@ -1,4 +1,5 @@
 # Apollo
+![](https://github.com/thecoderstudio/apollo/workflows/Test/badge.svg)
 Apollo is a post-exploitation tool for managing, enumerating and pivotting on
 compromised machines.
 
