@@ -6,7 +6,7 @@ requires = [
 ]
 
 setup(
-    name='covert',
+    name='apollo',
     version='0.1',
     author='Code R',
     author_email='hello@coderstudio.nl',
