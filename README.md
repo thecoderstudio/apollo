@@ -1,5 +1,5 @@
 # Apollo
-Apollo is a post-exploitation tool for managing, enumarting and pivotting on
+Apollo is a post-exploitation tool for managing, enumerating and pivotting on
 compromised machines.
 
 This app is only meant to be ethically used. Only use Apollo on systems you're
