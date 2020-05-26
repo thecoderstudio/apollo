@@ -1,0 +1,31 @@
+version: '3'
+services:
+  apollo:
+    container_name: apollo
+    image: apollo:dev
+    build:
+      context: .
+    ports:
+      - "1970:8000"
+    volumes:
+      - .:/home/apollo/apollo
+      - /home/apollo/apollo/apollo.egg-info
+    links:
+      - db
+    depends_on:
+      - db
+    tty: true
+    stdin_open: true
+    entrypoint: "/bin/bash"
+    command: >
+      -c "../util/wait-for-it.sh db:5432 &&
+      uvicorn apollo:app --reload --host 0.0.0.0"
+  db:
+    container_name: apollo-db
+    image: postgres:12
+    ports:
+      - "1971:5432"
+    environment:
+      - POSTGRES_USER=apollo
+      - POSTGRES_PASSWORD=testing123
+      - POSTGRES_DB=apollo
