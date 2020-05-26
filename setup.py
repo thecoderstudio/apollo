@@ -17,11 +17,16 @@ test_requires = [
     'requests'
 ]
 
+extras = {
+    'tests': test_requires
+}
+
 setup(
     name='apollo',
     version=version,
     author='Code R',
     author_email='hello@coderstudio.nl',
     install_requires=requires,
-    tests_require=test_requires
+    tests_require=test_requires,
+    extras_require=extras
 )
