@@ -1,5 +1,5 @@
 ## Code R Ticket
-_If applicable_
+_Please provide a link to the Code R Jira ticket if applicable_
 
 <https://partypeak.atlassian.net/browse/AP->
 
@@ -7,7 +7,7 @@ _If applicable_
 _Please give a description of the pull request._
 
 ## Dependencies
-_Are there any dependencies in relation to the other Apollo packages?_
+_Are there any dependencies in relation to pull requests in other Apollo repositories? If so please provide links to these pull requests_
 
 *
 
