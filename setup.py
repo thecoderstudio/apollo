@@ -7,8 +7,7 @@ with open(os.path.join(here, 'VERSION')) as f:
     version = f.read().strip()
 
 requires = [
-    'fastapi',
-    'uvicorn'
+    'fastapi'
 ]
 
 test_requires = [
@@ -17,8 +16,13 @@ test_requires = [
     'requests'
 ]
 
+dev_requires = [
+    'uvicorn'
+]
+
 extras = {
-    'tests': test_requires
+    'tests': test_requires,
+    'dev': dev_requires
 }
 
 setup(
