@@ -1,5 +1,8 @@
 # Apollo
 ![](https://github.com/thecoderstudio/apollo/workflows/Test/badge.svg)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2208dfecb4c345f299ca14491905ea37)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=thecoderstudio/apollo&amp;utm_campaign=Badge_Grade)
+[![codecov](https://codecov.io/gh/thecoderstudio/apollo/branch/develop/graph/badge.svg?token=3CJ4O4JTUZ)](https://codecov.io/gh/thecoderstudio/apollo)
+
 Apollo is a post-exploitation tool for managing, enumerating and pivotting on
 compromised machines.
 
