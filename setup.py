@@ -11,10 +11,16 @@ requires = [
     'uvicorn'
 ]
 
+test_requires = [
+    'pytest',
+    'requests'
+]
+
 setup(
     name='apollo',
     version=version,
     author='Code R',
     author_email='hello@coderstudio.nl',
-    install_requires=requires
+    install_requires=requires,
+    tests_require=test_requires
 )
