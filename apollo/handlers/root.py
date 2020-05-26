@@ -1,6 +1,6 @@
-from apollo import app
+from apollo import app, version
 
 
 @app.get("/")
 def get_root():
-    return {'version': '0.1'}
+    return {'version': version}
