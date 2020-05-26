@@ -18,6 +18,7 @@ test_requires = [
 ]
 
 dev_requires = [
+    'alembic',
     'uvicorn'
 ]
 
