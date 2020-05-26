@@ -1,0 +1,33 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+    - develop
+    - master
+  push:
+    branches:
+    - develop
+    - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          python3.7 -m pip install --upgrade pip
+          pip3 install setuptools
+          pip3 install -e .
+
+      - name: Test with pytest
+        run: |
+          coverage run --source apollo -m pytest
+          coverage xml
+
+      - name: Upload coverage report
+        env:
+          CODACY_PROJECT_TOKEN=${{ secrets.CODACY_PROJECT_TOKEN }}
+        run: bash <(curl -Ls https://coverage.codacy.com/get.sh)

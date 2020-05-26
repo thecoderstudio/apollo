@@ -12,6 +12,7 @@ requires = [
 ]
 
 test_requires = [
+    'coverage',
     'pytest',
     'requests'
 ]
