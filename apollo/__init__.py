@@ -11,6 +11,11 @@ app = FastAPI()
 app.include_router(root.router)
 
 
+def main():
+    configure()
+    return app
+
+
 def configure():
     read_settings_files()
     init_sqlalchemy()
@@ -21,6 +26,3 @@ def read_settings_files():
     config.read('settings.ini')
     config.read('local-settings.ini')
     update_settings(config)
-
-
-configure()

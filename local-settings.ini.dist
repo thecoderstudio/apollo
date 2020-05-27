@@ -8,7 +8,7 @@ sqlalchemy.url = postgres://<username>:<password>@<host>:5432/apollo
 
 # Logging configuration
 [loggers]
-keys = root,sqlalchemy,alembic,apollo
+keys = root,sqlalchemy,alembic
 
 [handlers]
 keys = console
