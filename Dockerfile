@@ -17,4 +17,4 @@ WORKDIR /home/apollo/apollo
 
 EXPOSE 8000
 ENTRYPOINT ["uvicorn"]
-CMD ["apollo:app", "--reload", "--host", "0.0.0.0"]
+CMD ["apollo:main", "--reload", "--host", "0.0.0.0"]
