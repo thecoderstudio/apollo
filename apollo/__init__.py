@@ -21,3 +21,6 @@ def read_settings_files():
     config.read('settings.ini')
     config.read('local-settings.ini')
     update_settings(config)
+
+
+configure()
