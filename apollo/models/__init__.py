@@ -18,7 +18,7 @@ def init_sqlalchemy():
 
 def get_connection_url(settings_):
     return "{driver}://{user}:{password}@{host}/{database}".format(
-        **settings['SQLAlchemy']
+        **settings_['SQLAlchemy']
     )
 
 
