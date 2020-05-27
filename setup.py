@@ -15,6 +15,7 @@ requires = [
 test_requires = [
     'coverage',
     'pytest',
+    'pytest-mock',
     'requests'
 ]
 
