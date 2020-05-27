@@ -19,7 +19,8 @@ services:
     entrypoint: "/bin/bash"
     command: >
       -c "../util/wait-for-it.sh db:5432 &&
-      uvicorn apollo:app --reload --host 0.0.0.0"
+      alembic -c local-settings.ini upgrade heads &&
+      uvicorn apollo:main --reload --host 0.0.0.0"
   db:
     container_name: apollo-db
     image: postgres:12

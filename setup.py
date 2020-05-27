@@ -7,16 +7,20 @@ with open(os.path.join(here, 'VERSION')) as f:
     version = f.read().strip()
 
 requires = [
-    'fastapi'
+    'fastapi',
+    'psycopg2',
+    'sqlalchemy'
 ]
 
 test_requires = [
     'coverage',
     'pytest',
+    'pytest-mock',
     'requests'
 ]
 
 dev_requires = [
+    'alembic',
     'uvicorn'
 ]
 
