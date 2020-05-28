@@ -3,6 +3,6 @@ import string
 
 from pydantic import BaseModel, Field
 
-class User(BaseModel):
+class UserSchema(BaseModel):
     id: uuid.UUID
     password:  Field(min_length=8)
