@@ -12,7 +12,6 @@ requires = [
     'psycopg2',
     'pydantic',
     'sqlalchemy',
-    'transaction'
 ]
 
 test_requires = [
@@ -21,7 +20,6 @@ test_requires = [
     'pytest',
     'pytest-mock',
     'requests',
-    'transaction'
 ]
 
 dev_requires = [

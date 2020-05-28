@@ -1,6 +1,5 @@
 import copy
 import logging
-import transaction
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -15,7 +14,6 @@ Base = declarative_base()
 
 
 def init_sqlalchemy():
-    print("__" * 100)
     engine = create_engine(get_connection_url(settings), connect_args={
         
     })
@@ -38,8 +36,8 @@ def get_session():
 
 
 def commit(session):
-    log.debug("Committing session: %r", session.dirty)
-    transaction.commit()
+    log.info("Committing session: %r", session.dirty)
+    session.commit()
 
 
 def persist(obj, session):
@@ -68,5 +66,6 @@ def save(obj):
     finally:
         commit(session)
         session.close()
+        
 
     return obj_copy

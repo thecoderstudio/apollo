@@ -15,9 +15,5 @@ async def post_user(result: UserSchema):
     data.pop('password')
     
     user = save(User(**data))
-    print(data)
-    print(user)
-    print(user.password_hash)
-    print(user.id)
     user = UserSchema.from_orm(user)
     return user
