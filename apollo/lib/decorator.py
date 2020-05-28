@@ -4,7 +4,7 @@ from pydantic import ValidationError
 
 log = logging.getLogger(__name__)
 
-def request_validation_wrapper(validation_schema):
+def request_validation(validation_schema):
     def decorate(func):
         def call(self):
             try: 
@@ -12,7 +12,7 @@ def request_validation_wrapper(validation_schema):
                 result = validation_schema()
             except ValidationError as e:
                 log.debug(e.msg)
-                raise Error()
+                raise ValidationError()
             return func(self, result)
         return call
     return decorate

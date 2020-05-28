@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy import Column, String
 
-from apollo.lib.type import UUID
+from apollo.lib.types.uuid import UUID
 from apollo.models import Base
 
 class User(Base):
