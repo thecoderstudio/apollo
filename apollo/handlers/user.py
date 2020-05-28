@@ -1,9 +1,22 @@
-from apollo.handlers import router
-from apollo.lib.decorator import request_validation
-from apollo.lib.schemas.user import UserSchema
+from fastapi import APIRouter
 
-@request_validation(UserSchema)
+from apollo.lib.hash import hash_plaintext
+from apollo.lib.schemas.user import UserSchema
+from apollo.handlers import save
+from apollo.models.user import User
+
+router = APIRouter()
+
 @router.post('/user')
-def post_user(result):
-    print(result)
-    return
+async def post_user(result: UserSchema):
+    data = result.dict() 
+    data['password_hash'], data['password_salt'] = hash_plaintext(
+        result.password)
+    data.pop('password')
+    user = save(User(**data))
+    print(data)
+    print(user)
+    print(user.password_hash)
+    print(user.id)
+    user = UserSchema.from_orm(user)
+    return user

@@ -1,8 +1,11 @@
 import uuid
 import string
 
-from pydantic import BaseModel, Field
+from typing import Optional
+from pydantic import Field, Schema
 
-class UserSchema(BaseModel):
-    id: uuid.UUID
-    password: Field(min_length=8)
+from apollo.lib.schemas import ORMSchema
+
+class UserSchema(ORMSchema):
+    id: Optional[uuid.UUID]
+    password: Optional[str]

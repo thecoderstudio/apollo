@@ -1,8 +1,14 @@
+import copy
+import logging
+import transaction
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from apollo.lib.settings import settings
+
+log = logging.getLogger(__name__)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False)
 Base = declarative_base()
@@ -28,3 +34,38 @@ def get_session():
         yield session
     finally:
         session.close()
+
+
+def commit(session):
+    log.debug("Committing session: %r", session.dirty)
+    transaction.commit()
+
+
+def persist(obj, session):
+    log.debug("persisting object %r", obj)
+    session.add(obj)
+    session.flush()
+    return obj
+
+def rollback(session):
+    log.debug("Rolling back session: %r", session.dirty)
+    return session.rollback()
+
+
+def save(obj):
+    try:
+        session = SessionLocal()
+        obj = persist(obj, session)
+        obj_copy = copy.copy(obj)
+    except Exception as e:
+        log.critical(
+            'Something went wrong saving the {}'.format(
+                obj.__class__.__name__),
+            exc_info=True)
+        rollback(session)
+        raise e
+    finally:
+        commit(session)
+        session.close()
+
+    return obj_copy
