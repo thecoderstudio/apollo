@@ -22,7 +22,7 @@ def upgrade():
         'user',
         sa.Column('id', UUID(length=36), nullable=False),
         sa.Column('password_hash', sa.String(119), nullable=False),
-        sa.Column('pasword_salt', sa.String(29), nullable=False),
+        sa.Column('password_salt', sa.String(29), nullable=False),
     )
     
 def downgrade():
