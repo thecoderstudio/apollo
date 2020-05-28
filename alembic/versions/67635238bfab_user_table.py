@@ -25,7 +25,5 @@ def upgrade():
         sa.Column('pasword_salt', sa.String(29), nullable=False),
     )
     
-
-
 def downgrade():
     op.drop_table('user')

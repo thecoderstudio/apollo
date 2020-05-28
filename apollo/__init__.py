@@ -11,7 +11,7 @@ app = FastAPI()
 app.include_router(root.router)
 
 
-def main():
+def main(x):
     configure()
     return app
 
