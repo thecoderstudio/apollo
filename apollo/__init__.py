@@ -11,13 +11,8 @@ app = FastAPI()
 app.include_router(root.router)
 app.include_router(user.router)
 
-
-def main():
-    configure()
-    return app
-
-
-def configure():
+@app.on_event('startup')
+async def configure():
     read_settings_files()
     init_sqlalchemy()
 
