@@ -2,16 +2,17 @@ from configparser import ConfigParser
 
 from fastapi import FastAPI
 
-from apollo.handlers import root
+from apollo.handlers import root, websocket
 from apollo.lib.settings import update_settings
 from apollo.models import init_sqlalchemy
 
 app = FastAPI()
 
 app.include_router(root.router)
+app.include_router(websocket.router)
 
 
-def main():
+def main(*args, **kwargs):
     configure()
     return app
 
