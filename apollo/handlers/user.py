@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.schemas.user import UserSchema
 from apollo.handlers import save
-from apollo.models.user import User, list_users
+from apollo.models.user import User
 
 router = APIRouter()
 

@@ -13,5 +13,5 @@ class User(Base):
     password_hash = Column(String(119), nullable=False)
     password_salt = Column(String(29), nullable=False)
 
-def list_users():
-    return list(get_session())[0].query(User)
+def get_user_by_username(username):
+    return list(get_session())[0].query(User).filter(User.username == username).one()

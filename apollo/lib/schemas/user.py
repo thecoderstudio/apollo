@@ -8,4 +8,5 @@ from apollo.lib.schemas import ORMSchema
 
 class UserSchema(ORMSchema):
     id: Optional[uuid.UUID]
+    username: str
     password: Optional[str]
