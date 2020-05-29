@@ -28,9 +28,9 @@ def compare_plaintext_to_hash(plaintext: str, hashed_plaintext: str = None, salt
 
     return False
 
-def create_access_token(data: dict, expires_delta: timedelta):
+def create_access_token(data: dict, expires_in: timedelta):
     to_encode = data.copy()
-    to_encode.update({"exp": datetime.utcnow() + expires_delta})
+    to_encode.update({"experation_date": datetime.utcnow() + expires_in})
     return jwt.encode(
         to_encode, settings['app']['access_token_key'], algorithm="HS256")
 

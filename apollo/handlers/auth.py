@@ -1,11 +1,6 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, security, status
-from fastapi.security import (
-    OAuth2PasswordBearer,
-    OAuth2PasswordRequestForm,
-    SecurityScopes,
-)
+from fastapi import APIRouter
 
 from apollo.lib.exceptions import credentials_exception
 from apollo.lib.settings import settings
@@ -30,6 +25,6 @@ def get_token(form_data: RequestTokenSchema):
     access_token_expires = timedelta(
         minutes=int(settings['app']['access_token_experation_in_minutes']))
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username}, expires_in=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}

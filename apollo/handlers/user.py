@@ -10,14 +10,15 @@ router = APIRouter()
 from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+
+def get_current_user_with_token(token: str = Depends(oauth2_scheme)):
     decode = decode_access_token(token)
     print(decode)
     print("***" * 100)
     return decode
 
 @router.post('/user')
-async def post_user(result: UserSchema, current_user = Depends(get_current_user)):
+async def post_user(result: UserSchema, current_user = Depends(get_current_user_with_token)):
     data = result.dict() 
     data['password_hash'], data['password_salt'] = hash_plaintext(
         result.password)
