@@ -12,9 +12,9 @@ app.include_router(root.router)
 app.include_router(websocket.router)
 
 
-def main(*args, **kwargs):
+async def main(*args, **kwargs):
     configure()
-    return app
+    return await app(*args, **kwargs)
 
 
 def configure():
