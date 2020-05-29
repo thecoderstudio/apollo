@@ -19,9 +19,6 @@ async def test_main(mocker):
     configure_mock = mocker.patch('apollo.configure')
     mocker.patch('apollo.app', new=async_mock)
 
-    async def send(data):
-        pass
-
     await main()
 
     configure_mock.assert_called_once()
