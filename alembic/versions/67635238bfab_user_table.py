@@ -60,4 +60,4 @@ def add_user(user_table):
 
     op.bulk_insert(user_table, [user])
 
-    log.info(f'Welcome to apollo. \n Your admin username is: admin. \n your password is: {password}')
+    print(f'Welcome to apollo. \n Your admin username is: admin. \n your password is: {password}')
