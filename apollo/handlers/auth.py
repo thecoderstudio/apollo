@@ -21,10 +21,10 @@ def get_token(form_data: RequestTokenSchema):
         form_data.password, user.password_hash, user.password_salt)
     if not password_match:
         raise credentials_exception
-    print(settings['app']['access_token_experation_in_minutes'])
+
     access_token_expires = timedelta(
         minutes=int(settings['app']['access_token_experation_in_minutes']))
     access_token = create_access_token(
-        data={"sub": user.username}, expires_in=access_token_expires
+        data={"user_id": str(user.id)}, expires_in=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}

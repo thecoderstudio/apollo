@@ -3,8 +3,13 @@ import bcrypt
 import jwt
 
 from datetime import timedelta, datetime
+from fastapi import Depends
+from fastapi.security import OAuth2PasswordBearer
 
 from apollo.lib.settings import settings
+from apollo.models.user import get_user_by_id
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 def hash_plaintext(plaintext: str):
     salt = bcrypt.gensalt()
@@ -29,11 +34,12 @@ def compare_plaintext_to_hash(plaintext: str, hashed_plaintext: str = None, salt
     return False
 
 def create_access_token(data: dict, expires_in: timedelta):
-    to_encode = data.copy()
-    to_encode.update({"experation_date": datetime.utcnow() + expires_in})
+    data['experation_date'] = str(datetime.utcnow() + expires_in)
     return jwt.encode(
-        to_encode, settings['app']['access_token_key'], algorithm="HS256")
+        data, settings['app']['access_token_key'], algorithm="HS256")
 
-def decode_access_token(token: str):
+def get_user_from_access_token(token: str = Depends(oauth2_scheme)):
     decoded = jwt.decode(token, settings['app']['access_token_key'], algorithm="HS256")
-    return decoded
+    return get_user_by_id(decoded['user_id'])
+
+    
