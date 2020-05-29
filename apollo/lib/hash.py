@@ -1,5 +1,10 @@
 import base64
 import bcrypt
+import jwt
+
+from datetime import timedelta, datetime
+
+from apollo.lib.settings import settings
 
 def hash_plaintext(plaintext):
     salt = bcrypt.gensalt()
@@ -22,3 +27,10 @@ def compare_plaintext_to_hash(plaintext, hashed_plaintext=None, salt=None):
         pass
 
     return False
+
+def create_access_token(data: dict, expires_delta: timedelta):
+    to_encode = data.copy()
+    to_encode.update({"exp": datetime.utcnow() + expires_delta})
+    encoded_jwt = jwt.encode(
+        to_encode, settings['app']['access_token_key'], algorithm="HS256")
+    return encoded_jwt

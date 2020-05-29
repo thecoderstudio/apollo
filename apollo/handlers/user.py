@@ -15,5 +15,4 @@ async def post_user(result: UserSchema):
     data.pop('password')
     
     user = save(User(**data))
-    user = UserSchema.from_orm(user)
-    return user
+    return UserSchema.from_orm(user)
