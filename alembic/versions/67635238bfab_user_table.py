@@ -13,7 +13,7 @@ import uuid
 from alembic import op
 import sqlalchemy as sa
 
-from apollo.lib.hash import hash_plaintext
+from apollo.lib.encrypt import hash_plaintext
 from apollo.lib.types.uuid import UUID
 
 log = logging.getLogger(__name__)

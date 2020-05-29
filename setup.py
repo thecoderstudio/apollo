@@ -9,7 +9,7 @@ with open(os.path.join(here, 'VERSION')) as f:
 requires = [
     'bcrypt',
     'fastapi',
-    'jwt',
+    'pyjwt',
     'psycopg2',
     'pydantic',
     'sqlalchemy',
@@ -18,7 +18,7 @@ requires = [
 test_requires = [
     'bcrypt',
     'coverage',
-    'jwt',
+    'pyjwt',
     'pytest',
     'pytest-mock',
     'requests',

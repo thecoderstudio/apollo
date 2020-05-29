@@ -6,13 +6,13 @@ from datetime import timedelta, datetime
 
 from apollo.lib.settings import settings
 
-def hash_plaintext(plaintext):
+def hash_plaintext(plaintext: str):
     salt = bcrypt.gensalt()
     return (bcrypt.hashpw(plaintext.encode('utf-8'), salt).decode('utf-8'),
             salt.decode('utf-8'))
 
 
-def compare_plaintext_to_hash(plaintext, hashed_plaintext=None, salt=None):
+def compare_plaintext_to_hash(plaintext: str, hashed_plaintext: str = None, salt: str =None):
     if not salt:
         salt = bcrypt.gensalt().decode('utf-8')
 
@@ -31,6 +31,9 @@ def compare_plaintext_to_hash(plaintext, hashed_plaintext=None, salt=None):
 def create_access_token(data: dict, expires_delta: timedelta):
     to_encode = data.copy()
     to_encode.update({"exp": datetime.utcnow() + expires_delta})
-    encoded_jwt = jwt.encode(
+    return jwt.encode(
         to_encode, settings['app']['access_token_key'], algorithm="HS256")
-    return encoded_jwt
+
+def decode_access_token(token: str):
+    decoded = jwt.decode(token, settings['app']['access_token_key'], algorithm="HS256")
+    return decoded
