@@ -15,7 +15,7 @@ Base = declarative_base()
 
 def init_sqlalchemy():
     engine = create_engine(get_connection_url(settings), connect_args={
-        
+
     })
     SessionLocal.configure(bind=engine)
     Base.metadata.bind = engine
@@ -46,6 +46,7 @@ def persist(obj, session):
     session.flush()
     return obj
 
+
 def rollback(session):
     log.debug("Rolling back session: %r", session.dirty)
     return session.rollback()
@@ -66,6 +67,5 @@ def save(obj):
     finally:
         commit(session)
         session.close()
-        
 
     return obj_copy
