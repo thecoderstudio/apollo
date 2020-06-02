@@ -16,17 +16,13 @@ class OAuthClient(Base):
     __tablename__ = 'oauth_client'
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    agent_id = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True,
-                      nullable=False)
+    agent_id = Column(UUID(as_uuid=True), ForeignKey('agent.id'),
+                      unique=True, nullable=False)
     client_secret = Column(String(64), nullable=False,
                            default=lambda: get_random_hex_token(32))
     client_type = Column(Enum("confidential", name="client_type"),
                          nullable=False)
     active = Column(Boolean, default=True, nullable=False)
-
-    def set_fields(self, data):
-        for key, value in data.items():
-            setattr(self, key, value)
 
 
 class OAuthAccessToken(Base):
