@@ -1,7 +1,11 @@
-import apollo.models
-from apollo.models import get_connection_url, get_session, init_sqlalchemy
+import uuid
 
 from sqlalchemy.orm.session import Session
+
+import apollo.models
+from apollo.models import (get_connection_url, get_session, init_sqlalchemy,
+                           persist, rollback)
+from apollo.models.agent import Agent
 
 
 def test_get_connection_url():
@@ -35,3 +39,19 @@ def test_get_session(mocker):
 
     assert session.is_active
     spy.assert_called_once()
+
+
+def test_persist(db_session):
+    agent_id = uuid.uuid4()
+    persist(db_session, Agent(id=agent_id, name='test'))
+    agent = db_session.query(Agent).get(agent_id)
+    assert agent is not None
+
+
+def test_rollback(db_session):
+    agent_id = uuid.uuid4()
+    db_session.add(Agent(id=agent_id, name='test'))
+    db_session.flush()
+    rollback(db_session)
+    agent = db_session.query(Agent).get(agent_id)
+    assert agent is None
