@@ -49,3 +49,9 @@ class OAuthAccessToken(Base):
     @property
     def expired(self):
         return self.expires_in == 0
+
+
+def get_client(session, client_id, client_secret):
+    return session.query(OAuthClient).filter(
+        OAuthClient.client_id == client_id,
+        OAuthClient.client_secret == client_secret).one()
