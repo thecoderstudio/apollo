@@ -21,7 +21,7 @@ def post_access_token(
 ):
     try:
         credentials = extract_client_authorization(authorization)
-        client = get_client(**credentials)
+        client = get_client(session, **credentials)
     except NoResultFound:
         raise HTTPException(status_code=400,
                             detail="No client found for given client_id")
@@ -36,7 +36,7 @@ def post_access_token(
                      datetime.timedelta(hours=1))
     )
 
-    save(token)
+    save(session, token)
     return None
 
 
@@ -50,12 +50,12 @@ def extract_client_authorization(authorization: str):
         raise InvalidAuthorizationMethod('Basic')
     decoded_header = base64.b64decode(encoded_string).decode('utf-8')
     try:
-        client_id, client_secret = decoded_header.split(':')
+        agent_id, client_secret = decoded_header.split(':')
     except ValueError:
         raise InvalidAuthorizationHeader(
-            "<Method> base64(<client_id>:<client_secret>)"
+            "<Method> base64(<agent_id>:<client_secret>)"
         )
     return {
-        'client_id': client_id,
+        'agent_id': agent_id,
         'client_secret': client_secret
     }
