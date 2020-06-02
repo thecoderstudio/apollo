@@ -14,8 +14,6 @@ Base = declarative_base()
 
 
 def init_sqlalchemy():
-
-    print("**" * 100)
     engine = create_engine(get_connection_url(settings))
     SessionLocal.configure(bind=engine)
     Base.metadata.bind = engine
