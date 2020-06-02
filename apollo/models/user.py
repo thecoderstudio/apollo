@@ -10,7 +10,7 @@ class User(Base):
     __tablename__ = 'user'
 
     id = Column(UUID, primary_key=True, default=uuid.uuid4)
-    username = Column(String(36), nullable=False)
+    username = Column(String(36), unique=True, nullable=False)
     password_hash = Column(String(119), nullable=False)
     password_salt = Column(String(29), nullable=False)
 

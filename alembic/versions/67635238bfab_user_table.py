@@ -29,9 +29,10 @@ def upgrade():
     user_table = op.create_table(
         'user',
         sa.Column('id', UUID(length=36), nullable=False),
-        sa.Column('username', sa.String(36), nullable=False),
+        sa.Column('username', sa.String(36), unique=True, nullable=False),
         sa.Column('password_hash', sa.String(119), nullable=False),
         sa.Column('password_salt', sa.String(29), nullable=False),
+        sa.PrimaryKeyConstraint('id'),
     )
 
     add_user(user_table)
