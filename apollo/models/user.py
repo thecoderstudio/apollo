@@ -20,4 +20,4 @@ def get_user_by_username(username: str):
 
 
 def get_user_by_id(id: uuid.UUID):
-    return list(get_session())[0].query(User).filter(User.id == id).one()
+    return list(get_session())[0].query(User).get(id)
