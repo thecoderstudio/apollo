@@ -1,6 +1,6 @@
 version: '3'
 services:
-  apollo:
+  apollo-test:
     container_name: apollo-test
     image: apollo:test
     build:
@@ -11,9 +11,9 @@ services:
       - .:/home/apollo/apollo
       - /home/apollo/apollo/apollo.egg-info
     links:
-      - db
+      - db-test
     depends_on:
-      - db
+      - db-test
     tty: true
     stdin_open: true
     entrypoint: "/bin/bash"
@@ -23,7 +23,7 @@ services:
       coverage run --source apollo -m pytest &&
       coverage report -m &&
       coverage xml"
-  db:
+  db-test:
     container_name: apollo-test-db
     image: postgres:12
     ports:

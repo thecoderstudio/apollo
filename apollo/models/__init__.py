@@ -13,8 +13,8 @@ Base = declarative_base()
 log = logging.getLogger(__name__)
 
 
-def init_sqlalchemy():
-    engine = create_engine(get_connection_url(settings))
+def init_sqlalchemy(settings_=settings):
+    engine = create_engine(get_connection_url(settings_))
     SessionLocal.configure(bind=engine)
     Base.metadata.bind = engine
 

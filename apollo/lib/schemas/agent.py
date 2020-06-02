@@ -12,6 +12,6 @@ class CreateAgentSchema(BaseModel):
     def name_must_not_exist(cls, name, **kwargs):
         session = kwargs['session']
         if not get_agent_by_name(session, name):
-            return
+            return name
 
         raise ValueError("An agent with the given name already exists")

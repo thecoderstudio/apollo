@@ -4,7 +4,6 @@ from configparser import ConfigParser
 from pytest import fixture
 
 import apollo.lib.settings
-from apollo.lib.settings import update_settings
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 
 
@@ -18,9 +17,8 @@ def settings():
 def db_session():
     try:
         config = ConfigParser()
-        config.read('test-settings.ini')
-        update_settings(config)
-        init_sqlalchemy()
+        config.read('test.ini')
+        init_sqlalchemy(config)
         session = SessionLocal()
         yield session
     finally:
