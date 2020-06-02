@@ -8,7 +8,7 @@ from apollo.models.agent import Agent
 router = APIRouter()
 
 
-@router.post("/agent")
+@router.post("/agent", status_code=201)
 def post_agent(agent_data: CreateAgentSchema,
                session: Session = Depends(get_session)):
     save(session, Agent(**dict(agent_data)))
