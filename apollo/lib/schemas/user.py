@@ -13,6 +13,7 @@ class UserInSchema(ORMSchema):
     username: str
     password: constr(min_length=8)
 
+    @staticmethod
     @validator('username')
     def name_must_be_unique(cls, value):
         try:

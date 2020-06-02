@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from apollo import configure, main, read_settings_files
+from apollo import configure, app, read_settings_files
 
 
 class ConfigParserMock:
@@ -11,15 +11,6 @@ class ConfigParserMock:
     @staticmethod
     def read(filename):
         return filename
-
-
-def test_main(mocker):
-    configure_mock = mocker.patch('apollo.configure')
-
-    app = main()
-
-    configure_mock.assert_called_once()
-    assert isinstance(app, FastAPI)
 
 
 def test_configure(mocker):
@@ -38,4 +29,4 @@ def test_read_settings_files(mocker, settings):
 
     read_settings_files()
 
-    assert settings == {'test': 1}
+    assert settings['test'] == 1

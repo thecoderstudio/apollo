@@ -13,7 +13,7 @@ app.include_router(user.router)
 app.include_router(auth.router)
 
 @app.on_event('startup')
-async def configure():
+def configure():
     read_settings_files()
     init_sqlalchemy()
 
