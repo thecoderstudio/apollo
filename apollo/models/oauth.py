@@ -1,13 +1,13 @@
 import datetime
 import logging
 import uuid
+from secrets import token_hex
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from apollo.models import Base
-from apollo.lib.crypto import get_random_hex_token
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class OAuthClient(Base):
     agent_id = Column(UUID(as_uuid=True), ForeignKey('agent.id'),
                       unique=True, nullable=False)
     client_secret = Column(String(64), nullable=False,
-                           default=lambda: get_random_hex_token(32))
+                           default=lambda: token_hex(32))
     client_type = Column(Enum("confidential", name="client_type"),
                          nullable=False)
     active = Column(Boolean, default=True, nullable=False)
@@ -32,7 +32,7 @@ class OAuthAccessToken(Base):
     client_id = Column(UUID(as_uuid=True), ForeignKey('oauth_client.id'),
                        nullable=False)
     access_token = Column(String(64), unique=True, nullable=False,
-                          default=lambda: get_random_hex_token(32))
+                          default=lambda: token_hex(32))
     token_type = Column(Enum("Bearer", name="token_type"), default="Bearer",
                         nullable=False)
     expiry_date = Column(DateTime(timezone=True), nullable=False)

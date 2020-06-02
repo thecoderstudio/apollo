@@ -9,7 +9,6 @@ with open(os.path.join(here, 'VERSION')) as f:
 requires = [
     'fastapi',
     'psycopg2',
-    'pycrypto',
     'sqlalchemy'
 ]
 
