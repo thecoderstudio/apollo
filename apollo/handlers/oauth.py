@@ -39,7 +39,7 @@ def post_access_token(
     )
 
     save(session, token)
-    return None
+    return token
 
 
 def extract_client_authorization(authorization: str):
