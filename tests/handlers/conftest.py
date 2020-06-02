@@ -4,9 +4,12 @@ from pytest import fixture
 from apollo import app
 
 
-@fixture
+@fixture(scope='session', autouse=True)
 def test_client():
-    return TestClient(app)
+    engine = init_test_database()
+    yield TestClient(app)
+    Base.metadata.drop_all(engine) 
+
 
 
 from configparser import ConfigParser
@@ -51,6 +54,4 @@ def init_test_database():
     )
 
     save(user)
-    yield
-    print("teardown")
-    Base.metadata.drop_all(engine)
+    return engine

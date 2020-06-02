@@ -22,6 +22,7 @@ test_requires = [
     'pytest',
     'pytest-mock',
     'requests',
+    'sqlalchemy_utils'
 ]
 
 dev_requires = [

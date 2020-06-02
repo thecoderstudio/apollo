@@ -1,4 +1,4 @@
-def test_post_user_successful(test_client, init_test_database):
+def test_post_user_successful(test_client):
     response = test_client.post(
         '/token',
         json={'username': 'johndoe', 'password': 'testing123'}
