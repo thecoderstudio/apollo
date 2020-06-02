@@ -8,13 +8,15 @@ from sqlalchemy.orm.exc import NoResultFound
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
+from apollo.lib.schemas.oauth import OAuthAccessTokenSchema
 from apollo.models import get_session, save
 from apollo.models.oauth import get_client, OAuthAccessToken
 
 router = APIRouter()
 
 
-@router.post('/oauth/token', status_code=201)
+@router.post('/oauth/token', status_code=201,
+             response_model=OAuthAccessTokenSchema)
 def post_access_token(
     session: Session = Depends(get_session),
     authorization: str = Header(None)
