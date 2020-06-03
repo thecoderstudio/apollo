@@ -1,7 +1,7 @@
 """user table
 
 Revision ID: 67635238bfab
-Revises: 
+Revises:
 Create Date: 2020-05-28 09:19:09.104527
 
 """
