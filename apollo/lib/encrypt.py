@@ -1,16 +1,9 @@
 import bcrypt
-import jwt
 from datetime import timedelta, datetime
 
-from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm.exc import NoResultFound
 
 from apollo.lib.settings import settings
-from apollo.lib.exceptions import invalid_credentials_exception
-from apollo.models.user import get_user_by_id
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 
 def hash_plaintext(plaintext: str):

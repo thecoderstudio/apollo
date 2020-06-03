@@ -1,8 +1,8 @@
 import uuid
 
 from sqlalchemy import Column, String
+from sqlalchemy.dialects.postgresql import UUID
 
-from apollo.lib.types.uuid import UUID
 from apollo.models import Base, get_session
 
 
@@ -19,5 +19,5 @@ def get_user_by_username(username: str):
     return list(get_session())[0].query(User).filter(User.username == username).one()
 
 
-def get_user_by_id(_id: uuid.UUID):
-    return list(get_session())[0].query(User).get(_id)
+def get_user_by_id(_id: uuid.UUID, session=list(get_session())[0]):
+    return session.query(User).get(_id)

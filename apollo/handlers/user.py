@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from apollo.lib.encrypt import hash_plaintext, get_user_from_access_token
+from apollo.lib.encrypt import hash_plaintext
 from apollo.lib.schemas.user import UserInSchema, UserOutSchema
 from apollo.models import get_session, save
 from apollo.models.user import User
