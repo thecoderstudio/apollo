@@ -19,5 +19,5 @@ def get_user_by_username(username: str):
     return list(get_session())[0].query(User).filter(User.username == username).one()
 
 
-def get_user_by_id(id: uuid.UUID):
-    return list(get_session())[0].query(User).get(id)
+def get_user_by_id(_id: uuid.UUID):
+    return list(get_session())[0].query(User).get(_id)

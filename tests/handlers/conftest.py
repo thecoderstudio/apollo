@@ -5,12 +5,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy_utils.functions import database_exists, create_database
 
-from sqlalchemy.pool import NullPool
-
-import apollo.models
 from apollo import app
 from apollo.lib.settings import settings
-from apollo.models import get_connection_url, Base, save, get_session
+from apollo.models import get_connection_url, Base, save
 from apollo.models.user import User
 
 TestSession = sessionmaker(autocommit=False, autoflush=False)
@@ -27,8 +24,8 @@ def get_test_session():
 
 @fixture(autouse=True)
 def patch(monkeypatch):
-    monkeypatch.setattr('apollo.models.user.get_session', get_test_session) 
-    monkeypatch.setattr('apollo.models.get_session', get_test_session) 
+    monkeypatch.setattr('apollo.models.user.get_session', get_test_session)
+    monkeypatch.setattr('apollo.models.get_session', get_test_session)
 
 @fixture
 def test_client(monkeypatch):
@@ -46,10 +43,10 @@ def token(monkeypatch, test_client):
 def database():
     if not database_exists(engine.url):
         create_database(engine.url)
-    
+
     Base.metadata.create_all()
-    
-    user = User(
+
+    user = User( # noqa B106
         username="johndoe",
         password_hash='$2b$12$q2ro/WdYipnZxYbPcjWgvuYB4aBI/JVYtPyroXs4SvvcS77p9Mwu2',
         password_salt='$2b$12$q2ro/WdYipnZxYbPcjWgvu'

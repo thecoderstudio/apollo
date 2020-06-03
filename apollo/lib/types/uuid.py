@@ -15,7 +15,8 @@ class UUID(TypeDecorator):
         self.impl.length = 36
         super().__init__(length=self.impl.length)
 
-    def process_bind_param(self, value, dialect=None):
+    @staticmethod
+    def process_bind_param(value, dialect=None):
         if value and isinstance(value, uuid.UUID):
             return str(value)
         elif value and not isinstance(value, uuid.UUID):
@@ -26,7 +27,8 @@ class UUID(TypeDecorator):
         else:
             return None
 
-    def process_result_value(self, value, dialect=None):
+    @staticmethod
+    def process_result_value(value, dialect=None):
         if not value:
             return None
         try:
@@ -39,6 +41,7 @@ class UUID(TypeDecorator):
         except ValueError:
             log.debug("UUID %r not valid", value)
             raise
-
-    def is_mutable(self):
+    
+    @staticmethod
+    def is_mutable():
         return False

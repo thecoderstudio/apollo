@@ -1,4 +1,4 @@
-import logging 
+import logging
 
 from fastapi import HTTPException
 
@@ -17,5 +17,5 @@ def save(obj):
 
 def log_critical_and_raise(e):
     log.critical(e, exc_info=True)
-    raise HTTPException(status_code=500, 
+    raise HTTPException(status_code=500,
         detail='Something went wrong when saving the object.')

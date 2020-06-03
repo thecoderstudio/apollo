@@ -6,7 +6,7 @@ from apollo.lib.exceptions import invalid_credentials_exception
 from apollo.lib.settings import settings
 from apollo.lib.encrypt import compare_plaintext_to_hash, create_access_token
 from apollo.lib.schemas.auth import TokenSchema, RequestTokenSchema
-from apollo.models.user import User, get_user_by_username
+from apollo.models.user import get_user_by_username
 
 router = APIRouter()
 

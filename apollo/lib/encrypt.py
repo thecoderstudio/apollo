@@ -1,4 +1,3 @@
-import base64
 import bcrypt
 import jwt
 from datetime import timedelta, datetime
