@@ -43,8 +43,8 @@ def test_post_access_token_invalid_grant_type(test_client):
     assert response.status_code == 422
 
 
-def test_post_acces_token_client_not_authorized(mocker, test_client,
-                                                db_session):
+def test_post_access_token_client_not_authorized(mocker, test_client,
+                                                 db_session):
     encoded_creds = get_encoded_creds(*persist_test_agent(db_session))
     mocked = mocker.patch('apollo.handlers.oauth.get_client')
     mocked.client_type = 'test'
@@ -62,6 +62,39 @@ def test_post_acces_token_client_not_authorized(mocker, test_client,
     assert response.json() == {
         'detail': "Client not authorized to use this grant type"
     }
+
+
+def test_post_access_token_invalid_auth_method(test_client, db_session):
+    encoded_creds = get_encoded_creds(*persist_test_agent(db_session))
+    response = test_client.post(
+        '/oauth/token',
+        headers={
+            'Authorization': f"Bearer {encoded_creds}"
+        },
+        json={
+            'grant_type': 'client_credentials'
+        }
+    )
+
+    assert response.status_code == 400
+    assert "Wrong authorization method" in response.json()['detail']
+
+
+def test_post_access_token_invalid_auth_header(test_client):
+    malformed_creds = base64.b64encode(b"test value").decode('utf-8')
+    response = test_client.post(
+        '/oauth/token',
+        headers={
+            'Authorization': f"Basic {malformed_creds}"
+        },
+        json={
+            'grant_type': 'client_credentials'
+        }
+    )
+
+    print(response.json())
+    assert response.status_code == 400
+    assert "Invalid authorization header" in response.json()['detail']
 
 
 def persist_test_agent(db_session):
