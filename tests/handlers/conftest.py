@@ -2,7 +2,10 @@ from fastapi.testclient import TestClient
 from pytest import fixture
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy_utils.functions import database_exists, create_database
+
+from sqlalchemy.pool import NullPool
 
 import apollo.models
 from apollo import app
@@ -16,12 +19,17 @@ TestSession.configure(bind=engine)
 Base.metadata.bind = engine
 
 def get_test_session():
+    print("user test session")
     session = TestSession()
     try:
         yield session
     finally:
-        print("closing session")
         session.close()
+
+@fixture(autouse=True)
+def patch(monkeypatch):
+    monkeypatch.setattr('apollo.models.user.get_session', get_test_session) 
+    monkeypatch.setattr('apollo.models.get_session', get_test_session) 
 
 @fixture
 def test_client(monkeypatch):
@@ -29,7 +37,6 @@ def test_client(monkeypatch):
 
 @fixture
 def token(monkeypatch, test_client):
-    monkeypatch.setattr('apollo.models.user.get_session', get_test_session)
     response = test_client.post(
         '/token',
         json={'username': 'johndoe', 'password': 'testing123'}
@@ -51,4 +58,5 @@ def database():
     save(user)
 
     yield
+    close_all_sessions()
     Base.metadata.drop_all(engine)
