@@ -19,7 +19,6 @@ TestSession.configure(bind=engine)
 Base.metadata.bind = engine
 
 def get_test_session():
-    print("user test session")
     session = TestSession()
     try:
         yield session
