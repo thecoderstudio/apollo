@@ -10,11 +10,12 @@ import secrets
 import string
 import uuid
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+from sqlalchemy.dialects.postgresql import UUID
 
 from apollo.lib.hash import hash_plaintext
-from apollo.lib.types.uuid import UUID
+
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ depends_on = None
 def upgrade():
     user_table = op.create_table(
         'user',
-        sa.Column('id', UUID(length=36), nullable=False),
+        sa.Column('id', UUID(as_uuid=True), nullable=False),
         sa.Column('username', sa.String(36), unique=True, nullable=False),
         sa.Column('password_hash', sa.String(119), nullable=False),
         sa.Column('password_salt', sa.String(29), nullable=False),
