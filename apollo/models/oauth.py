@@ -23,6 +23,9 @@ class OAuthClient(Base):
                          nullable=False)
     active = Column(Boolean, default=True, nullable=False)
 
+    tokens = relationship('OAuthAccessToken', back_populates='client',
+                          cascade="all, delete-orphan")
+
 
 class OAuthAccessToken(Base):
     __tablename__ = 'oauth_access_token'
