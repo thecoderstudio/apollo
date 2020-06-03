@@ -9,7 +9,7 @@ from apollo.models import Base, get_session
 class User(Base):
     __tablename__ = 'user'
 
-    id = Column(UUID, primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username = Column(String(36), unique=True, nullable=False)
     password_hash = Column(String(119), nullable=False)
     password_salt = Column(String(29), nullable=False)

@@ -34,18 +34,3 @@ def compare_plaintext_to_hash(plaintext: str, hashed_plaintext: str = None, salt
         pass
 
     return False
-
-
-def create_access_token(data: dict, expires_in: timedelta):
-    data['experation_date'] = str(datetime.utcnow() + expires_in)
-    return jwt.encode(
-        data, settings['app']['access_token_key'], algorithm='HS256')
-
-
-def get_user_from_access_token(token: str = Depends(oauth2_scheme)):
-    decoded = jwt.decode(
-        token, settings['app']['access_token_key'], algorithms=['HS256'])
-    try:
-        return get_user_by_id(decoded['user_id'])
-    except NoResultFound:
-        raise invalid_credentials_exception
