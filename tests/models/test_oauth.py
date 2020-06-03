@@ -27,7 +27,7 @@ def test_oauth_client_cascades(db_session):
     agent = Agent(
         name='test',
         oauth_client=OAuthClient(
-            client_type='confidential',
+            type='confidential',
             tokens=[
                 OAuthAccessToken(
                     expiry_date=datetime.datetime.now(datetime.timezone.utc)
@@ -55,15 +55,15 @@ def test_oauth_client_cascades(db_session):
 def test_get_client_by_creds(db_session):
     agent = Agent(
         name='test',
-        oauth_client=OAuthClient(client_type='confidential')
+        oauth_client=OAuthClient(type='confidential')
     )
     db_session.add(agent)
     db_session.flush()
     agent_id = agent.id
-    client_secret = agent.oauth_client.client_secret
+    secret = agent.oauth_client.secret
     db_session.commit()
 
-    client = get_client_by_creds(db_session, agent_id, client_secret)
+    client = get_client_by_creds(db_session, agent_id, secret)
     assert client.agent_id == agent_id
 
 

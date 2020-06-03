@@ -6,7 +6,7 @@ def test_agent_cascades(db_session):
     agent = Agent(
         name='test',
         oauth_client=OAuthClient(
-            client_type='confidential'
+            type='confidential'
         )
     )
     db_session.add(agent)

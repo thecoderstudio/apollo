@@ -13,7 +13,7 @@ router = APIRouter()
 def post_agent(agent_data: CreateAgentSchema,
                session: Session = Depends(get_session)):
     agent, _ = save(session, Agent(
-        oauth_client=OAuthClient(client_type='confidential'),
+        oauth_client=OAuthClient(type='confidential'),
         **dict(agent_data)
     ))
     return agent

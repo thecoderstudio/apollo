@@ -27,8 +27,8 @@ def upgrade():
     op.create_table(
         'oauth_client',
         sa.Column('agent_id', UUID(as_uuid=True), primary_key=True),
-        sa.Column('client_secret', sa.String(length=64), nullable=False),
-        sa.Column('client_type', sa.Enum('confidential', name='client_type'),
+        sa.Column('secret', sa.String(length=64), nullable=False),
+        sa.Column('type', sa.Enum('confidential', name='type'),
                   nullable=False),
         sa.Column('active', sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(['agent_id'], ['agent.id'], )

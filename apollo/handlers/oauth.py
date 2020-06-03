@@ -26,7 +26,7 @@ def post_access_token(
 ):
     client = get_client(session, authorization)
     if (token_data.grant_type == 'client_credentials' and
-            client.client_type != 'confidential'):
+            client.type != 'confidential'):
         raise HTTPException(
             status_code=400,
             detail="Client not authorized to use this grant type"

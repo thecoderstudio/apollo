@@ -17,9 +17,9 @@ class OAuthClient(Base):
 
     agent_id = Column(UUID(as_uuid=True), ForeignKey('agent.id'),
                       primary_key=True)
-    client_secret = Column(String(64), nullable=False,
+    secret = Column(String(64), nullable=False,
                            default=lambda: token_hex(32))
-    client_type = Column(Enum("confidential", name="client_type"),
+    type = Column(Enum("confidential", name="type"),
                          nullable=False)
     active = Column(Boolean, default=True, nullable=False)
 
@@ -53,7 +53,7 @@ class OAuthAccessToken(Base):
         return self.expires_in == 0
 
 
-def get_client_by_creds(session, agent_id, client_secret):
+def get_client_by_creds(session, agent_id, secret):
     return session.query(OAuthClient).filter(
         OAuthClient.agent_id == agent_id,
-        OAuthClient.client_secret == client_secret).one()
+        OAuthClient.secret == secret).one()

@@ -52,7 +52,7 @@ def test_post_access_token_client_not_authorized(mocker, test_client,
                                                  db_session):
     encoded_creds = get_encoded_creds(*persist_test_agent(db_session))
     mocked = mocker.patch('apollo.handlers.oauth.get_client')
-    mocked.client_type = 'test'
+    mocked.type = 'test'
     response = test_client.post(
         '/oauth/token',
         headers={
@@ -124,19 +124,19 @@ def test_post_access_token_no_client_found(test_client, db_session):
 def persist_test_agent(db_session):
     agent = Agent(
         name='test',
-        oauth_client=OAuthClient(client_type='confidential')
+        oauth_client=OAuthClient(type='confidential')
     )
     db_session.add(agent)
     db_session.flush()
 
     agent_id = agent.id
-    client_secret = agent.oauth_client.client_secret
+    secret = agent.oauth_client.secret
 
     db_session.commit()
 
-    return agent_id, client_secret
+    return agent_id, secret
 
 
-def get_encoded_creds(agent_id, client_secret):
-    creds = f"{agent_id}:{client_secret}"
+def get_encoded_creds(agent_id, secret):
+    creds = f"{agent_id}:{secret}"
     return base64.b64encode(creds.encode('utf-8')).decode('utf-8')

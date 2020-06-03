@@ -9,8 +9,8 @@ def test_post_agent_success(test_client, db_session):
     assert response.status_code == 201
     assert agent['id'] is not None
     assert oauth_client['agent_id'] is not None
-    assert oauth_client['client_secret'] is not None
-    assert oauth_client['client_type'] == 'confidential'
+    assert oauth_client['secret'] is not None
+    assert oauth_client['type'] == 'confidential'
 
 
 def test_post_agent_name_exists(test_client, db_session):

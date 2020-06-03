@@ -26,5 +26,5 @@ class OAuthClientType(str, Enum):
 
 class OAuthClientSchema(ORMBase):
     agent_id: uuid.UUID
-    client_secret: str
-    client_type: OAuthClientType
+    secret: str
+    type: OAuthClientType
