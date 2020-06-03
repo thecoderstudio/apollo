@@ -1,6 +1,6 @@
 import datetime
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -20,6 +20,7 @@ router = APIRouter()
              response_model=OAuthAccessTokenSchema)
 def post_access_token(
     token_data: CreateOAuthAccessTokenSchema,
+    response: Response,
     session: Session = Depends(get_session),
     authorization: str = Header(None)
 ):
@@ -38,6 +39,10 @@ def post_access_token(
     )
 
     save(session, token)
+
+    response.headers['cache-control'] = 'no-store'
+    response.headers['pragma'] = 'no-cache'
+
     return token
 
 

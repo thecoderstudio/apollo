@@ -20,6 +20,9 @@ def test_post_access_token_success(test_client, db_session):
     body = response.json()
 
     assert response.status_code == 201
+    assert response.headers['cache-control'] == 'no-store'
+    assert response.headers['pragma'] == 'no-cache'
+
     assert body['token_type'] == 'Bearer'
     assert 'access_token' in body
     assert 'expires_in' in body
