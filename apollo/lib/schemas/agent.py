@@ -8,6 +8,7 @@ class CreateAgentSchema(BaseModel):
     name: constr(min_length=1, max_length=100, strip_whitespace=True)
 
     @validator('name')
+    @classmethod
     @with_db_session
     def name_must_not_exist(cls, name, **kwargs):
         session = kwargs['session']

@@ -76,7 +76,7 @@ def test_save_success(db_session):
 
 def test_save_no_id(mocker, db_session):
     mocker.patch('apollo.models.persist', return_value=Mock(spec=[]))
-    agent_copy, agent_id = save(db_session, Agent(name='test'))
+    _, agent_id = save(db_session, Agent(name='test'))
     assert agent_id is None
 
 
