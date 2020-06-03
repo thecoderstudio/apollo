@@ -24,6 +24,9 @@ def test_post_access_token_success(test_client, db_session):
         '/oauth/token',
         headers={
             'Authorization': f"Basic {encoded_creds}"
+        },
+        json={
+            'grant_type': 'client_credentials'
         }
     )
     body = response.json()
@@ -35,7 +38,9 @@ def test_post_access_token_success(test_client, db_session):
 
 
 def test_post_access_token_no_auth_header(test_client, db_session):
-    response = test_client.post('/oauth/token')
+    response = test_client.post('/oauth/token', json={
+        'grant_type': 'client_credentials'
+    })
 
     assert response.status_code == 400
     assert response.json() == {'detail': "No authorization header found"}

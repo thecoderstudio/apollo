@@ -18,7 +18,7 @@ services:
     stdin_open: true
     entrypoint: "/bin/bash"
     command: >
-      -c "../util/wait-for-it.sh db:5432 &&
+      -c "../util/wait-for-it.sh db-test:5432 &&
       alembic -c test.ini upgrade heads &&
       coverage run --source apollo -m pytest &&
       coverage report -m &&

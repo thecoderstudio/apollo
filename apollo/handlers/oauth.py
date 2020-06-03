@@ -9,7 +9,7 @@ from apollo.lib.exceptions.oauth import (
     InvalidAuthorizationHeader)
 from apollo.lib.schemas.oauth import (
     CreateOAuthAccessTokenSchema, OAuthAccessTokenSchema)
-from apollo.lib.security import extract_client_authorization
+from apollo.lib.security import parse_authorization_header
 from apollo.models import get_session, save
 from apollo.models.oauth import get_client_by_creds, OAuthAccessToken
 
@@ -43,7 +43,7 @@ def post_access_token(
 
 def get_client(session: Session, authorization: str):
     try:
-        credentials = extract_client_authorization(authorization)
+        credentials = parse_authorization_header(authorization)
         return get_client_by_creds(session, **credentials)
     except NoResultFound:
         raise HTTPException(status_code=400,

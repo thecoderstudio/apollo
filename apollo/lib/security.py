@@ -5,7 +5,7 @@ from apollo.lib.exceptions.oauth import (
     InvalidAuthorizationHeader)
 
 
-def extract_client_authorization(authorization: str):
+def parse_authorization_header(authorization: str):
     try:
         auth_method, encoded_string = authorization.split(' ')
     except (AttributeError, ValueError):
