@@ -24,7 +24,7 @@ def post_access_token(
     session: Session = Depends(get_session),
     authorization: str = Header(None)
 ):
-    client = get_client(session, authorization)
+    client = _get_client(session, authorization)
     if (token_data.grant_type == 'client_credentials' and
             client.type != 'confidential'):
         raise HTTPException(
@@ -46,7 +46,7 @@ def post_access_token(
     return token
 
 
-def get_client(session: Session, authorization: str):
+def _get_client(session: Session, authorization: str):
     try:
         credentials = parse_authorization_header(authorization)
         return get_client_by_creds(session, **credentials)
