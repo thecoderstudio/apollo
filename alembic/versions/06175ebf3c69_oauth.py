@@ -26,9 +26,7 @@ def upgrade():
 
     op.create_table(
         'oauth_client',
-        sa.Column('id', UUID(as_uuid=True), primary_key=True),
-        sa.Column('agent_id', UUID(as_uuid=True), unique=True,
-                  nullable=False),
+        sa.Column('agent_id', UUID(as_uuid=True), primary_key=True),
         sa.Column('client_secret', sa.String(length=64), nullable=False),
         sa.Column('client_type', sa.Enum('confidential', name='client_type'),
                   nullable=False),
@@ -45,7 +43,7 @@ def upgrade():
         sa.Column('token_type', sa.Enum('Bearer', name='token_type'),
                   nullable=False),
         sa.Column('expiry_date', sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(['client_id'], ['oauth_client.id'], ),
+        sa.ForeignKeyConstraint(['client_id'], ['oauth_client.agent_id'], ),
     )
 
 

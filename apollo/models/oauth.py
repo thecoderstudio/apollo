@@ -15,9 +15,8 @@ log = logging.getLogger(__name__)
 class OAuthClient(Base):
     __tablename__ = 'oauth_client'
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     agent_id = Column(UUID(as_uuid=True), ForeignKey('agent.id'),
-                      unique=True, nullable=False)
+                      primary_key=True)
     client_secret = Column(String(64), nullable=False,
                            default=lambda: token_hex(32))
     client_type = Column(Enum("confidential", name="client_type"),
@@ -29,7 +28,7 @@ class OAuthAccessToken(Base):
     __tablename__ = 'oauth_access_token'
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    client_id = Column(UUID(as_uuid=True), ForeignKey('oauth_client.id'),
+    client_id = Column(UUID(as_uuid=True), ForeignKey('oauth_client.agent_id'),
                        nullable=False)
     access_token = Column(String(64), unique=True, nullable=False,
                           default=lambda: token_hex(32))
