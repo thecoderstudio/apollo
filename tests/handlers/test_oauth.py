@@ -1,4 +1,6 @@
 import base64
+import uuid
+from secrets import token_hex
 
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
@@ -92,9 +94,28 @@ def test_post_access_token_invalid_auth_header(test_client):
         }
     )
 
-    print(response.json())
     assert response.status_code == 400
     assert "Invalid authorization header" in response.json()['detail']
+
+
+def test_post_access_token_no_client_found(test_client, db_session):
+    fake_creds = base64.b64encode(
+        f"{uuid.uuid4()}:{token_hex(32)}".encode('utf-8')
+    ).decode('utf-8')
+    response = test_client.post(
+        '/oauth/token',
+        headers={
+            'Authorization': f"Basic {fake_creds}"
+        },
+        json={
+            'grant_type': 'client_credentials'
+        }
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        'detail': "No client found for given client_id"
+    }
 
 
 def persist_test_agent(db_session):
