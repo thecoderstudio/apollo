@@ -6,14 +6,14 @@ Create Date: 2020-05-28 09:19:09.104527
 
 """
 import logging
-import random
+import secrets
 import string
 import uuid
 
 from alembic import op
 import sqlalchemy as sa
 
-from apollo.lib.encrypt import hash_plaintext
+from apollo.lib.hash import hash_plaintext
 from apollo.lib.types.uuid import UUID
 
 log = logging.getLogger(__name__)
@@ -43,9 +43,8 @@ def downgrade():
 
 
 def randompassword():
-    chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
-    size = random.randint(8, 12)
-    return ''.join(random.choice(chars) for x in range(size))
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for i in range(12))
 
 
 def add_user(user_table):

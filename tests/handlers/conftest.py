@@ -46,7 +46,7 @@ def database():
 
     Base.metadata.create_all()
 
-    user = User( # noqa B106
+    user = User(
         username="johndoe",
         password_hash='$2b$12$q2ro/WdYipnZxYbPcjWgvuYB4aBI/JVYtPyroXs4SvvcS77p9Mwu2',
         password_salt='$2b$12$q2ro/WdYipnZxYbPcjWgvu'

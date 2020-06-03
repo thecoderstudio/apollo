@@ -1,9 +1,4 @@
 import bcrypt
-from datetime import timedelta, datetime
-
-from sqlalchemy.orm.exc import NoResultFound
-
-from apollo.lib.settings import settings
 
 
 def hash_plaintext(plaintext: str):
