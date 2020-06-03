@@ -17,7 +17,6 @@ Base.metadata.bind = engine
 
 def get_test_session():
     session = TestSession()
-    print("test session")
     try:
         yield session
     finally:
@@ -37,9 +36,8 @@ def token(monkeypatch, test_client):
     )
     return response.json()['access_token']
 
-@fixture(autouse=True)
+@fixture(scope='session', autouse=True)
 def database(monkeypatch):
-    monkeypatch.setattr('apollo.models.get_session', get_test_session)
     if not database_exists(engine.url):
         create_database(engine.url)
     
