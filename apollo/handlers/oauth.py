@@ -22,7 +22,9 @@ def post_access_token(
     token_data: CreateOAuthAccessTokenSchema,
     response: Response,
     session: Session = Depends(get_session),
-    authorization: str = Header(None)
+    authorization: str = Header(
+        None, description="Basic base64(<agent_id>:<secret>)"
+    )
 ):
     client = _get_client(session, authorization)
     if (token_data.grant_type == 'client_credentials' and
