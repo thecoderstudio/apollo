@@ -13,7 +13,7 @@ Base = declarative_base()
 log = logging.getLogger(__name__)
 
 
-def init_sqlalchemy(settings_=settings):  # noqa W0102
+def init_sqlalchemy(settings_=settings):
     engine = create_engine(get_connection_url(settings_))
     SessionLocal.configure(bind=engine)
     Base.metadata.bind = engine

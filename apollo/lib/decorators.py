@@ -11,5 +11,4 @@ def with_db_session(func):
             return func(session=session, *args, **kwargs)
         finally:
             session.close()
-
     return wrapped
