@@ -37,7 +37,7 @@ def token(monkeypatch, test_client):
     return response.json()['access_token']
 
 @fixture(scope='session', autouse=True)
-def database(monkeypatch):
+def database():
     if not database_exists(engine.url):
         create_database(engine.url)
     
