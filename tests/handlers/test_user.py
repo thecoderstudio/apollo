@@ -19,4 +19,3 @@ def test_post_user_unsuccessful(test_client, database, token):
     )
 
     assert response.status_code == 422
-    

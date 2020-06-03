@@ -2,14 +2,14 @@ import uuid
 import string
 
 from typing import Optional
-from pydantic import Field, Schema, validator, constr
+from pydantic import Field, Schema, validator, constr, BaseModel
 from sqlalchemy.orm.exc import NoResultFound
 
 from apollo.lib.schemas import ORMSchema
 from apollo.models.user import get_user_by_username
 
 
-class UserInSchema(ORMSchema):
+class UserInSchema(BaseModel):
     username: str
     password: constr(min_length=8)
 

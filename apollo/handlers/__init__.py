@@ -1,7 +1,6 @@
 import logging 
 
 from fastapi import HTTPException
-from sqlalchemy.exc import IntegrityError
 
 from apollo.models import save as save_object
 

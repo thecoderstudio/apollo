@@ -5,4 +5,3 @@ def test_post_user_successful(test_client):
     )
 
     assert response.status_code == 200
-    
