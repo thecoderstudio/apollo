@@ -51,7 +51,7 @@ class OAuthAccessToken(Base):
         return self.expires_in == 0
 
 
-def get_client(session, agent_id, client_secret):
+def get_client_by_creds(session, agent_id, client_secret):
     return session.query(OAuthClient).filter(
         OAuthClient.agent_id == agent_id,
         OAuthClient.client_secret == client_secret).one()
