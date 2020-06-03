@@ -51,7 +51,7 @@ def test_post_access_token_invalid_grant_type(test_client):
 def test_post_access_token_client_not_authorized(mocker, test_client,
                                                  db_session):
     encoded_creds = get_encoded_creds(*persist_test_agent(db_session))
-    mocked = mocker.patch('apollo.handlers.oauth.get_client')
+    mocked = mocker.patch('apollo.handlers.oauth._get_client')
     mocked.type = 'test'
     response = test_client.post(
         '/oauth/token',
