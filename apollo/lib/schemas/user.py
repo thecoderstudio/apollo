@@ -1,6 +1,6 @@
 import uuid
 
-from pydantic import Schema, validator, constr, BaseModel
+from pydantic import validator, constr, BaseModel
 from sqlalchemy.orm.exc import NoResultFound
 
 from apollo.lib.decorators import with_db_session
@@ -21,8 +21,8 @@ class UserInSchema(BaseModel):
             raise ValueError('username must be unique')
         except NoResultFound:
             return value
-        
-    
+
+
 class UserOutSchema(ORMBase):
     id: uuid.UUID
     username: str

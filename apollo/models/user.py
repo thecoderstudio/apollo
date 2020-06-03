@@ -3,8 +3,7 @@ import uuid
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
 
-from apollo.models import Base, get_session
-
+from apollo.models import Base
 
 class User(Base):
     __tablename__ = 'user'
