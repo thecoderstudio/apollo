@@ -16,5 +16,5 @@ async def post_user(user_data: UserInSchema, session: Session = Depends(get_sess
         user_data.password)
     data.pop('password')
 
-    user = save(session, User(**data))
+    user, _ = save(session, User(**data))
     return UserOutSchema.from_orm(user)
