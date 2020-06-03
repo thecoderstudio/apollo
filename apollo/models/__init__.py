@@ -26,7 +26,7 @@ def get_connection_url(settings_):
 
 
 def get_session():
-    print("real session")
+    print("real session --" * 100)
     session = SessionLocal()
     try:
         yield session

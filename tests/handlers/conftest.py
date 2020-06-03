@@ -53,5 +53,4 @@ def database(monkeypatch):
     save(user)
 
     yield
-    engine.dispose()
     Base.metadata.drop_all(engine)
