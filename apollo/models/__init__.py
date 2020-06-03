@@ -26,6 +26,7 @@ def get_connection_url(settings_):
 
 
 def get_session():
+    print("real session")
     session = SessionLocal()
     try:
         yield session
@@ -51,10 +52,11 @@ def rollback(session):
 
 
 def save(obj):
+    session = list(get_session())[0]
     try:
-        session = SessionLocal()
         obj = persist(obj, session)
         obj_copy = copy.copy(obj)
+        commit(session)
     except Exception as e:
         log.critical(
             'Something went wrong saving the {}'.format(
@@ -63,7 +65,6 @@ def save(obj):
         rollback(session)
         raise e
     finally:
-        commit(session)
         session.close()
 
     return obj_copy
