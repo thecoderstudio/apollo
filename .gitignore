@@ -62,3 +62,4 @@ venv.bak/
 
 *.ini
 !*.ini.dist
+!test.ini

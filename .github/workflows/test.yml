@@ -23,9 +23,7 @@ jobs:
           pip3 install -e .[tests]
 
       - name: Test with pytest
-        run: |
-          python3 -m coverage run --source apollo -m pytest
-          python3 -m coverage xml
+        run: docker-compose -f test-compose.yml up --exit-code-from apollo-test apollo-test
 
       - name: Upload coverage report
         env:
