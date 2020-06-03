@@ -1,6 +1,10 @@
+import uuid
+
 from pydantic import BaseModel, constr, validator
 
 from apollo.lib.decorators import with_db_session
+from apollo.lib.schemas import ORMBase
+from apollo.lib.schemas.oauth import OAuthClientSchema
 from apollo.models.agent import get_agent_by_name
 
 
@@ -16,3 +20,9 @@ class CreateAgentSchema(BaseModel):
             return name
 
         raise ValueError("An agent with the given name already exists")
+
+
+class AgentSchema(ORMBase):
+    id: uuid.UUID
+    name: str
+    oauth_client: OAuthClientSchema
