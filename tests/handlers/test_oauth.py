@@ -5,21 +5,7 @@ from apollo.models.oauth import OAuthClient
 
 
 def test_post_access_token_success(test_client, db_session):
-    agent = Agent(
-        name='test',
-        oauth_client=OAuthClient(client_type='confidential')
-    )
-    db_session.add(agent)
-    db_session.flush()
-
-    agent_id = agent.id
-    client_secret = agent.oauth_client.client_secret
-
-    db_session.commit()
-
-    creds = f"{agent_id}:{client_secret}"
-    encoded_creds = base64.b64encode(creds.encode('utf-8')).decode('utf-8')
-
+    encoded_creds = get_encoded_creds(*persist_test_agent(db_session))
     response = test_client.post(
         '/oauth/token',
         headers={
@@ -44,3 +30,56 @@ def test_post_access_token_no_auth_header(test_client, db_session):
 
     assert response.status_code == 400
     assert response.json() == {'detail': "No authorization header found"}
+
+
+def test_post_access_token_invalid_grant_type(test_client):
+    response = test_client.post(
+        '/oauth/token',
+        json={
+            'grant_type': 'test'
+        }
+    )
+
+    assert response.status_code == 422
+
+
+def test_post_acces_token_client_not_authorized(mocker, test_client,
+                                                db_session):
+    encoded_creds = get_encoded_creds(*persist_test_agent(db_session))
+    mocked = mocker.patch('apollo.handlers.oauth.get_client')
+    mocked.client_type = 'test'
+    response = test_client.post(
+        '/oauth/token',
+        headers={
+            'Authorization': f"Basic {encoded_creds}"
+        },
+        json={
+            'grant_type': 'client_credentials'
+        }
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        'detail': "Client not authorized to use this grant type"
+    }
+
+
+def persist_test_agent(db_session):
+    agent = Agent(
+        name='test',
+        oauth_client=OAuthClient(client_type='confidential')
+    )
+    db_session.add(agent)
+    db_session.flush()
+
+    agent_id = agent.id
+    client_secret = agent.oauth_client.client_secret
+
+    db_session.commit()
+
+    return agent_id, client_secret
+
+
+def get_encoded_creds(agent_id, client_secret):
+    creds = f"{agent_id}:{client_secret}"
+    return base64.b64encode(creds.encode('utf-8')).decode('utf-8')
