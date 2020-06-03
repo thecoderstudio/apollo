@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+import pytest
 
-from apollo import configure, app, read_settings_files
+from apollo import configure, main, read_settings_files
+from tests import async_mock
 
 
 class ConfigParserMock:
@@ -11,6 +12,17 @@ class ConfigParserMock:
     @staticmethod
     def read(filename):
         return filename
+
+
+
+@pytest.mark.asyncio
+async def test_main(mocker):
+    configure_mock = mocker.patch('apollo.configure')
+    mocker.patch('apollo.app', new=async_mock)
+
+    await main()
+
+    configure_mock.assert_called_once()
 
 
 def test_configure(mocker):

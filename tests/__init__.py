@@ -28,3 +28,7 @@ def init_test_database():
     update_settings(config)
 
 init_test_database()
+
+async def async_mock():
+    pass
+

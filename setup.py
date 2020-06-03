@@ -20,6 +20,7 @@ test_requires = [
     'coverage',
     'pyjwt',
     'pytest',
+    'pytest-asyncio',
     'pytest-mock',
     'requests',
     'sqlalchemy_utils'
