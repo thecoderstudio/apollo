@@ -14,7 +14,6 @@ class ConfigParserMock:
         return filename
 
 
-
 @pytest.mark.asyncio
 async def test_main(mocker):
     configure_mock = mocker.patch('apollo.configure')
