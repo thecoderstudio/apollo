@@ -3,7 +3,7 @@ import uuid
 from pydantic import Schema, validator, constr, BaseModel
 from sqlalchemy.orm.exc import NoResultFound
 
-from apollo.lib.schemas import ORMSchema
+from apollo.lib.schemas import ORMBase
 from apollo.models.user import get_user_by_username
 
 
@@ -21,6 +21,6 @@ class UserInSchema(BaseModel):
             return value
         
     
-class UserOutSchema(ORMSchema):
+class UserOutSchema(ORMBase):
     id: uuid.UUID
     username: str

@@ -12,9 +12,11 @@ log = logging.getLogger(__name__)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False)
 Base = declarative_base()
 
+log = logging.getLogger(__name__)
 
-def init_sqlalchemy():
-    engine = create_engine(get_connection_url(settings))
+
+def init_sqlalchemy(settings_=settings):
+    engine = create_engine(get_connection_url(settings_))
     SessionLocal.configure(bind=engine)
     Base.metadata.bind = engine
 
@@ -33,12 +35,7 @@ def get_session():
         session.close()
 
 
-def commit(session):
-    log.info("Committing session: %r", session.dirty)
-    session.commit()
-
-
-def persist(obj, session):
+def persist(session, obj):
     log.debug("persisting object %r", obj)
     session.add(obj)
     session.flush()
@@ -50,12 +47,21 @@ def rollback(session):
     return session.rollback()
 
 
-def save(obj):
-    session = list(get_session())[0]
+def commit(session):
+    log.debug("Committing session: %r", session.dirty)
+    session.commit()
+
+
+def save(session, obj):
     try:
-        obj = persist(obj, session)
+        obj = persist(session, obj)
+        try:
+            id_ = obj.id
+        except AttributeError:
+            id_ = None
+        # Shallow copy to be able to return generated data without having
+        # to request the object again to get it in session.
         obj_copy = copy.copy(obj)
-        commit(session)
     except Exception as e:
         log.critical(
             'Something went wrong saving the {}'.format(
@@ -64,6 +70,6 @@ def save(obj):
         rollback(session)
         raise e
     finally:
-        session.close()
+        commit(session)
 
-    return obj_copy
+    return obj_copy, id_

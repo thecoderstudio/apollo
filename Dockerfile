@@ -6,7 +6,7 @@ RUN useradd -g apollo apollo
 COPY . /home/apollo/apollo
 WORKDIR /home/apollo
 
-RUN pip install -e apollo[dev]
+RUN pip install -e apollo[dev,tests]
 
 # Download wait-for-it to allow waiting for dependency containers
 RUN mkdir util
