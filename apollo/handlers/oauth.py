@@ -22,11 +22,13 @@ def post_access_token(
     token_data: CreateOAuthAccessTokenSchema,
     response: Response,
     session: Session = Depends(get_session),
-    authorization: str = Header(None)
+    authorization: str = Header(
+        None, description="Basic base64(<agent_id>:<secret>)"
+    )
 ):
-    client = get_client(session, authorization)
+    client = _get_client(session, authorization)
     if (token_data.grant_type == 'client_credentials' and
-            client.client_type != 'confidential'):
+            client.type != 'confidential'):
         raise HTTPException(
             status_code=400,
             detail="Client not authorized to use this grant type"
@@ -46,7 +48,7 @@ def post_access_token(
     return token
 
 
-def get_client(session: Session, authorization: str):
+def _get_client(session: Session, authorization: str):
     try:
         credentials = parse_authorization_header(authorization)
         return get_client_by_creds(session, **credentials)

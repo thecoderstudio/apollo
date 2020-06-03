@@ -1,3 +1,4 @@
+import uuid
 from enum import Enum
 
 from pydantic import BaseModel
@@ -17,3 +18,13 @@ class OAuthAccessTokenSchema(ORMBase):
 
 class CreateOAuthAccessTokenSchema(BaseModel):
     grant_type: GrantType
+
+
+class OAuthClientType(str, Enum):
+    confidential = 'confidential'
+
+
+class OAuthClientSchema(ORMBase):
+    agent_id: uuid.UUID
+    secret: str
+    type: OAuthClientType

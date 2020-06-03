@@ -10,17 +10,17 @@ from apollo.lib.exceptions.oauth import (
 from apollo.lib.security import parse_authorization_header
 
 agent_id = str(uuid.uuid4())
-client_secret = token_hex(32)
+secret = token_hex(32)
 
 
 def test_parse_valid_authorization_header():
     authorization = build_credentials_str(
         'Basic',
-        f"{agent_id}:{client_secret}"
+        f"{agent_id}:{secret}"
     )
     parsed = parse_authorization_header(authorization)
     assert agent_id == parsed['agent_id']
-    assert client_secret == parsed['client_secret']
+    assert secret == parsed['secret']
 
 
 def test_parse_missing_authorization_header():
@@ -31,7 +31,7 @@ def test_parse_missing_authorization_header():
 def test_parse_authorization_header_wrong_method():
     authorization = build_credentials_str(
         'Bearer',
-        f"{agent_id}:{client_secret}"
+        f"{agent_id}:{secret}"
     )
     with pytest.raises(InvalidAuthorizationMethod):
         parse_authorization_header(authorization)

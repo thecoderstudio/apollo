@@ -15,12 +15,12 @@ def parse_authorization_header(authorization: str):
         raise InvalidAuthorizationMethod('Basic')
     decoded_header = base64.b64decode(encoded_string).decode('utf-8')
     try:
-        agent_id, client_secret = decoded_header.split(':')
+        agent_id, secret = decoded_header.split(':')
     except ValueError:
         raise InvalidAuthorizationHeader(
-            "<Method> base64(<agent_id>:<client_secret>)"
+            "<Method> base64(<agent_id>:<secret>)"
         )
     return {
         'agent_id': agent_id,
-        'client_secret': client_secret
+        'secret': secret
     }
