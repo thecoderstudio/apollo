@@ -1,8 +1,8 @@
 from fastapi import WebSocket
 
-from apollo.lib.router import Router
+from apollo.lib.router import SecureRouter
 
-router = Router()
+router = SecureRouter()
 
 
 @router.websocket_('/ws')

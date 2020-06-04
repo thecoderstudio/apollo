@@ -1,8 +1,55 @@
 import base64
 
+from fastapi import HTTPException
+
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
+
+Everyone = 'Everyone'
+Allow = 'Allow'
+Deny = 'Deny'
+
+
+class AuthorizationPolicy:
+    def __init__(self, acl_provider):
+        self.acl_provider = acl_provider
+
+    @staticmethod
+    def get_principals():
+        return (Everyone,)
+
+    def get_complete_acl(self, context_acl_provider=None):
+        acl = self.acl_provider.__acl__()
+        if context_acl_provider:
+            acl += context_acl_provider.__acl__()
+        return acl
+
+    def check_permission(self, requested_permission,
+                         context_acl_provider=None):
+        principals = self.get_principals()
+
+        for action, principal, permission in self.get_complete_acl():
+            if (permission != requested_permission or
+                    principal not in principals):
+                continue
+
+            if action is Allow:
+                return True
+            elif action is Deny:
+                return False
+            else:
+                # TODO customer exception
+                raise ValueError("Invalid action in ACL")
+
+        return False
+
+    def validate_permission(self, requested_permission,
+                            context_acl_provider=None):
+        if self.check_permission(requested_permission, context_acl_provider):
+            return
+
+        raise HTTPException(status_code=403, detail="Permission denied.")
 
 
 def parse_authorization_header(authorization: str):
