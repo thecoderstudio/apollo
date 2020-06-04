@@ -26,8 +26,9 @@ def add_admin_user(session):
          User(username='admin', password_hash=password_hash,
               password_salt=password_salt))
 
-    print("--- Welcome to apollo. ---\n\nYour admin username is 'admin'."
-          + f"\nyour password is '{password}'\n")
+    print("--- Welcome to apollo. ---\n\n
+          + "Your admin username is 'admin'.\n"
+          + f"your password is '{password}'\n")
 
 
 @with_db_session

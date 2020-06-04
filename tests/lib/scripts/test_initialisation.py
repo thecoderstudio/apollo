@@ -23,4 +23,5 @@ def test_random_password():
 def test_add_admin_user(db_session):
     add_admin_user(db_session)
 
-    assert get_user_by_username('admin') is not None
+    assert get_user_by_username(
+        session=db_session, username='admin') is not None
