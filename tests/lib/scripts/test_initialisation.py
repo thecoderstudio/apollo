@@ -1,5 +1,4 @@
-from apollo.lib.scripts.initialisation import (random_password,
-                                               add_admin_user,
+from apollo.lib.scripts.initialisation import (add_admin_user,
                                                initialise_if_needed)
 from apollo.models.user import get_user_by_username
 
