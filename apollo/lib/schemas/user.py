@@ -1,7 +1,6 @@
 import uuid
 
 from pydantic import validator, constr, BaseModel
-from sqlalchemy.orm.exc import NoResultFound
 
 from apollo.lib.decorators import with_db_session
 from apollo.lib.schemas import ORMBase
@@ -24,4 +23,4 @@ class CreateUserSchema(BaseModel):
 
 class UserSchema(ORMBase):
     id: uuid.UUID
-    username: str
+    username: constr(min_length=1, max_length=36, strip_whitespace=True)

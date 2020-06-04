@@ -3,7 +3,7 @@ from secrets import choice
 
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.decorators import with_db_session
-from apollo.models import save, init_sqlalchemy
+from apollo.models import save
 from apollo.models.user import User, count_users
 
 

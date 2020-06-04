@@ -6,13 +6,10 @@ Create Date: 2020-05-28 09:19:09.104527
 
 """
 import logging
-import uuid
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects.postgresql import UUID
-
-from apollo.lib.hash import hash_plaintext
 
 
 log = logging.getLogger(__name__)

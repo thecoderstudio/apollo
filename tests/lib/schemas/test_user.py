@@ -1,3 +1,4 @@
+import uuid
 import pytest
 from pydantic import ValidationError
 
@@ -6,7 +7,7 @@ from apollo.models.user import User
 
 
 def test_create_user_valid(db_session):
-    user = CreateUserSchema(username="username ", password="password")
+    user = CreateUserSchema(username='username ', password='testpassword')
 
     assert user.username == 'username'
     assert user.password == 'password'
@@ -22,19 +23,33 @@ def test_create_user_username_exists(db_session):
 
 def test_create_user_invalid_password(db_session):
     with pytest.raises(ValidationError, match='at least 8 characters'):
-        CreateUserSchema(username="johndoe", password="")
+        CreateUserSchema(username='johndoe', password='')
 
 
 def test_create_user_missing_fields(db_session):
     message = 'field required'
     with pytest.raises(ValidationError, match=message):
-        CreateUserSchema(username="johndoe")
+        CreateUserSchema(username='johndoe')
 
     with pytest.raises(ValidationError, match=message):
-        CreateUserSchema(password="password")
+        CreateUserSchema(password='password')
 
 
 def test_create_user_invalid_username(db_session):
     with pytest.raises(ValidationError,
                        match='ensure this value has at least 1 characters'):
-        CreateUserSchema(username=" ", password="password")
+        CreateUserSchema(username=' ', password='testpass')
+
+
+def test_user_valid(db_session):
+    id_ = uuid.uuid4()
+    user = CreateUserSchema(id=id_, username='johndoe')
+
+    assert user.id == id_
+    assert user.username == 'johndoe'
+
+
+def test_user_invalid_username(db_session):
+    with pytest.raises(ValidationError,
+                       match='ensure this value has at least 1 characters'):
+        CreateUserSchema(username=' ', password='password')
