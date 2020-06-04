@@ -3,6 +3,7 @@ import logging
 
 from sqlalchemy.orm.exc import NoResultFound
 
+from apollo.lib.decorators import with_db_session
 from apollo.lib.exceptions import HTTPException
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
@@ -32,7 +33,8 @@ class AuthorizationPolicy:
 
         return principals
 
-    def get_authenticated_access_token(self, headers):
+    @with_db_session
+    def get_authenticated_access_token(self, headers, session):
         try:
             auth_method, token_string = headers['authorization'].split(' ')
         except (KeyError, AttributeError, TypeError):
@@ -42,7 +44,7 @@ class AuthorizationPolicy:
             return
 
         try:
-            access_token = get_access_token_by_token(token_string)
+            access_token = get_access_token_by_token(session, token_string)
         except NoResultFound:
             return
         if not access_token.client.active or access_token.expired:
