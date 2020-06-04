@@ -1,9 +1,11 @@
-from fastapi import APIRouter, WebSocket
+from fastapi import WebSocket
 
-router = APIRouter()
+from apollo.lib.router import Router
+
+router = Router()
 
 
-@router.websocket('/ws')
+@router.websocket_('/ws')
 async def shell(websocket: WebSocket):
     await websocket.accept()
     await websocket.send_json("Connection accepted")
