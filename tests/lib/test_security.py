@@ -7,7 +7,8 @@ import pytest
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
-from apollo.lib.security import parse_authorization_header
+from apollo.lib.security import (Allow, AuthorizationPolicy, Everyone,
+                                 parse_authorization_header)
 
 agent_id = str(uuid.uuid4())
 secret = token_hex(32)
@@ -46,3 +47,40 @@ def test_parse_malformed_authorization_header():
 def build_credentials_str(method, creds):
     encoded_creds = base64.b64encode(creds.encode('utf-8')).decode('utf-8')
     return f"{method} {encoded_creds}"
+
+
+def test_auth_policy_minimal_principals(mocker):
+    policy = AuthorizationPolicy(mocker.MagicMock())
+    principals = policy.get_principals()
+
+    assert principals == (Everyone,)
+
+
+def test_get_complete_acl_no_context_provider(mocker):
+    acl_provider_mock = mocker.MagicMock(
+        __acl__=mocker.MagicMock(return_value=[
+            (Allow, Everyone, 'public')
+        ])
+    )
+    policy = AuthorizationPolicy(acl_provider_mock)
+
+    assert policy.get_complete_acl() == [
+        (Allow, Everyone, 'public')
+    ]
+
+
+def test_get_complete_acl_with_context_provider(mocker):
+    acl_provider_mock = mocker.MagicMock(
+        __acl__=mocker.MagicMock(return_value=[
+            (Allow, Everyone, 'public')
+        ])
+    )
+    context_acl_provider_mock = mocker.MagicMock(
+        __acl__=mocker.MagicMock(return_value=[
+            (Allow, 'test', 'fake')
+        ])
+    )
+    policy = AuthorizationPolicy(acl_provider_mock)
+    acl = policy.get_complete_acl(context_acl_provider_mock)
+
+    assert acl == [(Allow, Everyone, 'public'), (Allow, 'test', 'fake')]
