@@ -7,7 +7,7 @@ from apollo.models import save
 from apollo.models.user import User, count_users
 
 
-def randompassword():
+def random_password():
     alphabet = string.ascii_letters + string.digits
     while True:
         password = ''.join(choice(alphabet) for i in range(12))
@@ -19,7 +19,7 @@ def randompassword():
 
 
 def add_admin_user(session):
-    password = randompassword()
+    password = random_password()
     password_hash, password_salt = hash_plaintext(password)
 
     save(session,
