@@ -12,14 +12,6 @@ def test_initialise_if_needed(mocker, db_session):
     add_admin_user.assert_called_once()
 
 
-def test_random_password():
-    password = random_password()
-    another_password = random_password()
-
-    assert len(password) == 12
-    assert password != random_password
-
-
 def test_add_admin_user(db_session):
     add_admin_user(db_session)
 
