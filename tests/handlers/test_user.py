@@ -15,7 +15,6 @@ def test_post_user_short_password(test_client):
     )
 
     assert response.status_code == 422
-    print(response.json())
     assert response.json()['detail'][0]['msg'] == (
         'ensure this value has at least 8 characters'
     )

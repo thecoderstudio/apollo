@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from apollo.handlers import agent, oauth, root, websocket, user
 from apollo.lib.settings import update_settings
+from apollo.lib.scripts.initialisation import initialise_if_needed
 from apollo.models import init_sqlalchemy
 
 app = FastAPI()
@@ -17,6 +18,7 @@ app.include_router(websocket.router)
 
 async def main(*args, **kwargs):
     configure()
+    initialise_if_needed()
     return await app(*args, **kwargs)
 
 

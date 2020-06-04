@@ -6,8 +6,6 @@ Create Date: 2020-05-28 09:19:09.104527
 
 """
 import logging
-import secrets
-import string
 import uuid
 
 import sqlalchemy as sa
@@ -36,29 +34,6 @@ def upgrade():
         sa.PrimaryKeyConstraint('id'),
     )
 
-    add_user(user_table)
-
 
 def downgrade():
     op.drop_table('user')
-
-
-def randompassword():
-    alphabet = string.ascii_letters + string.digits
-    return ''.join(secrets.choice(alphabet) for i in range(12))
-
-
-def add_user(user_table):
-    password = randompassword()
-    password_hash, password_salt = hash_plaintext(password)
-
-    user = {
-        'id': uuid.uuid4(),
-        'username': 'admin',
-        'password_hash': password_hash,
-        'password_salt': password_salt
-    }
-
-    op.bulk_insert(user_table, [user])
-
-    print(f'Welcome to apollo. \n Your admin username is: admin. \n your password is: {password}')

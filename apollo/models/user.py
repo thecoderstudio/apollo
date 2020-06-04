@@ -17,3 +17,7 @@ class User(Base):
 
 def get_user_by_username(session, username: str):
     return session.query(User).filter(User.username == username).one_or_none()
+
+
+def count_users(session):
+    return session.query(User).count()
