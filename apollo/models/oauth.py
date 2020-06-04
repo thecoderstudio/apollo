@@ -18,9 +18,9 @@ class OAuthClient(Base):
     agent_id = Column(UUID(as_uuid=True), ForeignKey('agent.id'),
                       primary_key=True)
     secret = Column(String(64), nullable=False,
-                           default=lambda: token_hex(32))
+                    default=lambda: token_hex(32))
     type = Column(Enum("confidential", name="type"),
-                         nullable=False)
+                  nullable=False)
     active = Column(Boolean, default=True, nullable=False)
 
     tokens = relationship('OAuthAccessToken', back_populates='client',
@@ -56,4 +56,11 @@ class OAuthAccessToken(Base):
 def get_client_by_creds(session, agent_id, secret):
     return session.query(OAuthClient).filter(
         OAuthClient.agent_id == agent_id,
-        OAuthClient.secret == secret).one()
+        OAuthClient.secret == secret
+    ).one()
+
+
+def get_access_token_by_token(session, token):
+    return session.query(OAuthAccessToken).filter(
+        OAuthAccessToken.access_token == token
+    ).one()
