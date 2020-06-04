@@ -6,7 +6,7 @@ services:
     build:
       context: .
     ports:
-      - "1972:8000"
+      - "1973:8000"
     volumes:
       - .:/home/apollo/apollo
       - /home/apollo/apollo/apollo.egg-info

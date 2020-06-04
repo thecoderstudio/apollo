@@ -25,7 +25,7 @@ services:
     container_name: apollo-db
     image: postgres:12
     ports:
-      - "1971:5432"
+      - "1972:5432"
     environment:
       - POSTGRES_USER=apollo
       - POSTGRES_PASSWORD=testing123
