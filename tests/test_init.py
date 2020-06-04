@@ -40,4 +40,4 @@ def test_read_settings_files(mocker, settings):
 
     read_settings_files()
 
-    assert settings['test'] == 1
+    assert settings == {'test': 1}

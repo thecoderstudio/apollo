@@ -6,10 +6,6 @@ password = testing123
 script_location = alembic
 sqlalchemy.url = postgres://<username>:<password>@<host>:5432/apollo
 
-[app]
-access_token_experation_in_minutes = 1440
-access_token_key = 
-
 # Logging configuration
 [loggers]
 keys = root,sqlalchemy,alembic

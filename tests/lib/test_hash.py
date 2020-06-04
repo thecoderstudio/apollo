@@ -1,13 +1,35 @@
+import pytest
+
 from apollo.lib.hash import hash_plaintext, compare_plaintext_to_hash
 
-def test_password_hash():
-    password_hash, salt = hash_plaintext('password')
 
-    assert compare_plaintext_to_hash('password', password_hash, salt) == True
-    assert compare_plaintext_to_hash('fakepassword', password_hash, salt) == False
+def test_hash_plaintest():
+    password_hash, _ = hash_plaintext(
+        'password', '$2b$12$50eN8MSIm9KDRpzmGL4JQO'.encode('utf-8'))
 
-def test_hash_no_password():
-    password_hash, salt = hash_plaintext('password')
+    assert password_hash == (
+        '$2b$12$50eN8MSIm9KDRpzmGL4JQO9gGy.2MDAafSOtqu9mZwfkb7jh33j26')
 
-    assert compare_plaintext_to_hash(None, password_hash, salt) == False
+    password_hash, _ = hash_plaintext('password')
 
+    assert password_hash != (
+        '$2b$12$50eN8MSIm9KDRpzmGL4JQO9gGy.2MDAafSOtqu9mZwfkb7jh33j26')
+
+
+def test_compare_plaintext_to_hash():
+    password_hash = (
+        '$2b$12$50eN8MSIm9KDRpzmGL4JQO9gGy.2MDAafSOtqu9mZwfkb7jh33j26'
+    )
+    password_salt = (
+        '$2b$12$50eN8MSIm9KDRpzmGL4JQO'
+    )
+
+    assert compare_plaintext_to_hash(
+        'password', password_hash, password_salt) is True
+    assert compare_plaintext_to_hash(
+        'fakepassword', password_hash, password_salt) is False
+
+
+def test_compare_plaintext_to_hash_no_password():
+    with pytest.raises(AttributeError):
+        compare_plaintext_to_hash(None, 'hash', 'salt')

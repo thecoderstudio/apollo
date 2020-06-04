@@ -8,21 +8,20 @@ from apollo.lib.schemas import ORMBase
 from apollo.models.user import get_user_by_username
 
 
-class UserInSchema(BaseModel):
-    username: str
+class CreateUserSchema(BaseModel):
+    username: constr(min_length=1, max_length=36, strip_whitespace=True)
     password: constr(min_length=8)
 
     @validator('username')
     @classmethod
     @with_db_session
     def name_must_be_unique(cls, value, **kwargs):
-        try:
-            get_user_by_username(kwargs['session'], value)
+        if get_user_by_username(kwargs['session'], value):
             raise ValueError('username must be unique')
-        except NoResultFound:
-            return value
+
+        return value
 
 
-class UserOutSchema(ORMBase):
+class UserSchema(ORMBase):
     id: uuid.UUID
     username: str

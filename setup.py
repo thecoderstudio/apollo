@@ -11,16 +11,15 @@ requires = [
     'fastapi',
     'psycopg2',
     'pydantic',
-    'sqlalchemy',
+    'sqlalchemy'
 ]
 
 test_requires = [
-    'bcrypt',
     'coverage',
     'pytest',
     'pytest-asyncio',
     'pytest-mock',
-    'requests',
+    'requests'
 ]
 
 dev_requires = [

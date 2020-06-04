@@ -5,6 +5,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 from apollo.models import Base
 
+
 class User(Base):
     __tablename__ = 'user'
 
@@ -15,4 +16,4 @@ class User(Base):
 
 
 def get_user_by_username(session, username: str):
-    return session.query(User).filter(User.username == username).one()
+    return session.query(User).filter(User.username == username).one_or_none()
