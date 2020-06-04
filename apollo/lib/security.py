@@ -21,15 +21,18 @@ class AuthorizationPolicy:
 
     def get_complete_acl(self, context_acl_provider=None):
         acl = self.acl_provider.__acl__()
-        if context_acl_provider:
-            acl += context_acl_provider.__acl__()
-        return acl
+        if not context_acl_provider:
+            return acl
+
+        return context_acl_provider.__acl__() + acl
 
     def check_permission(self, requested_permission,
                          context_acl_provider=None):
         principals = self.get_principals()
 
-        for action, principal, permission in self.get_complete_acl():
+        for action, principal, permission in self.get_complete_acl(
+            context_acl_provider
+        ):
             if (permission != requested_permission or
                     principal not in principals):
                 continue
