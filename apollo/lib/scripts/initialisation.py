@@ -1,4 +1,3 @@
-import string
 from secrets import token_urlsafe
 
 from apollo.lib.hash import hash_plaintext
