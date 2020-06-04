@@ -1,10 +1,12 @@
 import base64
+import logging
 
-from fastapi import HTTPException
-
+from apollo.lib.exceptions import HTTPException
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
+
+log = logging.getLogger(__name__)
 
 Everyone = 'Everyone'
 Allow = 'Allow'
@@ -49,7 +51,14 @@ class AuthorizationPolicy:
 
     def validate_permission(self, requested_permission,
                             context_acl_provider=None):
-        if self.check_permission(requested_permission, context_acl_provider):
+        try:
+            allowed = self.check_permission(requested_permission,
+                                            context_acl_provider)
+        except ValueError as e:
+            log.exception(e)
+            allowed = False
+
+        if allowed:
             return
 
         raise HTTPException(status_code=403, detail="Permission denied.")

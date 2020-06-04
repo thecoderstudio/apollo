@@ -3,6 +3,7 @@ import uuid
 from secrets import token_hex
 
 import pytest
+from fastapi import HTTPException
 
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
@@ -144,3 +145,59 @@ def test_check_permission_invalid_acl(mocker):
     # TODO change to custom exception
     with pytest.raises(ValueError):
         policy.check_permission('public')
+
+
+def test_validate_permission_allowed_with_context_provider(mocker):
+    acl_provider_mock = mocker.MagicMock(
+        __acl__=mocker.MagicMock(return_value=[
+            (Deny, Everyone, 'public')
+        ])
+    )
+    context_acl_provider_mock = mocker.MagicMock(
+        __acl__=mocker.MagicMock(return_value=[
+            (Allow, Everyone, 'public')
+        ])
+    )
+    policy = AuthorizationPolicy(acl_provider_mock)
+    policy.validate_permission('public', context_acl_provider_mock)
+
+
+def test_validate_permission_denied_explicit_with_context_provider(mocker):
+    acl_provider_mock = mocker.MagicMock(
+        __acl__=mocker.MagicMock(return_value=[
+            (Allow, Everyone, 'public')
+        ])
+    )
+    context_acl_provider_mock = mocker.MagicMock(
+        __acl__=mocker.MagicMock(return_value=[
+            (Deny, Everyone, 'public')
+        ])
+    )
+    policy = AuthorizationPolicy(acl_provider_mock)
+    with pytest.raises(HTTPException, match="Permission denied."):
+        policy.validate_permission('public', context_acl_provider_mock)
+
+
+def test_validate_permission_denied_implicit(mocker):
+    acl_provider_mock = mocker.MagicMock(
+        __acl__=mocker.MagicMock(return_value=[
+            (Allow, Everyone, 'fake'),
+            (Allow, 'test', 'public')
+        ])
+    )
+    policy = AuthorizationPolicy(acl_provider_mock)
+    with pytest.raises(HTTPException, match="Permission denied."):
+        policy.validate_permission('public')
+
+
+def test_validate_permission_invalid_acl(mocker):
+    acl_provider_mock = mocker.MagicMock(
+        __acl__=mocker.MagicMock(return_value=[
+            ('test', Everyone, 'public')
+        ])
+    )
+    policy = AuthorizationPolicy(acl_provider_mock)
+
+    # TODO change to custom exception
+    with pytest.raises(HTTPException, match="Permission denied."):
+        policy.validate_permission('public')
