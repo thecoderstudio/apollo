@@ -1,6 +1,6 @@
 from functools import wraps
 
-from fastapi import APIRouter, WebSocket
+from fastapi import APIRouter, Header, WebSocket
 
 from apollo.lib.security import Allow, AuthorizationPolicy, Everyone
 
@@ -22,5 +22,17 @@ class SecureRouter(APIRouter):
                 self.acl_policy.validate_permission(
                     permission, websocket.headers)
                 await func(websocket, *args, **kwargs)
+            return wrapped
+        return decorate
+
+    def post_(self, *outer_args, permission='public', **outer_kwargs):
+        def decorate(func):
+            @wraps(func)
+            @self.post(*outer_args, **outer_kwargs)
+            def wrapped(authorization: str = Header(None), *args, **kwargs):
+                self.acl_policy.validate_permission(permission, {
+                    'authorization': authorization
+                })
+                return func(*args, **kwargs)
             return wrapped
         return decorate
