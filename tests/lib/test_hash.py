@@ -3,7 +3,7 @@ import pytest
 from apollo.lib.hash import hash_plaintext, compare_plaintext_to_hash
 
 
-def test_hash_plaintest():
+def test_hash_plaintext():
     password_hash, _ = hash_plaintext(
         'password', '$2b$12$50eN8MSIm9KDRpzmGL4JQO'.encode('utf-8'))
 
@@ -14,6 +14,13 @@ def test_hash_plaintest():
 
     assert password_hash != (
         '$2b$12$50eN8MSIm9KDRpzmGL4JQO9gGy.2MDAafSOtqu9mZwfkb7jh33j26')
+
+
+def test_hash_plaintext_no_salt_different_outcome():
+    password_hash, _ = hash_plaintext('password')
+    password_hash_2, _ = hash_plaintext('password')
+
+    assert  password_hash != password_hash_2
 
 
 def test_compare_plaintext_to_hash():

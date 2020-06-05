@@ -21,9 +21,15 @@ def test_create_user_username_exists(db_session):
         CreateUserSchema(username="username", password="testpass")
 
 
-def test_create_user_invalid_password(db_session):
+def test_create_user_password_too_short(db_session):
     with pytest.raises(ValidationError, match='at least 8 characters'):
         CreateUserSchema(username='johndoe', password='')
+
+
+def test_create_user_password_contains_whitespace(db_session):
+    with pytest.raises(ValidationError,
+                       match='password cannot contain whitespaces'):
+        CreateUserSchema(username='johndoe', password='pass word')
 
 
 def test_create_user_missing_fields(db_session):
@@ -35,10 +41,17 @@ def test_create_user_missing_fields(db_session):
         CreateUserSchema(password='testpass')
 
 
-def test_create_user_invalid_username(db_session):
+def test_create_user_username_too_short(db_session):
     with pytest.raises(ValidationError,
                        match='ensure this value has at least 1 characters'):
         CreateUserSchema(username=' ', password='testpass')
+
+
+def test_create_user_username_too_long(db_session):
+    with pytest.raises(ValidationError,
+                       match='ensure this value has at least 1 characters'):
+        CreateUserSchema(username='johndoeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                         password='testpass')
 
 
 def test_user_valid(db_session):
