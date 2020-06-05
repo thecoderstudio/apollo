@@ -138,21 +138,32 @@ def test_get_complete_acl_no_context_provider(mocker):
     ]
 
 
-def test_get_complete_acl_with_context_provider(mocker):
+@pytest.mark.parametrize(
+    "provider_acl,context_acl,expected_acl",
+    [
+        [
+            [(Allow, Everyone, 'public')],
+            [],
+            [(Allow, Everyone, 'public')]
+        ],
+        [
+            [(Allow, Everyone, 'public')],
+            [(Allow, 'test', 'fake')],
+            [(Allow, 'test', 'fake'), (Allow, Everyone, 'public')]
+        ]
+    ]
+)
+def test_get_comple_acl(mocker, provider_acl, context_acl, expected_acl):
     acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            (Allow, Everyone, 'public')
-        ])
+        __acl__=mocker.MagicMock(return_value=provider_acl)
     )
     context_acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            (Allow, 'test', 'fake')
-        ])
+        __acl__=mocker.MagicMock(return_value=context_acl)
     )
     policy = AuthorizationPolicy(acl_provider_mock)
     acl = policy.get_complete_acl(context_acl_provider_mock)
 
-    assert acl == [(Allow, 'test', 'fake'), (Allow, Everyone, 'public')]
+    assert acl == expected_acl
 
 
 def test_check_permission_allowed_with_context_provider(mocker):
