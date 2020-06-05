@@ -5,7 +5,6 @@ from secrets import token_hex
 
 import pytest
 
-import asserts
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
@@ -14,6 +13,7 @@ from apollo.lib.security import (
     Agent as AgentPrincipal)
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
+from tests.asserts import raisesHTTPForbidden
 from tests.lib.security import (
     get_acl_provider_mock, get_authorization_policy_with_mock)
 
@@ -239,7 +239,7 @@ def test_validate_permission_denied_explicit_with_context_provider(mocker):
         ])
     )
     policy = AuthorizationPolicy(acl_provider_mock)
-    with asserts.raisesHTTPForbidden:
+    with raisesHTTPForbidden:
         policy.validate_permission('public', {}, context_acl_provider_mock)
 
 
@@ -251,7 +251,7 @@ def test_validate_permission_denied_implicit(mocker):
         ])
     )
     policy = AuthorizationPolicy(acl_provider_mock)
-    with asserts.raisesHTTPForbidden:
+    with raisesHTTPForbidden:
         policy.validate_permission('public', {})
 
 
@@ -264,5 +264,5 @@ def test_validate_permission_invalid_acl(mocker):
     policy = AuthorizationPolicy(acl_provider_mock)
 
     # TODO change to custom exception
-    with asserts.raisesHTTPForbidden:
+    with raisesHTTPForbidden:
         policy.validate_permission('public', {})
