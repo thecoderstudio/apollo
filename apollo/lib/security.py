@@ -33,8 +33,9 @@ class AuthorizationPolicy:
 
         return principals
 
+    @staticmethod
     @with_db_session
-    def _get_authenticated_access_token(self, headers, session):
+    def _get_authenticated_access_token(headers, session):
         try:
             auth_method, token_string = headers['authorization'].split(' ')
         except (KeyError, AttributeError, ValueError):
