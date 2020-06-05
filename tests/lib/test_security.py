@@ -18,6 +18,20 @@ from apollo.models.oauth import OAuthAccessToken, OAuthClient
 agent_id = str(uuid.uuid4())
 secret = token_hex(32)
 
+# [provider_acl, context_acl, permitted_expectation]
+acl_permission_expectations = [
+    [
+        [(Deny, Everyone, 'public')],
+        [(Allow, Everyone, 'public')],
+        True
+    ],
+    [
+        [(Allow, Everyone, 'public')],
+        [(Deny, Everyone, 'public')],
+        False
+    ]
+]
+
 
 def test_parse_valid_authorization_header():
     authorization = build_credentials_str(
@@ -166,38 +180,22 @@ def test_get_comple_acl(mocker, provider_acl, context_acl, expected_acl):
     assert acl == expected_acl
 
 
-def test_check_permission_allowed_with_context_provider(mocker):
+@pytest.mark.parametrize(
+    "provider_acl,context_acl,expectation",
+    acl_permission_expectations
+)
+def test_check_permission(mocker, provider_acl, context_acl, expectation):
     acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            (Deny, Everyone, 'public')
-        ])
+        __acl__=mocker.MagicMock(return_value=provider_acl)
     )
     context_acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            (Allow, Everyone, 'public')
-        ])
+        __acl__=mocker.MagicMock(return_value=context_acl)
     )
     policy = AuthorizationPolicy(acl_provider_mock)
+
     allowed = policy.check_permission('public', {}, context_acl_provider_mock)
 
-    assert allowed is True
-
-
-def test_check_permission_denied_explicit_with_context_provider(mocker):
-    acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            (Allow, Everyone, 'public')
-        ])
-    )
-    context_acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            (Deny, Everyone, 'public')
-        ])
-    )
-    policy = AuthorizationPolicy(acl_provider_mock)
-    allowed = policy.check_permission('public', {}, context_acl_provider_mock)
-
-    assert allowed is False
+    assert allowed is expectation
 
 
 def test_check_permission_denied_implicit(mocker):
