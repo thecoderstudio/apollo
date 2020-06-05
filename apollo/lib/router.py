@@ -30,6 +30,34 @@ class SecureRouter(APIRouter):
         return lambda func: self._http_method(
             func, 'post', *outer_args, **outer_kwargs)
 
+    def put(self, *outer_args, **outer_kwargs):
+        return lambda func: self._http_method(
+            func, 'put', *outer_args, **outer_kwargs)
+
+    def patch(self, *outer_args, **outer_kwargs):
+        return lambda func: self._http_method(
+            func, 'patch', *outer_args, **outer_kwargs)
+
+    def delete(self, *outer_args, **outer_kwargs):
+        return lambda func: self._http_method(
+            func, 'delete', *outer_args, **outer_kwargs)
+
+    def get(self, *outer_args, **outer_kwargs):
+        return lambda func: self._http_method(
+            func, 'get', *outer_args, **outer_kwargs)
+
+    def options(self, *outer_args, **outer_kwargs):
+        return lambda func: self._http_method(
+            func, 'options', *outer_args, **outer_kwargs)
+
+    def trace(self, *outer_args, **outer_kwargs):
+        return lambda func: self._http_method(
+            func, 'trace', *outer_args, **outer_kwargs)
+
+    def head(self, *outer_args, **outer_kwargs):
+        return lambda func: self._http_method(
+            func, 'head', *outer_args, **outer_kwargs)
+
     def _http_method(self, func, http_method, *outer_args, permission='public',
                      **outer_kwargs):
         route = getattr(super(SecureRouter, self), http_method)
