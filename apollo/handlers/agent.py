@@ -10,7 +10,7 @@ from apollo.models.oauth import OAuthClient
 router = SecureRouter()
 
 
-@router.post_("/agent", status_code=201, response_model=AgentSchema)
+@router.post("/agent", status_code=201, response_model=AgentSchema)
 def post_agent(agent_data: CreateAgentSchema,
                session: Session = Depends(get_session)):
     agent, _ = save(session, Agent(

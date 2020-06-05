@@ -52,7 +52,7 @@ async def call_websocket_decorated_mock(mocker, router_acl, permission,
                                         auth_header):
     router = SecureRouter(router_acl)
 
-    @router.websocket_('/test', permission=permission)
+    @router.websocket('/test', permission=permission)
     async def mock(websocket):
         pass
 
