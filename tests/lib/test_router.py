@@ -18,8 +18,9 @@ oauth_permission_expectations = [
      True)
 ]
 
-router_http_methods_for_testing = ['post', 'put', 'patch', 'delete', 'get',
-                                   'options', 'trace', 'head']
+testable_http_methods = [
+    'post', 'put', 'patch', 'delete', 'get', 'options', 'trace', 'head'
+]
 
 
 def test_secure_router_default_acl():
@@ -53,7 +54,9 @@ async def test_websocket_oauth_permissions(mocker, db_session, access_token,
             await call_websocket_decorated_mock(mocker, router_acl, permission,
                                                 auth_header)
 
-
+@pytest.mark.parametrize("permission,auth_header,permitted",
+                         oauth_permission_expectations)
+@pytest.mark.parametrize('http_method', testable_http_methods)
 def test_secure_router_http_methods_oauth_permissions(
     mocker, db_session, access_token, permission, auth_header, permitted,
     http_method
@@ -66,12 +69,24 @@ def test_secure_router_http_methods_oauth_permissions(
     router_acl = [(Allow, Agent, 'test')]
 
     if permitted:
-        await call_websocket_decorated_mock(mocker, router_acl, permission,
-                                            auth_header)
+        call_http_method_decorated_mock(http_method, router_acl, permission,
+                                        auth_header)
     else:
         with pytest.raises(HTTPException, match="Permission denied."):
-            await call_websocket_decorated_mock(mocker, router_acl, permission,
-                                                auth_header)
+            call_http_method_decorated_mock(http_method, router_acl,
+                                            permission, auth_header)
+
+
+def call_http_method_decorated_mock(http_method, router_acl, permission,
+                                    auth_header):
+    router = SecureRouter(router_acl)
+    route_decorator = getattr(router, http_method)
+
+    @route_decorator('/test', permission=permission)
+    def endpoint_mock():
+        pass
+
+    endpoint_mock(authorization=auth_header)
 
 
 async def call_websocket_decorated_mock(mocker, router_acl, permission,
