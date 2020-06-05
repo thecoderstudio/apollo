@@ -61,26 +61,14 @@ def test_auth_policy_minimal_principals(mocker):
     assert principals == [Everyone]
 
 
-def test_auth_policy_agent_principals(mocker, db_session):
-    agent = Agent(
-        name='test',
-        oauth_client=OAuthClient(
-            type='confidential',
-            tokens=[OAuthAccessToken()]
-        )
-    )
-    db_session.add(agent)
-    db_session.flush()
-    agent_id = agent.id
-    access_token = agent.oauth_client.tokens[0].access_token
-    db_session.commit()
-
+def test_auth_policy_agent_principals(mocker, access_token):
     policy = AuthorizationPolicy(mocker.MagicMock())
     principals = policy.get_principals({
-        'authorization': f"Bearer {access_token}"
+        'authorization': f"Bearer {access_token.access_token}"
     })
 
-    assert principals == [Everyone, AgentPrincipal, f"agent:{agent_id}"]
+    assert principals == [Everyone, AgentPrincipal,
+                          f"agent:{access_token.client_id}"]
 
 
 @pytest.mark.parametrize('auth_header', [
