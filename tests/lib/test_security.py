@@ -8,8 +8,11 @@ from fastapi import HTTPException
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
-from apollo.lib.security import (Allow, AuthorizationPolicy, Deny, Everyone,
-                                 parse_authorization_header)
+from apollo.lib.security import (
+    Allow, AuthorizationPolicy, Deny, Everyone, parse_authorization_header,
+    Agent as AgentPrincipal)
+from apollo.models.agent import Agent
+from apollo.models.oauth import OAuthAccessToken, OAuthClient
 
 agent_id = str(uuid.uuid4())
 secret = token_hex(32)
@@ -55,6 +58,28 @@ def test_auth_policy_minimal_principals(mocker):
     principals = policy.get_principals({})
 
     assert principals == [Everyone]
+
+
+def test_auth_policy_agent_principals(mocker, db_session):
+    agent = Agent(
+        name='test',
+        oauth_client=OAuthClient(
+            type='confidential',
+            tokens=[OAuthAccessToken()]
+        )
+    )
+    db_session.add(agent)
+    db_session.flush()
+    agent_id = agent.id
+    access_token = agent.oauth_client.tokens[0].access_token
+    db_session.commit()
+
+    policy = AuthorizationPolicy(mocker.MagicMock())
+    principals = policy.get_principals({
+        'authorization': f"Bearer {access_token}"
+    })
+
+    assert principals == [Everyone, AgentPrincipal, f"agent:{agent_id}"]
 
 
 def test_get_complete_acl_no_context_provider(mocker):

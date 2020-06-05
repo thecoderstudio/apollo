@@ -37,7 +37,12 @@ class OAuthAccessToken(Base):
                           default=lambda: token_hex(32))
     token_type = Column(Enum("Bearer", name="token_type"), default="Bearer",
                         nullable=False)
-    expiry_date = Column(DateTime(timezone=True), nullable=False)
+    expiry_date = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=(lambda: datetime.datetime.now(datetime.timezone.utc) +
+                 datetime.timedelta(hours=1))
+    )
 
     client = relationship('OAuthClient')
 

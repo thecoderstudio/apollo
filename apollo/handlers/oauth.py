@@ -1,5 +1,3 @@
-import datetime
-
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
@@ -34,11 +32,7 @@ def post_access_token(
             detail="Client not authorized to use this grant type"
         )
 
-    token = OAuthAccessToken(
-        client=client,
-        expiry_date=(datetime.datetime.now(datetime.timezone.utc) +
-                     datetime.timedelta(hours=1))
-    )
+    token = OAuthAccessToken(client=client)
 
     save(session, token)
 

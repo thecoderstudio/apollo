@@ -27,14 +27,14 @@ class AuthorizationPolicy:
     def get_principals(self, headers):
         principals = [Everyone]
 
-        access_token = self.get_authenticated_access_token(headers)
+        access_token = self._get_authenticated_access_token(headers)
         if access_token:
             principals += [Agent, f"agent:{access_token.client.agent_id}"]
 
         return principals
 
     @with_db_session
-    def get_authenticated_access_token(self, headers, session):
+    def _get_authenticated_access_token(self, headers, session):
         try:
             auth_method, token_string = headers['authorization'].split(' ')
         except (KeyError, AttributeError, TypeError):
