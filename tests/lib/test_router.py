@@ -2,7 +2,18 @@ import pytest
 
 from apollo.lib.exceptions import HTTPException
 from apollo.lib.router import SecureRouter
-from apollo.lib.security import Allow, Agent
+from apollo.lib.security import Allow, Agent, Everyone
+
+
+def test_secure_router_default_acl():
+    assert SecureRouter().__acl__() == [(Allow, Everyone, 'public')]
+
+
+def test_secure_router_additional_acl():
+    router = SecureRouter([(Allow, Agent, 'test')])
+
+    assert router.__acl__() == [(Allow, Agent, 'test'),
+                                (Allow, Everyone, 'public')]
 
 
 @pytest.mark.parametrize("permission,auth_header,permitted", [
