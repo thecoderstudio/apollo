@@ -4,8 +4,8 @@ import uuid
 from secrets import token_hex
 
 import pytest
-from fastapi import HTTPException
 
+import asserts
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
@@ -249,7 +249,7 @@ def test_validate_permission_denied_explicit_with_context_provider(mocker):
         ])
     )
     policy = AuthorizationPolicy(acl_provider_mock)
-    with pytest.raises(HTTPException, match="Permission denied."):
+    with asserts.raisesHTTPForbidden:
         policy.validate_permission('public', {}, context_acl_provider_mock)
 
 
@@ -261,7 +261,7 @@ def test_validate_permission_denied_implicit(mocker):
         ])
     )
     policy = AuthorizationPolicy(acl_provider_mock)
-    with pytest.raises(HTTPException, match="Permission denied."):
+    with asserts.raisesHTTPForbidden:
         policy.validate_permission('public', {})
 
 
@@ -274,5 +274,5 @@ def test_validate_permission_invalid_acl(mocker):
     policy = AuthorizationPolicy(acl_provider_mock)
 
     # TODO change to custom exception
-    with pytest.raises(HTTPException, match="Permission denied."):
+    with asserts.raisesHTTPForbidden:
         policy.validate_permission('public', {})

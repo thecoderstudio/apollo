@@ -1,6 +1,4 @@
-import pytest
-
-from apollo.lib.exceptions import HTTPException
+import asserts
 
 
 def test_shell(test_client, authenticated_agent_headers):
@@ -11,5 +9,5 @@ def test_shell(test_client, authenticated_agent_headers):
 
 
 def test_shell_unauthenticated(test_client):
-    with pytest.raises(HTTPException, match="Permission denied."):
+    with asserts.raisesHTTPForbidden:
         test_client.websocket_connect('/ws')

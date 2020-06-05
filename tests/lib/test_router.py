@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from apollo.lib.exceptions import HTTPException
+import asserts
 from apollo.lib.router import SecureRouter
 from apollo.lib.security import Allow, Agent, Everyone
 
@@ -38,8 +38,7 @@ def test_secure_router_additional_acl():
                          oauth_permission_expectations)
 @pytest.mark.parametrize('http_method', testable_http_methods)
 def test_secure_router_http_methods_oauth_permissions(
-    mocker, db_session, access_token, permission, auth_header, permitted,
-    http_method
+    db_session, access_token, permission, auth_header, permitted, http_method
 ):
     access_token.access_token = (
         "b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57"
@@ -52,7 +51,7 @@ def test_secure_router_http_methods_oauth_permissions(
         call_http_method_decorated_mock(http_method, router_acl, permission,
                                         auth_header)
     else:
-        with pytest.raises(HTTPException, match="Permission denied."):
+        with asserts.raisesHTTPForbidden:
             call_http_method_decorated_mock(http_method, router_acl,
                                             permission, auth_header)
 
@@ -85,7 +84,7 @@ async def test_websocket_oauth_permissions(mocker, db_session, access_token,
         await call_websocket_decorated_mock(mocker, router_acl, permission,
                                             auth_header)
     else:
-        with pytest.raises(HTTPException, match="Permission denied."):
+        with asserts.raisesHTTPForbidden:
             await call_websocket_decorated_mock(mocker, router_acl, permission,
                                                 auth_header)
 
@@ -112,7 +111,7 @@ async def test_websocket_oauth_inactive_client(mocker, db_session,
     access_token.client.active = False
     db_session.commit()
 
-    with pytest.raises(HTTPException, match="Permission denied."):
+    with asserts.raisesHTTPForbidden:
         await call_websocket_decorated_mock(
             mocker,
             [(Allow, Agent, 'test')],
@@ -126,7 +125,7 @@ async def test_websocket_oauth_expired_token(mocker, db_session, access_token):
     access_token.expiry_date = datetime.datetime.now(datetime.timezone.utc)
     db_session.commit()
 
-    with pytest.raises(HTTPException, match="Permission denied."):
+    with asserts.raisesHTTPForbidden:
         await call_websocket_decorated_mock(
             mocker,
             [(Allow, Agent, 'test')],
