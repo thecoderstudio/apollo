@@ -2,9 +2,9 @@ import datetime
 
 import pytest
 
-import asserts
 from apollo.lib.router import SecureRouter
 from apollo.lib.security import Allow, Agent, Everyone
+from tests.asserts import raisesHTTPForbidden
 
 oauth_permission_expectations = [
     ('public', None, True),
@@ -51,7 +51,7 @@ def test_secure_router_http_methods_oauth_permissions(
         call_http_method_decorated_mock(http_method, router_acl, permission,
                                         auth_header)
     else:
-        with asserts.raisesHTTPForbidden:
+        with raisesHTTPForbidden:
             call_http_method_decorated_mock(http_method, router_acl,
                                             permission, auth_header)
 
@@ -84,7 +84,7 @@ async def test_websocket_oauth_permissions(mocker, db_session, access_token,
         await call_websocket_decorated_mock(mocker, router_acl, permission,
                                             auth_header)
     else:
-        with asserts.raisesHTTPForbidden:
+        with raisesHTTPForbidden:
             await call_websocket_decorated_mock(mocker, router_acl, permission,
                                                 auth_header)
 
@@ -111,7 +111,7 @@ async def test_websocket_oauth_inactive_client(mocker, db_session,
     access_token.client.active = False
     db_session.commit()
 
-    with asserts.raisesHTTPForbidden:
+    with raisesHTTPForbidden:
         await call_websocket_decorated_mock(
             mocker,
             [(Allow, Agent, 'test')],
@@ -125,7 +125,7 @@ async def test_websocket_oauth_expired_token(mocker, db_session, access_token):
     access_token.expiry_date = datetime.datetime.now(datetime.timezone.utc)
     db_session.commit()
 
-    with asserts.raisesHTTPForbidden:
+    with raisesHTTPForbidden:
         await call_websocket_decorated_mock(
             mocker,
             [(Allow, Agent, 'test')],

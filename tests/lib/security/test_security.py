@@ -204,7 +204,7 @@ def test_check_permission_denied_implicit(mocker):
 
 def test_check_permission_invalid_acl(mocker):
     policy = get_authorization_policy_with_mock(mocker, [
-        (Allow, 'test', 'public')
+        ('fake', Everyone, 'public')
     ])
 
     # TODO change to custom exception
@@ -263,6 +263,5 @@ def test_validate_permission_invalid_acl(mocker):
     )
     policy = AuthorizationPolicy(acl_provider_mock)
 
-    # TODO change to custom exception
     with raisesHTTPForbidden:
         policy.validate_permission('public', {})

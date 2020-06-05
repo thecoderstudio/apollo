@@ -1,4 +1,4 @@
-import asserts
+from tests.asserts import raisesHTTPForbidden
 
 
 def test_shell(test_client, authenticated_agent_headers):
@@ -9,5 +9,5 @@ def test_shell(test_client, authenticated_agent_headers):
 
 
 def test_shell_unauthenticated(test_client):
-    with asserts.raisesHTTPForbidden:
+    with raisesHTTPForbidden:
         test_client.websocket_connect('/ws')
