@@ -35,7 +35,20 @@ async def test_websocket_oauth_permissions(mocker, db_session, access_token,
     )
     db_session.commit()
 
-    router = SecureRouter([(Allow, Agent, 'test')])
+    router_acl = [(Allow, Agent, 'test')]
+
+    if permitted:
+        await call_websocket_decorated_mock(mocker, router_acl, permission,
+                                            auth_header)
+    else:
+        with pytest.raises(HTTPException, match="Permission denied."):
+            await call_websocket_decorated_mock(mocker, router_acl, permission,
+                                                auth_header)
+
+
+async def call_websocket_decorated_mock(mocker, router_acl, permission,
+                                        auth_header):
+    router = SecureRouter(router_acl)
 
     @router.websocket_('/test', permission=permission)
     async def mock(websocket):
@@ -46,8 +59,11 @@ async def test_websocket_oauth_permissions(mocker, db_session, access_token,
         'authorization': auth_header
     }
 
-    if permitted:
-        await mock(websocket_mock)
-    else:
-        with pytest.raises(HTTPException, match="Permission denied."):
-            await mock(websocket_mock)
+    await mock(websocket_mock)
+
+
+@pytest.mark.asyncio
+async def test_websocket_oauth_inactive_client(mocker, db_session,
+                                               access_token):
+    access_token.client.active = False
+    db_session.commit()
