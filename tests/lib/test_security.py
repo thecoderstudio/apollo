@@ -96,17 +96,19 @@ def test_auth_policy_principals_inactive_oauth_client(mocker, db_session):
             tokens=[OAuthAccessToken()]
         )
     )
+    assert get_principals(mocker, db_session, agent) == [Everyone]
+
+
+def get_principals(mocker, db_session, agent):
     db_session.add(agent)
     db_session.flush()
     access_token = agent.oauth_client.tokens[0].access_token
     db_session.commit()
 
     policy = AuthorizationPolicy(mocker.MagicMock())
-    principals = policy.get_principals({
+    return policy.get_principals({
         'authorization': f"Bearer {access_token}"
     })
-
-    assert principals == [Everyone]
 
 
 def test_auth_policy_principals_expired_oauth_token(mocker, db_session):
@@ -119,17 +121,8 @@ def test_auth_policy_principals_expired_oauth_token(mocker, db_session):
             )]
         )
     )
-    db_session.add(agent)
-    db_session.flush()
-    access_token = agent.oauth_client.tokens[0].access_token
-    db_session.commit()
 
-    policy = AuthorizationPolicy(mocker.MagicMock())
-    principals = policy.get_principals({
-        'authorization': f"Bearer {access_token}"
-    })
-
-    assert principals == [Everyone]
+    assert get_principals(mocker, db_session, agent) == [Everyone]
 
 
 def test_get_complete_acl_no_context_provider(mocker):
