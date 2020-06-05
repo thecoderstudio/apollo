@@ -1,7 +1,10 @@
 import bcrypt
 
 
-def hash_plaintext(plaintext: str, salt: str = bcrypt.gensalt()):
+def hash_plaintext(plaintext: str, salt: str = None):
+    if not salt:
+        salt = bcrypt.gensalt()
+
     return (bcrypt.hashpw(plaintext.encode('utf-8'), salt).decode('utf-8'),
             salt.decode('utf-8'))
 

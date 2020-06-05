@@ -24,12 +24,12 @@ def test_post_user_username_too_long(test_client):
     response = test_client.post(
         '/user',
         json={'username': 'johndoeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-              'password': '123'},
+              'password': 'password'},
     )
 
     assert response.status_code == 422
     assert response.json()['detail'][0]['msg'] == (
-        'ensure this value has at least 8 characters'
+        'ensure this value has at most 36 characters'
     )
 
 
@@ -42,7 +42,7 @@ def test_post_user_password_contains_whitespace(test_client):
 
     assert response.status_code == 422
     assert response.json()['detail'][0]['msg'] == (
-        'password cannot contain whitespaces'
+        "password can't contain whitespaces"
     )
 
 
