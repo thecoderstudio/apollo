@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 
 from apollo.lib.exceptions import HTTPException
@@ -67,3 +69,25 @@ async def test_websocket_oauth_inactive_client(mocker, db_session,
                                                access_token):
     access_token.client.active = False
     db_session.commit()
+
+    with pytest.raises(HTTPException, match="Permission denied."):
+        await call_websocket_decorated_mock(
+            mocker,
+            [(Allow, Agent, 'test')],
+            'test',
+            f"Bearer {access_token.access_token}"
+        )
+
+
+@pytest.mark.asyncio
+async def test_websocket_oauth_expired_token(mocker, db_session, access_token):
+    access_token.expiry_date = datetime.datetime.now(datetime.timezone.utc)
+    db_session.commit()
+
+    with pytest.raises(HTTPException, match="Permission denied."):
+        await call_websocket_decorated_mock(
+            mocker,
+            [(Allow, Agent, 'test')],
+            'test',
+            f"Bearer {access_token.access_token}"
+        )
