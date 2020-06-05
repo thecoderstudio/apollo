@@ -37,7 +37,7 @@ class AuthorizationPolicy:
     def _get_authenticated_access_token(self, headers, session):
         try:
             auth_method, token_string = headers['authorization'].split(' ')
-        except (KeyError, AttributeError, TypeError):
+        except (KeyError, AttributeError, ValueError):
             return
 
         if auth_method != 'Bearer':

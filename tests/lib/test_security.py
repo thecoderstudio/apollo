@@ -82,6 +82,22 @@ def test_auth_policy_agent_principals(mocker, db_session):
     assert principals == [Everyone, AgentPrincipal, f"agent:{agent_id}"]
 
 
+@pytest.mark.parametrize('auth_header', [
+    "",
+    "fake",
+    None,
+    "Basic b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57",
+    "Bearer b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57",
+])
+def test_auth_policy_principals_malformed_auth_header(mocker, auth_header):
+    policy = AuthorizationPolicy(mocker.MagicMock())
+    principals = policy.get_principals({
+        'authorization': auth_header
+    })
+
+    assert principals == [Everyone]
+
+
 def test_get_complete_acl_no_context_provider(mocker):
     acl_provider_mock = mocker.MagicMock(
         __acl__=mocker.MagicMock(return_value=[
