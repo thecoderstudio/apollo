@@ -36,26 +36,6 @@ def test_secure_router_additional_acl():
 
 @pytest.mark.parametrize("permission,auth_header,permitted",
                          oauth_permission_expectations)
-@pytest.mark.asyncio
-async def test_websocket_oauth_permissions(mocker, db_session, access_token,
-                                           permission, auth_header, permitted):
-    access_token.access_token = (
-        "b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57"
-    )
-    db_session.commit()
-
-    router_acl = [(Allow, Agent, 'test')]
-
-    if permitted:
-        await call_websocket_decorated_mock(mocker, router_acl, permission,
-                                            auth_header)
-    else:
-        with pytest.raises(HTTPException, match="Permission denied."):
-            await call_websocket_decorated_mock(mocker, router_acl, permission,
-                                                auth_header)
-
-@pytest.mark.parametrize("permission,auth_header,permitted",
-                         oauth_permission_expectations)
 @pytest.mark.parametrize('http_method', testable_http_methods)
 def test_secure_router_http_methods_oauth_permissions(
     mocker, db_session, access_token, permission, auth_header, permitted,
@@ -87,6 +67,27 @@ def call_http_method_decorated_mock(http_method, router_acl, permission,
         pass
 
     endpoint_mock(authorization=auth_header)
+
+
+@pytest.mark.parametrize("permission,auth_header,permitted",
+                         oauth_permission_expectations)
+@pytest.mark.asyncio
+async def test_websocket_oauth_permissions(mocker, db_session, access_token,
+                                           permission, auth_header, permitted):
+    access_token.access_token = (
+        "b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57"
+    )
+    db_session.commit()
+
+    router_acl = [(Allow, Agent, 'test')]
+
+    if permitted:
+        await call_websocket_decorated_mock(mocker, router_acl, permission,
+                                            auth_header)
+    else:
+        with pytest.raises(HTTPException, match="Permission denied."):
+            await call_websocket_decorated_mock(mocker, router_acl, permission,
+                                                auth_header)
 
 
 async def call_websocket_decorated_mock(mocker, router_acl, permission,
