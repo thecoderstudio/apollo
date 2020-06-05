@@ -6,8 +6,10 @@ import pytest
 from sqlalchemy.orm.exc import NoResultFound
 
 from apollo.models.agent import Agent
-from apollo.models.oauth import (OAuthAccessToken, OAuthClient,
-                                 get_client_by_creds)
+from apollo.models.oauth import (
+    OAuthAccessToken, OAuthClient, get_client_by_creds,
+    get_access_token_by_token
+)
 
 
 def test_oauth_access_token_expired():
@@ -70,3 +72,14 @@ def test_get_client_by_creds(db_session):
 def test_get_client_by_creds_not_found(db_session):
     with pytest.raises(NoResultFound):
         get_client_by_creds(db_session, uuid.uuid4(), token_hex(32))
+
+
+def test_get_access_token_by_token(db_session, access_token):
+    result_token = get_access_token_by_token(db_session,
+                                             access_token.access_token)
+    assert result_token == access_token
+
+
+def test_get_access_token_by_token_not_found(db_session):
+    with pytest.raises(NoResultFound):
+        get_access_token_by_token(db_session, token_hex(32))
