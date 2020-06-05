@@ -1,4 +1,5 @@
 import base64
+import datetime
 import uuid
 from secrets import token_hex
 
@@ -93,6 +94,51 @@ def test_auth_policy_principals_malformed_auth_header(mocker, auth_header):
     policy = AuthorizationPolicy(mocker.MagicMock())
     principals = policy.get_principals({
         'authorization': auth_header
+    })
+
+    assert principals == [Everyone]
+
+
+def test_auth_policy_principals_inactive_oauth_client(mocker, db_session):
+    agent = Agent(
+        name='test',
+        oauth_client=OAuthClient(
+            type='confidential',
+            active=False,
+            tokens=[OAuthAccessToken()]
+        )
+    )
+    db_session.add(agent)
+    db_session.flush()
+    access_token = agent.oauth_client.tokens[0].access_token
+    db_session.commit()
+
+    policy = AuthorizationPolicy(mocker.MagicMock())
+    principals = policy.get_principals({
+        'authorization': f"Bearer {access_token}"
+    })
+
+    assert principals == [Everyone]
+
+
+def test_auth_policy_principals_expired_oauth_token(mocker, db_session):
+    agent = Agent(
+        name='test',
+        oauth_client=OAuthClient(
+            type='confidential',
+            tokens=[OAuthAccessToken(
+                expiry_date=datetime.datetime.now(datetime.timezone.utc)
+            )]
+        )
+    )
+    db_session.add(agent)
+    db_session.flush()
+    access_token = agent.oauth_client.tokens[0].access_token
+    db_session.commit()
+
+    policy = AuthorizationPolicy(mocker.MagicMock())
+    principals = policy.get_principals({
+        'authorization': f"Bearer {access_token}"
     })
 
     assert principals == [Everyone]
