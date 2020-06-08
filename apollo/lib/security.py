@@ -1,6 +1,7 @@
 import base64
 import logging
 
+import jwt
 from sqlalchemy.orm.exc import NoResultFound
 
 from apollo.lib.decorators import with_db_session
@@ -8,6 +9,7 @@ from apollo.lib.exceptions import HTTPException
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
+from apollo.lib.settings import settings
 from apollo.models.oauth import get_access_token_by_token
 
 log = logging.getLogger(__name__)
@@ -114,3 +116,14 @@ def parse_authorization_header(authorization: str):
         'agent_id': agent_id,
         'secret': secret
     }
+
+
+def create_session_cookie(user):
+    return (
+        'session',
+        jwt.encode(
+            {'authenticated_user_id': str(user.id)},
+            settings['session']['secret'],
+            algorithm='HS256'
+        ).decode('utf-8')
+    )

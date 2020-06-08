@@ -11,6 +11,7 @@ requires = [
     'fastapi',
     'psycopg2',
     'pydantic',
+    'pyjwt',
     'sqlalchemy'
 ]
 
