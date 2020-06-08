@@ -17,11 +17,13 @@ class ConfigParserMock:
 @pytest.mark.asyncio
 async def test_main(mocker):
     configure_mock = mocker.patch('apollo.configure')
+    configue_if_needed_mock = mocker.patch('apollo.initialise_if_needed')
     mocker.patch('apollo.app', new=async_mock)
 
     await main()
 
     configure_mock.assert_called_once()
+    configue_if_needed_mock.assert_called_once()
 
 
 def test_configure(mocker):

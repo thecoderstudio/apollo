@@ -7,6 +7,8 @@ from sqlalchemy.orm import sessionmaker
 
 from apollo.lib.settings import settings
 
+log = logging.getLogger(__name__)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False)
 Base = declarative_base()
 
