@@ -45,7 +45,7 @@ def test_post_access_token_invalid_grant_type(test_client):
         }
     )
 
-    assert response.status_code == 422
+    assert response.status_code == 400
 
 
 def test_post_access_token_client_not_authorized(mocker, test_client,

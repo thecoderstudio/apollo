@@ -18,7 +18,7 @@ app.include_router(websocket.router)
 
 async def main(*args, **kwargs):
     configure()
-    add_validation_exception_handler()
+    initialise_if_needed()
     return await app(*args, **kwargs)
 
 
