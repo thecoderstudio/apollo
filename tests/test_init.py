@@ -36,10 +36,10 @@ def test_configure(mocker):
     init_sqlalchemy_mock.assert_called_once()
 
 
-def test_read_settings_files(mocker, settings):
+def test_read_settings_files(mocker, patched_settings):
     mock = mocker.patch('apollo.ConfigParser')
     mock.return_value = ConfigParserMock()
 
     read_settings_files()
 
-    assert settings == {'test': 1}
+    assert patched_settings == {'test': 1}

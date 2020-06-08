@@ -4,19 +4,22 @@ from configparser import ConfigParser
 from pytest import fixture
 
 import apollo.lib.settings
+from apollo.lib.security import create_session_cookie
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
+from apollo.models.user import User
 
 
 @fixture
-def settings():
+def patched_settings(mocker):
+    mocker.patch('apollo.lib.settings.settings', {})
     yield apollo.lib.settings.settings
     apollo.lib.settings.settings = {}
 
 
 @fixture
-def db_session(settings):
+def db_session(patched_settings):
     try:
         config = ConfigParser()
         config.read('test.ini')
@@ -57,3 +60,21 @@ def authenticated_agent_headers(access_token):
     return {
         'authorization': f"Bearer {access_token.access_token}"
     }
+
+
+@fixture
+def user(db_session):
+    user = User(
+        username='test_admin',
+        password='testing123'
+    )
+    db_session.add(user)
+    db_session.flush()
+    user_id = user.id
+    db_session.commit()
+    return db_session.query(User).get(user_id)
+
+
+@fixture
+def session_cookie(user):
+    return create_session_cookie(user)

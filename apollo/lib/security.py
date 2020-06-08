@@ -4,6 +4,7 @@ import logging
 import jwt
 from fastapi import Depends
 from fastapi.security import APIKeyCookie
+from jwt.exceptions import DecodeError
 from sqlalchemy.orm.exc import NoResultFound
 
 from apollo.lib.decorators import with_db_session
@@ -71,7 +72,11 @@ class AuthorizationPolicy:
     @with_db_session
     def _get_current_user(session: SessionLocal,
                           session_cookie: str = Depends(session_cookie)):
-        payload = jwt.decode(session_cookie, settings['session']['secret'])
+        try:
+            payload = jwt.decode(session_cookie, settings['session']['secret'])
+        except DecodeError:
+            return None
+
         return get_user_by_id(session, payload['authenticated_user_id'])
 
     def get_complete_acl(self, context_acl_provider=None):

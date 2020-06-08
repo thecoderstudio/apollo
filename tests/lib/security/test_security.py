@@ -9,7 +9,7 @@ from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
 from apollo.lib.security import (
-    Allow, Deny, Everyone, parse_authorization_header,
+    Allow, Authenticated, Deny, Everyone, parse_authorization_header,
     Agent as AgentPrincipal)
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
@@ -80,7 +80,7 @@ def test_auth_policy_agent_principals(mock_policy, access_token):
         'authorization': f"Bearer {access_token.access_token}"
     })
 
-    assert principals == [Everyone, AgentPrincipal,
+    assert principals == [Everyone, Authenticated, AgentPrincipal,
                           f"agent:{access_token.client_id}"]
 
 
