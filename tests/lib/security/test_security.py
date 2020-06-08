@@ -163,12 +163,11 @@ def test_get_complete_acl_no_context_provider(mocker):
         ]
     ]
 )
-def test_get_comple_acl(mocker, mock_policy, provider_acl, context_acl,
-                        expected_acl):
-    context_acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=context_acl)
+def test_get_comple_acl(mock_policy, mock_context_acl_provider, provider_acl,
+                        context_acl, expected_acl):
+    acl = mock_policy(provider_acl).get_complete_acl(
+        mock_context_acl_provider(context_acl)
     )
-    acl = mock_policy(provider_acl).get_complete_acl(context_acl_provider_mock)
 
     assert acl == expected_acl
 
@@ -177,14 +176,10 @@ def test_get_comple_acl(mocker, mock_policy, provider_acl, context_acl,
     "provider_acl,context_acl,expectation",
     acl_permission_expectations
 )
-def test_check_permission(mocker, mock_policy, provider_acl, context_acl,
-                          expectation):
-    context_acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=context_acl)
-    )
-
+def test_check_permission(mock_policy, mock_context_acl_provider, provider_acl,
+                          context_acl, expectation):
     allowed = mock_policy(provider_acl).check_permission(
-        'public', {}, context_acl_provider_mock)
+        'public', {}, mock_context_acl_provider(context_acl))
 
     assert allowed is expectation
 
