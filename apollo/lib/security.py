@@ -2,7 +2,6 @@ import base64
 import logging
 
 import jwt
-from fastapi.security import APIKeyCookie
 from jwt.exceptions import DecodeError
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -16,8 +15,6 @@ from apollo.models.oauth import get_access_token_by_token
 from apollo.models.user import get_user_by_id
 
 log = logging.getLogger(__name__)
-
-session_cookie = APIKeyCookie(name='session')
 
 Authenticated = 'Authenticated'
 Allow = 'Allow'
@@ -40,7 +37,7 @@ class AuthorizationPolicy:
             principals += [Authenticated, Agent,
                            f"agent:{access_token.client.agent_id}"]
 
-        authenticated_user = self._get_current_user()
+        authenticated_user = self._get_current_user(http_connection.cookies)
         if authenticated_user:
             principals += [Authenticated, Human,
                            f"user:{authenticated_user.id}"]
@@ -70,12 +67,11 @@ class AuthorizationPolicy:
 
     @staticmethod
     @with_db_session
-    def _get_current_user(session, cookies):
+    def _get_current_user(cookies, session):
         try:
-            payload = jwt.decode(session_cookie['session'],
+            payload = jwt.decode(cookies['session'],
                                  settings['session']['secret'])
-        except DecodeError as e:
-            log.exception(e)
+        except KeyError:
             return None
 
         return get_user_by_id(session, payload['authenticated_user_id'])

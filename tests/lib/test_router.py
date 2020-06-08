@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -60,12 +61,17 @@ def call_http_method_decorated_mock(http_method, router_acl, permission,
                                     auth_header):
     router = SecureRouter(router_acl)
     route_decorator = getattr(router, http_method)
+    request_mock = MagicMock()
+    request_mock.cookies = {}
+    request_mock.headers = {
+        'authorization': auth_header
+    }
 
     @route_decorator('/test', permission=permission)
     def endpoint_mock():
         pass
 
-    endpoint_mock(authorization=auth_header)
+    endpoint_mock(request=request_mock)
 
 
 @pytest.mark.parametrize("permission,auth_header,permitted",
