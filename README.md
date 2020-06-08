@@ -10,6 +10,8 @@ This app is only meant to be ethically used. Only use Apollo on systems you're
 authorized to use.
 
 ## Installation & usage
+When you run Apollo for the first time, the username and password for the admin user will be logged to the console.
+
 ### From source
 To install:
 ```
@@ -27,15 +29,19 @@ pytest
 ```
 
 ### With Docker
-When you run Apollo for the first time, the username and password for the admin user will be logged to the console.
 
 
-To build & run:
+Building docker for your development environment:
 ```
-docker-compose -f dev-compose build --no-cache && docker-compose -f dev-compose.yml up
+docker-compose -f dev-compose build.yml --no-cache
+```
+
+Running your development environment:
+```
+docker-compose -f dev-compose.yml up
 ```
 
 Run tests:
 ```
-docker-compose -f test-compose.yml up --remove-orphans --exit-code-from apollo-test apollo-test
+docker-compose -f test-compose.yml up --exit-code-from apollo-test apollo-test
 ```
