@@ -20,7 +20,7 @@ def test_hash_plaintext_no_salt_different_outcome():
     password_hash, _ = hash_plaintext('password')
     password_hash_2, _ = hash_plaintext('password')
 
-    assert  password_hash != password_hash_2
+    assert password_hash != password_hash_2
 
 
 def test_compare_plaintext_to_hash():

@@ -2,7 +2,7 @@ from configparser import ConfigParser
 
 from fastapi import FastAPI
 
-from apollo.handlers import agent, oauth, root, websocket, user
+from apollo.handlers import agent, oauth, root, user, websocket
 from apollo.lib.initialisation import initialise_if_needed
 from apollo.lib.settings import update_settings
 from apollo.models import init_sqlalchemy

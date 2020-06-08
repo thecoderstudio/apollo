@@ -20,7 +20,6 @@ def add_admin_user(session):
 
 
 @with_db_session
-def initialise_if_needed(**kwargs):
-    session = kwargs['session']
+def initialise_if_needed(session):
     if count_users(session) == 0:
         add_admin_user(session)

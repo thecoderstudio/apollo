@@ -10,8 +10,8 @@ router = APIRouter()
 
 
 @router.post('/user', status_code=201, response_model=UserSchema)
-async def post_user(user_data: CreateUserSchema,
-                    session: Session = Depends(get_session)):
+def post_user(user_data: CreateUserSchema,
+              session: Session = Depends(get_session)):
     data = user_data.dict()
     data['password_hash'], data['password_salt'] = hash_plaintext(
         user_data.password)
