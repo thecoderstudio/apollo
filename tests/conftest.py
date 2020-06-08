@@ -4,6 +4,7 @@ from configparser import ConfigParser
 from pytest import fixture
 
 import apollo.lib.settings
+from apollo.lib.hash import hash_plaintext
 from apollo.lib.security import create_session_cookie
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
@@ -64,9 +65,11 @@ def authenticated_agent_headers(access_token):
 
 @fixture
 def user(db_session):
+    password_hash, password_salt = hash_plaintext('testing123')
     user = User(
         username='test_admin',
-        password='testing123'
+        password_hash=password_hash,
+        password_salt=password_salt
     )
     db_session.add(user)
     db_session.flush()
@@ -77,4 +80,5 @@ def user(db_session):
 
 @fixture
 def session_cookie(user):
-    return create_session_cookie(user)
+    key_name, cookie = create_session_cookie(user)
+    return {key_name: cookie}

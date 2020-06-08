@@ -1,9 +1,11 @@
-def test_post_agent_success(test_client, db_session):
+def test_post_agent_success(test_client, db_session, session_cookie):
     response = test_client.post(
         '/agent',
-        json={'name': 'test'}
+        json={'name': 'test'},
+        cookies=session_cookie
     )
     agent = response.json()
+    print(agent)
     oauth_client = agent['oauth_client']
 
     assert response.status_code == 201

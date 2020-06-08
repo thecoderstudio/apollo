@@ -2,7 +2,6 @@ import base64
 import logging
 
 import jwt
-from fastapi import Depends
 from fastapi.security import APIKeyCookie
 from jwt.exceptions import DecodeError
 from sqlalchemy.orm.exc import NoResultFound
@@ -13,7 +12,6 @@ from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
 from apollo.lib.settings import settings
-from apollo.models import SessionLocal
 from apollo.models.oauth import get_access_token_by_token
 from apollo.models.user import get_user_by_id
 
@@ -33,10 +31,11 @@ class AuthorizationPolicy:
     def __init__(self, acl_provider):
         self.acl_provider = acl_provider
 
-    def get_principals(self, headers):
+    def get_principals(self, http_connection):
         principals = [Everyone]
 
-        access_token = self._get_authenticated_access_token(headers)
+        access_token = self._get_authenticated_access_token(
+            http_connection.headers)
         if access_token:
             principals += [Authenticated, Agent,
                            f"agent:{access_token.client.agent_id}"]
@@ -51,6 +50,7 @@ class AuthorizationPolicy:
     @staticmethod
     @with_db_session
     def _get_authenticated_access_token(headers, session):
+        print(headers)
         try:
             auth_method, token_string = headers['authorization'].split(' ')
         except (KeyError, AttributeError, ValueError):
@@ -70,11 +70,12 @@ class AuthorizationPolicy:
 
     @staticmethod
     @with_db_session
-    def _get_current_user(session: SessionLocal,
-                          session_cookie: str = Depends(session_cookie)):
+    def _get_current_user(session, cookies):
         try:
-            payload = jwt.decode(session_cookie, settings['session']['secret'])
-        except DecodeError:
+            payload = jwt.decode(session_cookie['session'],
+                                 settings['session']['secret'])
+        except DecodeError as e:
+            log.exception(e)
             return None
 
         return get_user_by_id(session, payload['authenticated_user_id'])
@@ -87,8 +88,8 @@ class AuthorizationPolicy:
         return context_acl_provider.__acl__() + acl
 
     def check_permission(self, requested_permission,
-                         headers, context_acl_provider=None):
-        principals = self.get_principals(headers)
+                         http_connection, context_acl_provider=None):
+        principals = self.get_principals(http_connection)
 
         for action, principal, permission in self.get_complete_acl(
             context_acl_provider
@@ -107,10 +108,10 @@ class AuthorizationPolicy:
         return False
 
     def validate_permission(self, requested_permission,
-                            headers, context_acl_provider=None):
+                            http_connection, context_acl_provider=None):
         try:
             allowed = self.check_permission(
-                requested_permission, headers, context_acl_provider)
+                requested_permission, http_connection, context_acl_provider)
         except ValueError as e:
             log.exception(e)
             allowed = False
