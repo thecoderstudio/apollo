@@ -12,6 +12,9 @@ authorized to use.
 ## Installation & usage
 When you run Apollo for the first time, the username and password for the admin user will be logged to the console.
 
+## Configuration
+The first step is to rename or copy `local-settings.ini.dist` to `local-settings.ini` in fill in the required settings.
+
 ### From source
 To install:
 ```
@@ -29,8 +32,6 @@ pytest
 ```
 
 ### With Docker
-
-
 Building your development environment with Docker:
 ```
 docker-compose -f dev-compose.yml build --no-cache
