@@ -9,12 +9,11 @@ from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
 from apollo.lib.security import (
-    Allow, AuthorizationPolicy, Deny, Everyone, parse_authorization_header,
+    Allow, Deny, Everyone, parse_authorization_header,
     Agent as AgentPrincipal)
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
 from tests.asserts import raisesHTTPForbidden
-from tests.lib.security import get_authorization_policy_with_mock
 
 
 agent_id = str(uuid.uuid4())
@@ -138,8 +137,8 @@ def test_auth_policy_principals_expired_oauth_token(mock_policy, db_session):
     assert get_principals(mock_policy(), db_session, agent) == [Everyone]
 
 
-def test_get_complete_acl_no_context_provider(mocker):
-    policy = get_authorization_policy_with_mock(mocker, [
+def test_get_complete_acl_no_context_provider(mock_policy):
+    policy = mock_policy([
         (Allow, Everyone, 'public')
     ])
 
@@ -184,8 +183,8 @@ def test_check_permission(mock_policy, mock_context_acl_provider, provider_acl,
     assert allowed is expectation
 
 
-def test_check_permission_denied_implicit(mocker):
-    policy = get_authorization_policy_with_mock(mocker, [
+def test_check_permission_denied_implicit(mock_policy):
+    policy = mock_policy([
         (Allow, Everyone, 'fake'),
         (Allow, 'test', 'public')
     ])
@@ -194,8 +193,8 @@ def test_check_permission_denied_implicit(mocker):
     assert allowed is False
 
 
-def test_check_permission_invalid_acl(mocker):
-    policy = get_authorization_policy_with_mock(mocker, [
+def test_check_permission_invalid_acl(mocker, mock_policy):
+    policy = mock_policy([
         ('fake', Everyone, 'public')
     ])
 
@@ -204,56 +203,36 @@ def test_check_permission_invalid_acl(mocker):
         policy.check_permission('public', {})
 
 
-def test_validate_permission_allowed_with_context_provider(mocker):
-    acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            (Deny, Everyone, 'public')
-        ])
-    )
-    context_acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            (Allow, Everyone, 'public')
-        ])
-    )
-    policy = AuthorizationPolicy(acl_provider_mock)
-    policy.validate_permission('public', {}, context_acl_provider_mock)
+def test_validate_permission_allowed_with_context_provider(
+    mock_policy, mock_context_acl_provider
+):
+    policy = mock_policy([(Deny, Everyone, 'public')])
+    policy.validate_permission('public', {}, mock_context_acl_provider(
+        [(Allow, Everyone, 'public')]
+    ))
 
 
-def test_validate_permission_denied_explicit_with_context_provider(mocker):
-    acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            (Allow, Everyone, 'public')
-        ])
-    )
-    context_acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            (Deny, Everyone, 'public')
-        ])
-    )
-    policy = AuthorizationPolicy(acl_provider_mock)
+def test_validate_permission_denied_explicit_with_context_provider(
+    mock_policy, mock_context_acl_provider
+):
+    policy = mock_policy([(Allow, Everyone, 'public')])
     with raisesHTTPForbidden:
-        policy.validate_permission('public', {}, context_acl_provider_mock)
+        policy.validate_permission('public', {}, mock_context_acl_provider(
+            [(Deny, Everyone, 'public')]
+        ))
 
 
-def test_validate_permission_denied_implicit(mocker):
-    acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            (Allow, Everyone, 'fake'),
-            (Allow, 'test', 'public')
-        ])
-    )
-    policy = AuthorizationPolicy(acl_provider_mock)
+def test_validate_permission_denied_implicit(mock_policy):
+    policy = mock_policy([
+        (Allow, Everyone, 'fake'),
+        (Allow, 'test', 'public')
+    ])
     with raisesHTTPForbidden:
         policy.validate_permission('public', {})
 
 
-def test_validate_permission_invalid_acl(mocker):
-    acl_provider_mock = mocker.MagicMock(
-        __acl__=mocker.MagicMock(return_value=[
-            ('test', Everyone, 'public')
-        ])
-    )
-    policy = AuthorizationPolicy(acl_provider_mock)
+def test_validate_permission_invalid_acl(mock_policy):
+    policy = mock_policy([('test', Everyone, 'public')])
 
     with raisesHTTPForbidden:
         policy.validate_permission('public', {})
