@@ -104,6 +104,7 @@ async def call_websocket_decorated_mock(mocker, router_acl, permission,
         pass
 
     websocket_mock = mocker.MagicMock()
+    websocket_mock.cookies = {}
     websocket_mock.headers = {
         'authorization': auth_header
     }
