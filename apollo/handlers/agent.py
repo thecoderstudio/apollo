@@ -3,12 +3,12 @@ from sqlalchemy.orm import Session
 
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.agent import AgentSchema, CreateAgentSchema
-from apollo.lib.security import Allow
+from apollo.lib.security import Allow, Authenticated
 from apollo.models import get_session, save
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
 
-router = SecureRouter([(Allow, 'role:admin', 'agent.post')])
+router = SecureRouter([(Allow, Authenticated, 'agent.post')])
 
 
 @router.post("/agent", status_code=201, response_model=AgentSchema,

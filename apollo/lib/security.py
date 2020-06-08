@@ -2,7 +2,6 @@ import base64
 import logging
 
 import jwt
-from jwt.exceptions import DecodeError
 from sqlalchemy.orm.exc import NoResultFound
 
 from apollo.lib.decorators import with_db_session
@@ -23,6 +22,8 @@ Deny = 'Deny'
 Everyone = 'Everyone'
 Human = 'Human'
 
+JWT_ALGORITHM = 'HS256'
+
 
 class AuthorizationPolicy:
     def __init__(self, acl_provider):
@@ -38,6 +39,7 @@ class AuthorizationPolicy:
                            f"agent:{access_token.client.agent_id}"]
 
         authenticated_user = self._get_current_user(http_connection.cookies)
+        print(authenticated_user)
         if authenticated_user:
             principals += [Authenticated, Human,
                            f"user:{authenticated_user.id}"]
@@ -47,7 +49,6 @@ class AuthorizationPolicy:
     @staticmethod
     @with_db_session
     def _get_authenticated_access_token(headers, session):
-        print(headers)
         try:
             auth_method, token_string = headers['authorization'].split(' ')
         except (KeyError, AttributeError, ValueError):
@@ -68,9 +69,13 @@ class AuthorizationPolicy:
     @staticmethod
     @with_db_session
     def _get_current_user(cookies, session):
+        print(cookies)
         try:
-            payload = jwt.decode(cookies['session'],
-                                 settings['session']['secret'])
+            payload = jwt.decode(
+                cookies['session'],
+                settings['session']['secret'],
+                algorithm=JWT_ALGORITHM
+            )
         except KeyError:
             return None
 
@@ -145,6 +150,6 @@ def create_session_cookie(user):
         jwt.encode(
             {'authenticated_user_id': str(user.id)},
             settings['session']['secret'],
-            algorithm='HS256'
+            algorithm=JWT_ALGORITHM
         ).decode('utf-8')
     )
