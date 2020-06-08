@@ -18,13 +18,18 @@ app.include_router(websocket.router)
 
 async def main(*args, **kwargs):
     configure()
-    initialise_if_needed()
+    add_validation_exception_handler()
     return await app(*args, **kwargs)
 
 
 def configure():
     read_settings_files()
     init_sqlalchemy()
+    add_validation_exception_handler()
+
+
+def add_validation_exception_handler():
+    from apollo.lib.exceptions.validation import validation_exception_handler
 
 
 def read_settings_files():
