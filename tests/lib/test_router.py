@@ -1,10 +1,9 @@
 import datetime
-from unittest.mock import MagicMock
-
 import pytest
 
 from apollo.lib.router import SecureRouter
 from apollo.lib.security import Allow, Agent, Everyone
+from tests import create_http_connection_mock
 from tests.asserts import raisesHTTPForbidden
 
 oauth_permission_expectations = [
@@ -61,11 +60,9 @@ def call_http_method_decorated_mock(http_method, router_acl, permission,
                                     auth_header):
     router = SecureRouter(router_acl)
     route_decorator = getattr(router, http_method)
-    request_mock = MagicMock()
-    request_mock.cookies = {}
-    request_mock.headers = {
+    request_mock = create_http_connection_mock(headers={
         'authorization': auth_header
-    }
+    })
 
     @route_decorator('/test', permission=permission)
     def endpoint_mock():
@@ -103,11 +100,9 @@ async def call_websocket_decorated_mock(mocker, router_acl, permission,
     async def mock(websocket):
         pass
 
-    websocket_mock = mocker.MagicMock()
-    websocket_mock.cookies = {}
-    websocket_mock.headers = {
+    websocket_mock = create_http_connection_mock(headers={
         'authorization': auth_header
-    }
+    })
 
     await mock(websocket_mock)
 

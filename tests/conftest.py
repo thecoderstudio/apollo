@@ -10,6 +10,7 @@ from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
 from apollo.models.user import User
+from tests import create_http_connection_mock
 
 
 @fixture
@@ -82,3 +83,13 @@ def user(db_session):
 def session_cookie(user):
     key_name, cookie = create_session_cookie(user)
     return {key_name: cookie}
+
+
+@fixture
+def mock_http_connection():
+    return create_http_connection_mock
+
+
+@fixture
+def http_connection_mock(mock_http_connection):
+    return mock_http_connection()
