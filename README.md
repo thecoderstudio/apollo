@@ -27,12 +27,13 @@ pytest
 ```
 
 ### With Docker
+When you run Apollo for the first time, the username and password for the admin user will be logged to the console.
+
+
 To build & run:
 ```
 docker-compose -f dev-compose build --no-cache && docker-compose -f dev-compose.yml up
 ```
-
-When you run Apollo for the first time, the username and password for the admin user will be logged to the console.
 
 Run tests:
 ```
