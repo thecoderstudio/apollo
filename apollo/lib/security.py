@@ -2,6 +2,8 @@ import base64
 import logging
 
 import jwt
+from fastapi import Depends
+from fastapi.security import APIKeyCookie
 from sqlalchemy.orm.exc import NoResultFound
 
 from apollo.lib.decorators import with_db_session
@@ -10,9 +12,13 @@ from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
 from apollo.lib.settings import settings
+from apollo.models import SessionLocal
 from apollo.models.oauth import get_access_token_by_token
+from apollo.models.user import get_user_by_id
 
 log = logging.getLogger(__name__)
+
+session_cookie = APIKeyCookie(name='session')
 
 Authenticated = 'Authenticated'
 Allow = 'Allow'
@@ -31,7 +37,13 @@ class AuthorizationPolicy:
 
         access_token = self._get_authenticated_access_token(headers)
         if access_token:
-            principals += [Agent, f"agent:{access_token.client.agent_id}"]
+            principals += [Authenticated, Agent,
+                           f"agent:{access_token.client.agent_id}"]
+
+        authenticated_user = self._get_current_user()
+        if authenticated_user:
+            principals += [Authenticated, Human,
+                           f"user:{authenticated_user.id}"]
 
         return principals
 
@@ -54,6 +66,13 @@ class AuthorizationPolicy:
             return
 
         return access_token
+
+    @staticmethod
+    @with_db_session
+    def _get_current_user(session: SessionLocal,
+                          session_cookie: str = Depends(session_cookie)):
+        payload = jwt.decode(session_cookie, settings['session']['secret'])
+        return get_user_by_id(session, payload['authenticated_user_id'])
 
     def get_complete_acl(self, context_acl_provider=None):
         acl = self.acl_provider.__acl__()

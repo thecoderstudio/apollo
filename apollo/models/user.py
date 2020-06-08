@@ -15,6 +15,10 @@ class User(Base):
     password_salt = Column(String(29), nullable=False)
 
 
+def get_user_by_id(session, id_):
+    return session.query(User).get(id_)
+
+
 def get_user_by_username(session, username: str):
     return session.query(User).filter(User.username == username).one_or_none()
 
