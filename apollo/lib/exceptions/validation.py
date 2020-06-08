@@ -8,8 +8,8 @@ from apollo import app
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
-    new_error = {'detail': {}}
+def validation_exception_handler(request, exc):
+    new_error = {}
     for error_object in json.loads(exc.json()):
         field = error_object['loc'][-1]
         new_error_body = {
@@ -19,7 +19,7 @@ async def validation_exception_handler(request, exc):
         if 'ctx' in error_object:
             new_error_body['errors'] = error_object['ctx']
 
-        new_error['detail'][field] = new_error_body
+        new_error[field] = new_error_body
 
     return JSONResponse(
         status_code=400,

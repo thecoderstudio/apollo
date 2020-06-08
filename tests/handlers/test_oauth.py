@@ -34,6 +34,7 @@ def test_post_access_token_no_auth_header(test_client, db_session):
     })
 
     assert response.status_code == 400
+    print(response.json())
     assert response.json() == {'detail': "No authorization header found"}
 
 
@@ -82,7 +83,9 @@ def test_post_access_token_invalid_auth_method(test_client, db_session):
     )
 
     assert response.status_code == 400
-    assert "Wrong authorization method" in response.json()['detail']
+    assert response.json() == {
+        'detail': "Wrong authorization method, expected method: Basic"
+    }
 
 
 def test_post_access_token_invalid_auth_header(test_client):

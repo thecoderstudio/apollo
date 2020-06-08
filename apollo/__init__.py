@@ -29,7 +29,7 @@ def configure():
 
 
 def add_validation_exception_handler():
-    from apollo.lib.exceptions.validation import validation_exception_handler
+    import apollo.lib.exceptions.validation
 
 
 def read_settings_files():
