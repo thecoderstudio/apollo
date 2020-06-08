@@ -14,8 +14,7 @@ from apollo.lib.security import (
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
 from tests.asserts import raisesHTTPForbidden
-from tests.lib.security import (
-    get_acl_provider_mock, get_authorization_policy_with_mock)
+from tests.lib.security import get_authorization_policy_with_mock
 
 
 agent_id = str(uuid.uuid4())
@@ -71,16 +70,14 @@ def build_credentials_str(method, creds):
     return f"{method} {encoded_creds}"
 
 
-def test_auth_policy_minimal_principals(mocker):
-    policy = get_authorization_policy_with_mock(mocker)
-    principals = policy.get_principals({})
+def test_auth_policy_minimal_principals(mock_policy):
+    principals = mock_policy().get_principals({})
 
     assert principals == [Everyone]
 
 
-def test_auth_policy_agent_principals(mocker, access_token):
-    policy = get_authorization_policy_with_mock(mocker)
-    principals = policy.get_principals({
+def test_auth_policy_agent_principals(mock_policy, access_token):
+    principals = mock_policy().get_principals({
         'authorization': f"Bearer {access_token.access_token}"
     })
 
@@ -95,16 +92,16 @@ def test_auth_policy_agent_principals(mocker, access_token):
     "Basic b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57",
     "Bearer b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57",
 ])
-def test_auth_policy_principals_malformed_auth_header(mocker, auth_header):
-    policy = get_authorization_policy_with_mock(mocker)
-    principals = policy.get_principals({
+def test_auth_policy_principals_malformed_auth_header(mock_policy,
+                                                      auth_header):
+    principals = mock_policy().get_principals({
         'authorization': auth_header
     })
 
     assert principals == [Everyone]
 
 
-def test_auth_policy_principals_inactive_oauth_client(mocker, db_session):
+def test_auth_policy_principals_inactive_oauth_client(mock_policy, db_session):
     agent = Agent(
         name='test',
         oauth_client=OAuthClient(
@@ -113,22 +110,21 @@ def test_auth_policy_principals_inactive_oauth_client(mocker, db_session):
             tokens=[OAuthAccessToken()]
         )
     )
-    assert get_principals(mocker, db_session, agent) == [Everyone]
+    assert get_principals(mock_policy(), db_session, agent) == [Everyone]
 
 
-def get_principals(mocker, db_session, agent):
+def get_principals(policy, db_session, agent):
     db_session.add(agent)
     db_session.flush()
     access_token = agent.oauth_client.tokens[0].access_token
     db_session.commit()
 
-    policy = get_authorization_policy_with_mock(mocker)
     return policy.get_principals({
         'authorization': f"Bearer {access_token}"
     })
 
 
-def test_auth_policy_principals_expired_oauth_token(mocker, db_session):
+def test_auth_policy_principals_expired_oauth_token(mock_policy, db_session):
     agent = Agent(
         name='test',
         oauth_client=OAuthClient(
@@ -139,7 +135,7 @@ def test_auth_policy_principals_expired_oauth_token(mocker, db_session):
         )
     )
 
-    assert get_principals(mocker, db_session, agent) == [Everyone]
+    assert get_principals(mock_policy(), db_session, agent) == [Everyone]
 
 
 def test_get_complete_acl_no_context_provider(mocker):
@@ -167,12 +163,12 @@ def test_get_complete_acl_no_context_provider(mocker):
         ]
     ]
 )
-def test_get_comple_acl(mocker, provider_acl, context_acl, expected_acl):
+def test_get_comple_acl(mocker, mock_policy, provider_acl, context_acl,
+                        expected_acl):
     context_acl_provider_mock = mocker.MagicMock(
         __acl__=mocker.MagicMock(return_value=context_acl)
     )
-    policy = get_authorization_policy_with_mock(mocker, provider_acl)
-    acl = policy.get_complete_acl(context_acl_provider_mock)
+    acl = mock_policy(provider_acl).get_complete_acl(context_acl_provider_mock)
 
     assert acl == expected_acl
 
@@ -181,13 +177,14 @@ def test_get_comple_acl(mocker, provider_acl, context_acl, expected_acl):
     "provider_acl,context_acl,expectation",
     acl_permission_expectations
 )
-def test_check_permission(mocker, provider_acl, context_acl, expectation):
+def test_check_permission(mocker, mock_policy, provider_acl, context_acl,
+                          expectation):
     context_acl_provider_mock = mocker.MagicMock(
         __acl__=mocker.MagicMock(return_value=context_acl)
     )
-    policy = get_authorization_policy_with_mock(mocker, provider_acl)
 
-    allowed = policy.check_permission('public', {}, context_acl_provider_mock)
+    allowed = mock_policy(provider_acl).check_permission(
+        'public', {}, context_acl_provider_mock)
 
     assert allowed is expectation
 
