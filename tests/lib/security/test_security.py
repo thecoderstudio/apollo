@@ -13,6 +13,7 @@ from apollo.lib.security import (
     Agent as AgentPrincipal)
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
+from tests import create_http_connection_mock
 from tests.asserts import raisesHTTPForbidden
 
 
@@ -69,16 +70,17 @@ def build_credentials_str(method, creds):
     return f"{method} {encoded_creds}"
 
 
-def test_auth_policy_minimal_principals(mock_policy):
-    principals = mock_policy().get_principals({})
+def test_auth_policy_minimal_principals(mock_policy, http_connection_mock):
+    principals = mock_policy().get_principals(http_connection_mock)
 
     assert principals == [Everyone]
 
 
-def test_auth_policy_agent_principals(mock_policy, access_token):
-    principals = mock_policy().get_principals({
+def test_auth_policy_agent_principals(mock_policy, access_token,
+                                      mock_http_connection):
+    principals = mock_policy().get_principals(mock_http_connection(headers={
         'authorization': f"Bearer {access_token.access_token}"
-    })
+    }))
 
     assert principals == [Everyone, Authenticated, AgentPrincipal,
                           f"agent:{access_token.client_id}"]
@@ -91,11 +93,12 @@ def test_auth_policy_agent_principals(mock_policy, access_token):
     "Basic b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57",
     "Bearer b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57",
 ])
-def test_auth_policy_principals_malformed_auth_header(mock_policy,
-                                                      auth_header):
-    principals = mock_policy().get_principals({
+def test_auth_policy_principals_malformed_auth_header(
+    mock_policy, mock_http_connection, auth_header
+):
+    principals = mock_policy().get_principals(mock_http_connection(headers={
         'authorization': auth_header
-    })
+    }))
 
     assert principals == [Everyone]
 
@@ -118,9 +121,9 @@ def get_principals(policy, db_session, agent):
     access_token = agent.oauth_client.tokens[0].access_token
     db_session.commit()
 
-    return policy.get_principals({
+    return policy.get_principals(create_http_connection_mock(headers={
         'authorization': f"Bearer {access_token}"
-    })
+    }))
 
 
 def test_auth_policy_principals_expired_oauth_token(mock_policy, db_session):
@@ -175,63 +178,74 @@ def test_get_comple_acl(mock_policy, mock_context_acl_provider, provider_acl,
     "provider_acl,context_acl,expectation",
     acl_permission_expectations
 )
-def test_check_permission(mock_policy, mock_context_acl_provider, provider_acl,
-                          context_acl, expectation):
+def test_check_permission(
+    mock_policy, http_connection_mock, mock_context_acl_provider,
+    provider_acl, context_acl, expectation
+):
     allowed = mock_policy(provider_acl).check_permission(
-        'public', {}, mock_context_acl_provider(context_acl))
+        'public',
+        http_connection_mock,
+        mock_context_acl_provider(context_acl)
+    )
 
     assert allowed is expectation
 
 
-def test_check_permission_denied_implicit(mock_policy):
+def test_check_permission_denied_implicit(mock_policy, http_connection_mock):
     policy = mock_policy([
         (Allow, Everyone, 'fake'),
         (Allow, 'test', 'public')
     ])
-    allowed = policy.check_permission('public', {})
+    allowed = policy.check_permission('public', http_connection_mock)
 
     assert allowed is False
 
 
-def test_check_permission_invalid_acl(mocker, mock_policy):
+def test_check_permission_invalid_acl(mocker, mock_policy,
+                                      http_connection_mock):
     policy = mock_policy([
         ('fake', Everyone, 'public')
     ])
 
     with pytest.raises(ValueError, match="Invalid action in ACL"):
-        policy.check_permission('public', {})
+        policy.check_permission('public', http_connection_mock)
 
 
 def test_validate_permission_allowed_with_context_provider(
-    mock_policy, mock_context_acl_provider
+    mock_policy, mock_context_acl_provider, http_connection_mock
 ):
     policy = mock_policy([(Deny, Everyone, 'public')])
-    policy.validate_permission('public', {}, mock_context_acl_provider(
-        [(Allow, Everyone, 'public')]
-    ))
+    policy.validate_permission(
+        'public',
+        http_connection_mock,
+        mock_context_acl_provider([(Allow, Everyone, 'public')])
+    )
 
 
 def test_validate_permission_denied_explicit_with_context_provider(
-    mock_policy, mock_context_acl_provider
+    mock_policy, mock_context_acl_provider, http_connection_mock
 ):
     policy = mock_policy([(Allow, Everyone, 'public')])
     with raisesHTTPForbidden:
-        policy.validate_permission('public', {}, mock_context_acl_provider(
-            [(Deny, Everyone, 'public')]
-        ))
+        policy.validate_permission(
+            'public',
+            http_connection_mock,
+            mock_context_acl_provider([(Deny, Everyone, 'public')])
+        )
 
 
-def test_validate_permission_denied_implicit(mock_policy):
+def test_validate_permission_denied_implicit(mock_policy,
+                                             http_connection_mock):
     policy = mock_policy([
         (Allow, Everyone, 'fake'),
         (Allow, 'test', 'public')
     ])
     with raisesHTTPForbidden:
-        policy.validate_permission('public', {})
+        policy.validate_permission('public', http_connection_mock)
 
 
-def test_validate_permission_invalid_acl(mock_policy):
+def test_validate_permission_invalid_acl(mock_policy, http_connection_mock):
     policy = mock_policy([('test', Everyone, 'public')])
 
     with raisesHTTPForbidden:
-        policy.validate_permission('public', {})
+        policy.validate_permission('public', http_connection_mock)
