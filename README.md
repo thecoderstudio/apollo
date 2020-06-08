@@ -31,9 +31,9 @@ pytest
 ### With Docker
 
 
-Building docker for your development environment:
+Building your development environment with Docker:
 ```
-docker-compose -f dev-compose build.yml --no-cache
+docker-compose -f dev-compose.yml build --no-cache
 ```
 
 Running your development environment:
