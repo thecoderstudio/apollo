@@ -76,7 +76,6 @@ class AuthorizationPolicy:
             elif action is Deny:
                 return False
             else:
-                # TODO customer exception
                 raise ValueError("Invalid action in ACL")
 
         return False

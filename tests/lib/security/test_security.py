@@ -198,8 +198,7 @@ def test_check_permission_invalid_acl(mocker, mock_policy):
         ('fake', Everyone, 'public')
     ])
 
-    # TODO change to custom exception
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid action in ACL"):
         policy.check_permission('public', {})
 
 
