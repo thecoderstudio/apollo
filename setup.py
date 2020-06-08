@@ -7,8 +7,10 @@ with open(os.path.join(here, 'VERSION')) as f:
     version = f.read().strip()
 
 requires = [
+    'bcrypt',
     'fastapi',
     'psycopg2',
+    'pydantic',
     'sqlalchemy'
 ]
 
