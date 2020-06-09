@@ -3,6 +3,7 @@ from secrets import token_urlsafe
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.decorators import with_db_session
 from apollo.models import save
+from apollo.models.role import get_role_by_name
 from apollo.models.user import User, count_users
 
 
@@ -11,8 +12,10 @@ def add_admin_user(session):
     password_hash, password_salt = hash_plaintext(password)
 
     save(session,
-         User(username='admin', password_hash=password_hash,
-              password_salt=password_salt))
+         User(username='admin',
+              password_hash=password_hash,
+              password_salt=password_salt,
+              role=get_role_by_name('admin')))
 
     print("--- Welcome to apollo. ---\n\n"
           + "Your admin username is 'admin'.\n"
