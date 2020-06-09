@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
 
 
 class LoginSchema(BaseModel):
-    username: str
-    password: str
+    username: constr(strip_whitespace=True)
+    password: constr(strip_whitespace=True)
