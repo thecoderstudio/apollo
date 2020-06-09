@@ -69,7 +69,6 @@ class AuthorizationPolicy:
     @staticmethod
     @with_db_session
     def _get_current_user(cookies, session):
-        print(cookies)
         try:
             payload = jwt.decode(
                 cookies['session'],
