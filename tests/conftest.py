@@ -79,6 +79,7 @@ def authenticated_agent_headers(access_token):
 def user(db_session):
     password_hash, password_salt = hash_plaintext('testing123')
     user = User(
+        id='ccaf8799-b134-4e47-82f1-a4d9a207c040',
         username='test_admin',
         password_hash=password_hash,
         password_salt=password_salt,
