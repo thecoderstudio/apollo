@@ -34,7 +34,6 @@ def test_post_access_token_no_auth_header(test_client, db_session):
     })
 
     assert response.status_code == 400
-    print(response.json())
     assert response.json() == {'detail': "No authorization header found"}
 
 
