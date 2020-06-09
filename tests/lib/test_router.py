@@ -98,6 +98,9 @@ def test_secure_router_http_methods_cookie_permissions(
     if role != 'admin':
         user.role = None
 
+    if not authenticated:
+        session_cookie = {}
+
     db_session.commit()
 
     router_acl = [
