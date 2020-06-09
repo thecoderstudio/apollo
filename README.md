@@ -13,7 +13,11 @@ authorized to use.
 When you run Apollo for the first time, the username and password for the admin user will be logged to the console.
 
 ## Configuration
-The first step is to rename or copy `local-settings.ini.dist` to `local-settings.ini` in fill in the required settings.
+Run: 
+```
+cp local-settings.ini.dist local-settings.ini
+```
+ and fill in the required settings in `local-settings.ini`.
 
 ### From source
 To install:
