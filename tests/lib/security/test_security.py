@@ -114,7 +114,7 @@ def test_auth_policy_default_user_principals(mock_policy, mock_http_connection,
     "Basic b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57",
     "Bearer b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57",
 ])
-def test_auth_policy_principals_malformed_auth_header(
+def test_auth_policy_principals(
     mock_policy, mock_http_connection, auth_header
 ):
     principals = mock_policy().get_principals(mock_http_connection(headers={
