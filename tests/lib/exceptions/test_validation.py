@@ -1,7 +1,6 @@
 import json
-import pytest
 
-from fastapi.exceptions import RequestValidationError
+import pytest
 from pydantic import ValidationError
 from pydantic import BaseModel, constr
 
