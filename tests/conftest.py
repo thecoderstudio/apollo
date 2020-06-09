@@ -9,6 +9,7 @@ from apollo.lib.security import create_session_cookie
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
+from apollo.models.role import Role
 from apollo.models.user import User
 from tests import create_http_connection_mock
 
@@ -21,12 +22,22 @@ def patched_settings(mocker):
 
 
 @fixture
-def db_session(patched_settings):
+def connection(patched_settings):
     try:
         config = ConfigParser()
         config.read('test.ini')
-        init_sqlalchemy(config)
+        connection = init_sqlalchemy(config).connect()
+        yield connection
+    finally:
+        connection.close()
+
+
+@fixture
+def db_session(connection):
+    try:
         session = SessionLocal()
+        session.add(Role(name='admin'))
+        session.commit()
         yield session
     finally:
         empty_tables()
@@ -70,7 +81,8 @@ def user(db_session):
     user = User(
         username='test_admin',
         password_hash=password_hash,
-        password_salt=password_salt
+        password_salt=password_salt,
+        role=db_session.query(Role).filter(Role.name == 'admin').one()
     )
     db_session.add(user)
     db_session.flush()

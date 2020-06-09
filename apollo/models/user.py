@@ -14,7 +14,7 @@ class User(Base):
     username = Column(String(36), unique=True, nullable=False)
     password_hash = Column(String(119), nullable=False)
     password_salt = Column(String(29), nullable=False)
-    role_id = Column(UUID(as_uuid=True), ForeignKey('role.id'), nullable=False)
+    role_id = Column(UUID(as_uuid=True), ForeignKey('role.id'))
 
     role = relationship('Role')
 

@@ -15,7 +15,7 @@ def add_admin_user(session):
          User(username='admin',
               password_hash=password_hash,
               password_salt=password_salt,
-              role=get_role_by_name('admin')))
+              role=get_role_by_name(session, 'admin')))
 
     print("--- Welcome to apollo. ---\n\n"
           + "Your admin username is 'admin'.\n"

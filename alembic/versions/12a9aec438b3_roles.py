@@ -19,7 +19,7 @@ branch_labels = None
 depends_on = None
 
 admin = {
-    'id': '',
+    'id': '61e2bb0b-5cef-4896-b034-d3e0f3b027e9',
     'name': 'admin'
 }
 
@@ -31,7 +31,7 @@ def upgrade():
         sa.Column('name', sa.String(100), nullable=False, unique=True)
     )
     op.add_column('user', sa.Column('role_id', UUID(as_uuid=True),
-                                    nullable=False))
+                                    nullable=True))
     op.create_foreign_key('role_id_fk', 'user', 'role', ['role_id'], ['id'])
 
     op.bulk_insert(Role.__table__, [admin])

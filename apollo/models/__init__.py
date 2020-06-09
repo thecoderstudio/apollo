@@ -19,6 +19,7 @@ def init_sqlalchemy(settings_=settings):
     engine = create_engine(get_connection_url(settings_))
     SessionLocal.configure(bind=engine)
     Base.metadata.bind = engine
+    return engine
 
 
 def get_connection_url(settings_):

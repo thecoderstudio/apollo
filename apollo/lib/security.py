@@ -29,25 +29,27 @@ class AuthorizationPolicy:
     def __init__(self, acl_provider):
         self.acl_provider = acl_provider
 
-    def get_principals(self, http_connection):
+    @with_db_session
+    def get_principals(self, http_connection, session):
         principals = [Everyone]
 
         access_token = self._get_authenticated_access_token(
-            http_connection.headers)
+            http_connection.headers, session)
         if access_token:
             principals += [Authenticated, Agent,
                            f"agent:{access_token.client.agent_id}"]
 
-        authenticated_user = self._get_current_user(http_connection.cookies)
-        print(authenticated_user)
+        authenticated_user = self._get_current_user(http_connection.cookies,
+                                                    session)
         if authenticated_user:
             principals += [Authenticated, Human,
                            f"user:{authenticated_user.id}"]
+            if authenticated_user.role:
+                principals.append(f"role:{authenticated_user.role.name}")
 
         return principals
 
     @staticmethod
-    @with_db_session
     def _get_authenticated_access_token(headers, session):
         try:
             auth_method, token_string = headers['authorization'].split(' ')
@@ -67,7 +69,6 @@ class AuthorizationPolicy:
         return access_token
 
     @staticmethod
-    @with_db_session
     def _get_current_user(cookies, session):
         try:
             payload = jwt.decode(
