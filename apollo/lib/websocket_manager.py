@@ -12,9 +12,7 @@ class WebSocketManager(metaclass=Singleton):
         self.connections: Dict[uuid.UUID, WebSocket] = {}
 
     async def add_and_connect_websocket(self, websocket: WebSocket):
-        id = uuid.uuid4()
-        print(id)
-        self.connections[id] = websocket
+        self.connections[uuid.uuid4()] = websocket
         await websocket.accept()
         await websocket.receive()
 
