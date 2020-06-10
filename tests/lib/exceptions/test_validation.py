@@ -2,7 +2,7 @@ import json
 
 import pytest
 from pydantic import BaseModel, constr, ValidationError
-\
+
 from apollo.lib.exceptions.validation import validation_exception_handler
 
 
