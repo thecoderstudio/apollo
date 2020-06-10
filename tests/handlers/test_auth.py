@@ -20,4 +20,4 @@ def test_login_success(test_client, db_session):
     })
 
     assert response.status_code == 200
-    # TODO assert cookies
+    assert response.cookies['session'] is not None
