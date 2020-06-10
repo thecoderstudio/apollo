@@ -2,7 +2,7 @@ from pydantic import BaseModel
 import uuid
 
 import asyncio
-from fastapi import WebSocket
+from fastapi import WebSocket, APIRouter
 
 from apollo.lib.router import SecureRouter
 from apollo.lib.security import Allow, Agent
@@ -20,10 +20,16 @@ async def shell(websocket: WebSocket):
     await WebSocketManager().add_and_connect_websocket(websocket)
 
 
-@router.post('/websockets/{websocket_id}', status_code=200)
+other_router = APIRouter()
+
+
+@other_router.post('/websockets/{websocket_id}', status_code=200)
 async def post_websocket_command(websocket_id: uuid.UUID,
-                                 command: CommandSchema):
-    print(id)
-    # websocket = websockets[websocket_id]
-    # await websocket.send_text(command.command)
-    # await websocket.close()
+                                 commandSchema: CommandSchema,
+                                 reponse_model=CommandSchema):
+    print("1")
+    await WebSocketManager().send_message(websocket_id, commandSchema.command)
+    print("2")
+    await WebSocketManager().close_and_remove_connection(websocket_id)
+    print("3")
+    return commandSchema.dict()

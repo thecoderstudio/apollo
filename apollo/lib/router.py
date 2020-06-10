@@ -17,6 +17,7 @@ class SecureRouter(APIRouter):
     def websocket(self, *outer_args, permission='public', **outer_kwargs):
         def decorate(func):
             websocket_route = super(SecureRouter, self).websocket
+
             @wraps(func)
             @websocket_route(*outer_args, **outer_kwargs)
             async def wrapped(websocket: WebSocket, *args, **kwargs):
@@ -61,6 +62,7 @@ class SecureRouter(APIRouter):
     def _http_method(self, func, http_method, *outer_args, permission='public',
                      **outer_kwargs):
         route = getattr(super(SecureRouter, self), http_method)
+
         @wraps(func)
         @route(*outer_args, **outer_kwargs)
         def wrapped(authorization: str = Header(None), *args, **kwargs):
