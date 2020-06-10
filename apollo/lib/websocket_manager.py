@@ -23,5 +23,5 @@ class WebSocketManager(metaclass=Singleton):
 
     async def close_and_remove_connection(self, websocket_id):
         websocket = self.connections.pop(websocket_id)
-        await self.connections[websocket_id].send_json("Closing connection.")
+        await self.connections[websocket_id].send_json("Closing connection")
         await websocket.close()
