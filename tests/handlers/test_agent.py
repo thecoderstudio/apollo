@@ -1,4 +1,4 @@
-def test_post_agent_success(test_client, db_session, session_cookie):
+def test_post_agent_success(test_client, session_cookie):
     response = test_client.post(
         '/agent',
         json={'name': 'test'},
@@ -14,9 +14,19 @@ def test_post_agent_success(test_client, db_session, session_cookie):
     assert oauth_client['type'] == 'confidential'
 
 
-def test_post_agent_name_exists(test_client, db_session, session_cookie):
+def test_post_agent_name_exists(test_client, session_cookie):
     agent = {'name': 'test'}
     test_client.post('/agent', json=agent, cookies=session_cookie)
     response = test_client.post('/agent', json=agent)
 
     assert response.status_code == 400
+
+
+def test_post_agent_unauthenticated(test_client, db_session):
+    response = test_client.post(
+        '/agent',
+        json={'name': 'test'}
+    )
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
