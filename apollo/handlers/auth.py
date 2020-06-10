@@ -20,10 +20,11 @@ def login(response: Response, login_data: LoginSchema,
           session: Session = Depends(get_session)):
     user = get_user_by_username(session, login_data.username)
 
-    # Hash and compare regardless to avoid timing attacks
     if user:
         password_hash, password_salt = user.password_hash, user.password_salt
     else:
+        # Compare given credentials with fake credentials to avoid timing
+        # attacks.
         password_hash, password_salt = FAKE_PASSWORD_HASH, FAKE_PASSWORD_SALT
 
     if not compare_plaintext_to_hash(login_data.password, password_hash,
