@@ -1,12 +1,10 @@
 import pytest
 from pydantic import BaseModel, constr, ValidationError
 
-from apollo import (configure, main, read_settings_files,
+from apollo import (app, configure, main, read_settings_files,
                     add_validation_exception_handler)
 from apollo.lib.exceptions.validation import validation_exception_handler
 from tests import async_mock
-
-from apollo import app
 
 
 class ConfigParserMock:
