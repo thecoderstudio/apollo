@@ -80,3 +80,28 @@ def test_post_user_duplicate_username(test_client, db_session, session_cookie):
 
     assert response.status_code == 400
     assert response.json()['username']['msg'] == 'username must be unique'
+
+
+def test_post_user_unauthenticated(test_client, db_session):
+    response = test_client.post(
+        '/user',
+        json={'username': 'doejohn', 'password': 'testing123'}
+    )
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
+
+
+def test_post_user_as_regular_user(test_client, db_session, user,
+                                   session_cookie):
+    user.role = None
+    db_session.commit()
+
+    response = test_client.post(
+        '/user',
+        json={'username': 'doejohn', 'password': 'testing123'},
+        cookies=session_cookie
+    )
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
