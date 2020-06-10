@@ -17,7 +17,6 @@ class WebSocketManager(metaclass=Singleton):
         await websocket.receive()
 
     async def send_message(self, websocket_id: uuid.UUID, message: str):
-        print(self.connections)
         websocket = self.connections[websocket_id]
         await self.connections[websocket_id].send_text(message)
 

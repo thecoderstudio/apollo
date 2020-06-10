@@ -14,7 +14,6 @@ app.include_router(oauth.router)
 app.include_router(root.router)
 app.include_router(user.router)
 app.include_router(websocket.router)
-app.include_router(websocket.other_router)
 
 
 async def main(*args, **kwargs):
