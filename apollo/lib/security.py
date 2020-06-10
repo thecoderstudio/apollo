@@ -74,7 +74,7 @@ class AuthorizationPolicy:
             payload = jwt.decode(
                 cookies['session'],
                 settings['session']['secret'],
-                algorithm=JWT_ALGORITHM
+                algorithms=[JWT_ALGORITHM]
             )
         except KeyError:
             return None
