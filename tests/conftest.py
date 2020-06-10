@@ -35,6 +35,7 @@ def connection(patched_settings):
 @fixture
 def db_session(connection):
     try:
+        empty_tables()
         session = SessionLocal()
         session.add(Role(name='admin'))
         session.commit()
