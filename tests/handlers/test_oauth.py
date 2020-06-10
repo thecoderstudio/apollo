@@ -45,7 +45,7 @@ def test_post_access_token_invalid_grant_type(test_client):
         }
     )
 
-    assert response.status_code == 422
+    assert response.status_code == 400
 
 
 def test_post_access_token_client_not_authorized(mocker, test_client,
@@ -82,7 +82,9 @@ def test_post_access_token_invalid_auth_method(test_client, db_session):
     )
 
     assert response.status_code == 400
-    assert "Wrong authorization method" in response.json()['detail']
+    assert response.json() == {
+        'detail': "Wrong authorization method, expected method: Basic"
+    }
 
 
 def test_post_access_token_invalid_auth_header(test_client):

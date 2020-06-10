@@ -18,4 +18,4 @@ def test_post_agent_name_exists(test_client, db_session):
     test_client.post('/agent', json=agent)
     response = test_client.post('/agent', json=agent)
 
-    assert response.status_code == 422
+    assert response.status_code == 400

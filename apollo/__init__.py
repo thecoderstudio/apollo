@@ -25,6 +25,11 @@ async def main(*args, **kwargs):
 def configure():
     read_settings_files()
     init_sqlalchemy()
+    add_validation_exception_handler()
+
+
+def add_validation_exception_handler():
+    from apollo.lib.exceptions import validation
 
 
 def read_settings_files():
