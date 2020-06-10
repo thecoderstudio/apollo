@@ -15,7 +15,19 @@ oauth_permission_expectations = [
     ('test', 'fake', False),
     ('test',
      "Bearer b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57",
-     True)
+     True),
+    ('authenticated', None, False),
+    ('authenticated', '', False),
+    ('authenticated', 'fake', False),
+    ('authenticated',
+     "Bearer b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57",
+     True),
+    ('human', None, False),
+    ('human', '', False),
+    ('human', 'fake', False),
+    ('human',
+     "Bearer b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57",
+     False)
 ]
 
 # permission, authenticated, role, expected result
@@ -62,7 +74,11 @@ def test_secure_router_http_methods_oauth_permissions(
     )
     db_session.commit()
 
-    router_acl = [(Allow, Agent, 'test')]
+    router_acl = [
+        (Allow, Agent, 'test'),
+        (Allow, Authenticated, 'authenticated'),
+        (Allow, Human, 'human')
+    ]
     request_mock = create_http_connection_mock(headers={
         'authorization': auth_header
     })
@@ -138,7 +154,11 @@ async def test_websocket_oauth_permissions(db_session, access_token,
     )
     db_session.commit()
 
-    router_acl = [(Allow, Agent, 'test')]
+    router_acl = [
+        (Allow, Agent, 'test'),
+        (Allow, Authenticated, 'authenticated'),
+        (Allow, Human, 'human')
+    ]
     websocket_mock = create_http_connection_mock(headers={
         'authorization': auth_header
     })
