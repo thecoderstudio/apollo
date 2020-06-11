@@ -4,6 +4,7 @@ from configparser import ConfigParser
 from pytest import fixture
 
 import apollo.lib.settings
+from apollo.lib.websocket_manager import WebSocketManager
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
@@ -57,3 +58,4 @@ def authenticated_agent_headers(access_token):
     return {
         'authorization': f"Bearer {access_token.access_token}"
     }
+
