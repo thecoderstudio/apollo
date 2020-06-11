@@ -1,17 +1,18 @@
-from fastapi import APIRouter, Depends, Header, HTTPException, Response
+from fastapi import Depends, Header, HTTPException, Response
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
+from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.oauth import (
     CreateOAuthAccessTokenSchema, OAuthAccessTokenSchema)
 from apollo.lib.security import parse_authorization_header
 from apollo.models import get_session, save
 from apollo.models.oauth import get_client_by_creds, OAuthAccessToken
 
-router = APIRouter()
+router = SecureRouter()
 
 
 @router.post('/oauth/token', status_code=201,

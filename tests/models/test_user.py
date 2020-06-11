@@ -1,6 +1,7 @@
 import pytest
 from sqlalchemy.exc import DataError
 
+from apollo.models.role import Role
 from apollo.models.user import User, get_user_by_username, count_users
 
 
@@ -60,3 +61,23 @@ def test_user_username_too_long(db_session):
     with pytest.raises(DataError):
         db_session.add(user)
         db_session.commit()
+
+
+def test_user_cascades(db_session):
+    user = User(
+        username='johndoe',
+        password_hash=(
+            '$2b$12$FdTnxaL.NlRdEHREzbU3k.Nt1Gpii9vrKU.1h/MnZYdlMHPUW8/k.'),
+        password_salt='$2b$12$FdTnxaL.NlRdEHREzbU3k.',
+        role=Role(name='test role')
+    )
+    db_session.add(user)
+    db_session.flush()
+    user_id = user.id
+    role_id = user.role.id
+
+    persisted_user = db_session.query(User).get(user_id)
+    db_session.delete(persisted_user)
+    db_session.commit()
+
+    assert db_session.query(Role).get(role_id) is not None

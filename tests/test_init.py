@@ -1,5 +1,4 @@
 import pytest
-from pydantic import BaseModel, constr, ValidationError
 
 from apollo import (app, configure, main, read_settings_files,
                     add_validation_exception_handler)
@@ -42,13 +41,13 @@ def test_configure(mocker):
     add_validation_exception_handler_mock.assert_called_once()
 
 
-def test_read_settings_files(mocker, settings):
+def test_read_settings_files(mocker, patched_settings):
     mock = mocker.patch('apollo.ConfigParser')
     mock.return_value = ConfigParserMock()
 
     read_settings_files()
 
-    assert settings == {'test': 1}
+    assert patched_settings == {'test': 1}
 
 
 def test_add_validation_exception_handler(mocker):

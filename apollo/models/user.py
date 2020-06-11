@@ -1,7 +1,8 @@
 import uuid
 
-from sqlalchemy import Column, String
+from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from apollo.models import Base
 
@@ -13,6 +14,13 @@ class User(Base):
     username = Column(String(36), unique=True, nullable=False)
     password_hash = Column(String(119), nullable=False)
     password_salt = Column(String(29), nullable=False)
+    role_id = Column(UUID(as_uuid=True), ForeignKey('role.id'))
+
+    role = relationship('Role')
+
+
+def get_user_by_id(session, id_):
+    return session.query(User).get(id_)
 
 
 def get_user_by_username(session, username: str):
