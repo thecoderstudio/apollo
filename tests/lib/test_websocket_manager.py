@@ -9,7 +9,7 @@ from apollo.lib.websocket_manager import WebSocketManager
 
 
 @pytest.mark.asyncio
-async def test_web_socket_manager_add(test_client):
+async def test_websocket_manager_add(test_client):
     websocket_manager = WebSocketManager()
 
     @app.websocket_route('/websocket_mock')
@@ -26,7 +26,7 @@ async def test_web_socket_manager_add(test_client):
 
 
 @pytest.mark.asyncio
-async def test_web_socket_send_message(test_client):
+async def test_websocket_manager_send_message(test_client):
     websocket_manager = WebSocketManager()
     add_websocket_connect_route(app)
     with test_client.websocket_connect('/websocket_connect') as websocket:
@@ -44,6 +44,16 @@ async def test_wesocket_manager_close_and_remove_connections(test_client):
     assert len(websocket_manager.connections) == 1
     await websocket_manager.close_and_remove_all_connections()
     assert len(websocket_manager.connections) == 0
+
+
+@pytest.mark.asyncio
+async def test_websocket_manager_close_runetime_error(test_client):
+    websocket_manager = WebSocketManager()
+    add_websocket_connect_route(app)
+    test_client.websocket_connect('/websocket_connect')
+    await list(websocket_manager.connections.values())[0].close()
+    await websocket_manager.close_and_remove_all_connections()
+
 
 def add_websocket_connect_route(app):
     @app.websocket_route('/websocket_connect')

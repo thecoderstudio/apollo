@@ -18,7 +18,7 @@ class WebSocketManager(metaclass=Singleton):
         await websocket.accept()
         await websocket.send_json("Connection accepted")
         try:
-            return await websocket.receive()
+            return await websocket.receive_json()
         except WebSocketDisconnect:
             return
 
