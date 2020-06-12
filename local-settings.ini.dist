@@ -1,6 +1,9 @@
 [SQLAlchemy]
 host = db
-password = testing123
+password =
+
+[session]
+secret =
 
 [alembic]
 script_location = alembic

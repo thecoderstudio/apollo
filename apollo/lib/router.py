@@ -1,6 +1,7 @@
+import inspect
 from functools import wraps
 
-from fastapi import APIRouter, Header, WebSocket
+from fastapi import APIRouter, Request, WebSocket
 
 from apollo.lib.security import Allow, AuthorizationPolicy, Everyone
 
@@ -21,8 +22,7 @@ class SecureRouter(APIRouter):
             @wraps(func)
             @websocket_route(*outer_args, **outer_kwargs)
             async def wrapped(websocket: WebSocket, *args, **kwargs):
-                self.acl_policy.validate_permission(
-                    permission, websocket.headers)
+                self.acl_policy.validate_permission(permission, websocket)
                 await func(websocket, *args, **kwargs)
             return wrapped
         return decorate
@@ -62,12 +62,19 @@ class SecureRouter(APIRouter):
     def _http_method(self, func, http_method, *outer_args, permission='public',
                      **outer_kwargs):
         route = getattr(super(SecureRouter, self), http_method)
-
-        @wraps(func)
         @route(*outer_args, **outer_kwargs)
-        def wrapped(authorization: str = Header(None), *args, **kwargs):
-            self.acl_policy.validate_permission(permission, {
-                'authorization': authorization
-            })
+        def wrapped(request: Request, *args, **kwargs):
+            self.acl_policy.validate_permission(permission, request)
             return func(*args, **kwargs)
+
+        wrapped_signature = inspect.signature(wrapped)
+        func_signature = inspect.signature(func)
+        func_parameters = [func_signature.parameters[key] for key in
+                           func_signature.parameters]
+
+        new_parameters = (
+            [wrapped_signature.parameters['request']] + func_parameters)
+        new_signature = func_signature.replace(parameters=new_parameters)
+
+        wrapped.__signature__ = new_signature
         return wrapped

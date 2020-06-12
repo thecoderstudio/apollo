@@ -23,6 +23,8 @@ services:
       coverage run --source apollo -m pytest -s &&
       coverage report -m &&
       coverage xml"
+    networks:
+      - apollo-test-network
   db-test:
     container_name: apollo-test-db
     image: postgres:12
@@ -32,3 +34,8 @@ services:
       - POSTGRES_USER=apollo
       - POSTGRES_PASSWORD=testing123
       - POSTGRES_DB=apollo-test
+    networks:
+      - apollo-test-network
+
+networks:
+  apollo-test-network:

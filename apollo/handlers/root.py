@@ -1,9 +1,8 @@
-from fastapi import APIRouter
-
+from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.version import VersionSchema
 from apollo.lib.version import version
 
-router = APIRouter()
+router = SecureRouter()
 
 
 @router.get("/", response_model=VersionSchema)
