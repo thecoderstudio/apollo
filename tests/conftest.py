@@ -6,12 +6,9 @@ from pytest import fixture
 
 from apollo import app
 import apollo.lib.settings
-<<<<<<< HEAD
-from apollo.lib.websocket_manager import WebSocketManager
-=======
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.security import create_session_cookie
->>>>>>> 176d678bb77019686db8d4d7ea8b77a6d960067e
+from apollo.lib.websocket_manager import WebSocketManager
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
