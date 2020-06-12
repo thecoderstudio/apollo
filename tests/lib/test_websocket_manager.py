@@ -1,7 +1,5 @@
 import uuid
 
-import pytest
-from fastapi import APIRouter
 from fastapi.websockets import WebSocket
 
 from apollo import app

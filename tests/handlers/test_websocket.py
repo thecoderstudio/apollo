@@ -1,8 +1,6 @@
 from tests.asserts import raisesHTTPForbidden
 
-import asyncio
 import pytest
-from apollo import app
 from apollo.lib.websocket_manager import WebSocketManager
 
 

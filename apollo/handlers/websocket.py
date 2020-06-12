@@ -1,4 +1,4 @@
-from fastapi import WebSocket, APIRouter
+from fastapi import WebSocket 
 
 from apollo.lib.router import SecureRouter
 from apollo.lib.security import Allow, Agent

@@ -1,4 +1,3 @@
-import asyncio
 import uuid
 
 from fastapi import WebSocket
@@ -23,7 +22,6 @@ class WebSocketManager(metaclass=Singleton):
             return
 
     async def send_message(self, websocket_id: uuid.UUID, message: str):
-        websocket = self.connections[websocket_id]
         await self.connections[websocket_id].send_json(message)
 
     async def close_and_remove_connection(self, websocket_id):
