@@ -83,8 +83,6 @@ def authenticated_agent_headers(access_token):
         'authorization': f"Bearer {access_token.access_token}"
     }
 
-<<<<<<< HEAD
-=======
 
 @fixture
 def user(db_session):
@@ -117,4 +115,3 @@ def mock_http_connection():
 @fixture
 def http_connection_mock(mock_http_connection):
     return mock_http_connection()
->>>>>>> 176d678bb77019686db8d4d7ea8b77a6d960067e
