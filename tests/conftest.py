@@ -1,14 +1,20 @@
 import contextlib
 from configparser import ConfigParser
 
+from fastapi.testclient import TestClient
 from pytest import fixture
 
+from apollo import app
 import apollo.lib.settings
 from apollo.lib.websocket_manager import WebSocketManager
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
 
+
+@fixture
+def test_client():
+    return TestClient(app)
 
 @fixture
 def settings():
