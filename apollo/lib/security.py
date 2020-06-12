@@ -137,10 +137,8 @@ def parse_authorization_header(authorization: str):
 
     if not auth_method == 'Basic':
         raise InvalidAuthorizationMethod('Basic')
-    try:
-        decoded_header = base64.b64decode(encoded_string).decode('utf-8')
-    except UnicodeDecodeError:
-        raise invalid_header_exception
+
+    decoded_header = base64.b64decode(encoded_string).decode('utf-8')
 
     try:
         agent_id, secret = decoded_header.split(':')
