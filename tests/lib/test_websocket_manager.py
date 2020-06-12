@@ -14,11 +14,11 @@ async def test_websocket_manager_add(test_client):
     async def mock(websocket: WebSocket):
         await websocket_manager.add_and_connect_websocket(websocket)
 
-    with test_client.websocket_connect('/websocket_mock') as websocket:
-        assert len(websocket_manager.connections) == 1
+    test_client.websocket_connect('/websocket_mock'):
+    assert len(websocket_manager.connections) == 1
 
-    with test_client.websocket_connect('/websocket_mock') as websocket:
-        assert len(websocket_manager.connections) == 2
+    test_client.websocket_connect('/websocket_mock'):
+    assert len(websocket_manager.connections) == 2
 
     await websocket_manager.close_and_remove_all_connections()
 
