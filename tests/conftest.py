@@ -4,8 +4,8 @@ from configparser import ConfigParser
 from fastapi.testclient import TestClient
 from pytest import fixture
 
-from apollo import app
 import apollo.lib.settings
+from apollo import app
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.security import create_session_cookie
 from apollo.models import Base, init_sqlalchemy, SessionLocal
