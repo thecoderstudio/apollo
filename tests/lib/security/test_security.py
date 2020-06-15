@@ -64,6 +64,10 @@ def test_parse_malformed_authorization_header():
     with pytest.raises(InvalidAuthorizationHeader):
         parse_authorization_header(authorization)
 
+    authorization = ""
+    with pytest.raises(InvalidAuthorizationHeader):
+        parse_authorization_header(authorization)
+
 
 def build_credentials_str(method, creds):
     encoded_creds = base64.b64encode(creds.encode('utf-8')).decode('utf-8')

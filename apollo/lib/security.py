@@ -124,20 +124,26 @@ class AuthorizationPolicy:
 
 
 def parse_authorization_header(authorization: str):
+    invalid_header_exception = InvalidAuthorizationHeader(
+        "<Method> base64(<agent_id>:<secret>)"
+    )
+
     try:
         auth_method, encoded_string = authorization.split(' ')
-    except (AttributeError, ValueError):
+    except AttributeError:
         raise AuthorizationHeaderNotFound
+    except ValueError:
+        raise invalid_header_exception
 
     if not auth_method == 'Basic':
         raise InvalidAuthorizationMethod('Basic')
+
     decoded_header = base64.b64decode(encoded_string).decode('utf-8')
+
     try:
         agent_id, secret = decoded_header.split(':')
     except ValueError:
-        raise InvalidAuthorizationHeader(
-            "<Method> base64(<agent_id>:<secret>)"
-        )
+        raise invalid_header_exception
     return {
         'agent_id': agent_id,
         'secret': secret
