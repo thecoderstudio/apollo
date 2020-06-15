@@ -20,14 +20,3 @@ async def shell(
         session, websocket.headers['authorization'])
     await WebSocketManager().add_and_connect_websocket(
         client_id, websocket)
-
-
-router2 = APIRouter()
-
-
-@ router2.post('/message')
-async def messagge():
-    print(WebSocketManager().connections)
-    import uuid
-    await WebSocketManager().send_message(uuid.UUID('2d022ebd-bfc2-4906-8c9e-4e065fab9435'),
-                                          'ls')

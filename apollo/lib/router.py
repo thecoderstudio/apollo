@@ -18,6 +18,7 @@ class SecureRouter(APIRouter):
     def websocket(self, *outer_args, permission='public', **outer_kwargs):
         def decorate(func):
             websocket_route = super(SecureRouter, self).websocket
+
             @wraps(func)
             @websocket_route(*outer_args, **outer_kwargs)
             async def wrapped(websocket: WebSocket, *args, **kwargs):
@@ -61,20 +62,12 @@ class SecureRouter(APIRouter):
     def _http_method(self, func, http_method, *outer_args, permission='public',
                      **outer_kwargs):
         route = getattr(super(SecureRouter, self), http_method)
-        
-        if inspect.iscoroutinefunction(func):
 
-            @route(*outer_args, **outer_kwargs)
-            async def wrapped(request: Request, *args, **kwargs):
-                self.acl_policy.validate_permission(permission, request)
-                return await func(*args, **kwargs)
-        else:
-            print("-----")
-            @route(*outer_args, **outer_kwargs)
-            def wrapped(request: Request, *args, **kwargs):
-                self.acl_policy.validate_permission(permission, request)
-                return func(*args, **kwargs)
-   
+        @route(*outer_args, **outer_kwargs)
+        def wrapped(request: Request, *args, **kwargs):
+            self.acl_policy.validate_permission(permission, request)
+            return func(*args, **kwargs)
+
         wrapped_signature = inspect.signature(wrapped)
         func_signature = inspect.signature(func)
         func_parameters = [func_signature.parameters[key] for key in

@@ -51,11 +51,12 @@ class AuthorizationPolicy:
 
     @staticmethod
     def _get_authenticated_access_token(headers, session):
-        auth_method, token_string = get_auth_method_and_token(
-            headers['authorization'])
+        try:
+            auth_method, token_string = get_auth_method_and_token(
+                headers['authorization'])
+        except KeyError:
+            return
 
-        print(auth_method)
-        print(token_string)
         if auth_method != 'Bearer':
             return
 
@@ -165,7 +166,7 @@ def get_auth_method_and_token(authorization: str):
     try:
         auth_method, token_string = authorization.split(' ')
         return auth_method, token_string
-    except (KeyError, AttributeError, ValueError) as e:
+    except (AttributeError, ValueError):
         return None, None
 
 

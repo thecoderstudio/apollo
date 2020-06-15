@@ -11,25 +11,49 @@ class WebSocketManager(metaclass=Singleton):
     def __init__(self):
         self.connections: Dict[uuid.UUID, WebSocket] = {}
 
-    async def add_and_connect_websocket(self, id: uuid.UUID, websocket: WebSocket):
+    @staticmethod
+    async def _keep_connection_open(websocket: WebSocket):
+        try:
+            await websocket.receive_json()
+        except WebSocketDisconnect:
+            return
+
+    async def add_and_connect_websocket(self, id: uuid.UUID,
+                                        websocket: WebSocket):
         self.connections[id] = websocket
-        print(websocket)
-        print(dir(websocket))
-        print(websocket.headers)
-        print(websocket.client)
         await websocket.accept()
         await websocket.send_json("Connection accepted")
         try:
             return await websocket.receive_json()
         except WebSocketDisconnect:
+            print("**" * 10)
             return
 
     async def send_message(self, websocket_id: uuid.UUID, message: str):
-        await self.connections[websocket_id].send_json(message)
+        message_id = uuid.uuid4()
+        await self.connections[websocket_id].send_json({
+            'message_id': str(message_id),
+            'message': message
+        })
+        return message_id
+
+    async def wait_for_response(self, websocket_id: uuid.UUID,
+                                message_id: uuid.UUID):
+        while True:
+            try:
+                response = await self.connections[websocket_id].receive_json()
+                if response['message_id'] == str(message_id):
+                    return response
+            except KeyError:
+                continue
+            except WebSocketDisconnect:
+                return
 
     async def close_and_remove_connection(self, websocket_id):
         websocket = self.connections.pop(websocket_id)
         try:
+            print("--")
+            print(websocket_id)
             await websocket.send_json("Closing connection")
             await websocket.close()
         except RuntimeError:
