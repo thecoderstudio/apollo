@@ -3,7 +3,7 @@ host = db
 password =
 
 [session]
-secret =
+secret = 
 
 [alembic]
 script_location = alembic

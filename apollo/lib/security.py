@@ -51,11 +51,11 @@ class AuthorizationPolicy:
 
     @staticmethod
     def _get_authenticated_access_token(headers, session):
-        try:
-            auth_method, token_string = headers['authorization'].split(' ')
-        except (KeyError, AttributeError, ValueError):
-            return
+        auth_method, token_string = get_auth_method_and_token(
+            headers['authorization'])
 
+        print(auth_method)
+        print(token_string)
         if auth_method != 'Bearer':
             return
 
@@ -159,3 +159,16 @@ def create_session_cookie(user):
             algorithm=JWT_ALGORITHM
         ).decode('utf-8')
     )
+
+
+def get_auth_method_and_token(authorization: str):
+    try:
+        auth_method, token_string = authorization.split(' ')
+        return auth_method, token_string
+    except (KeyError, AttributeError, ValueError) as e:
+        return None, None
+
+
+def get_client_id_from_authorization_header(session, authorization):
+    _, token = get_auth_method_and_token(authorization)
+    return get_access_token_by_token(session, token).client_id

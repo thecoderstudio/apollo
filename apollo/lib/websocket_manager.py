@@ -11,9 +11,12 @@ class WebSocketManager(metaclass=Singleton):
     def __init__(self):
         self.connections: Dict[uuid.UUID, WebSocket] = {}
 
-    async def add_and_connect_websocket(self, websocket: WebSocket):
-        self.connections[uuid.uuid4()] = websocket
-
+    async def add_and_connect_websocket(self, id: uuid.UUID, websocket: WebSocket):
+        self.connections[id] = websocket
+        print(websocket)
+        print(dir(websocket))
+        print(websocket.headers)
+        print(websocket.client)
         await websocket.accept()
         await websocket.send_json("Connection accepted")
         try:
