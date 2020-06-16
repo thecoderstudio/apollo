@@ -52,8 +52,9 @@ class AuthorizationPolicy:
     @staticmethod
     def _get_authenticated_access_token(headers, session):
         try:
-            auth_method, token_string = headers['authorization'].split(' ')
-        except (KeyError, AttributeError, ValueError):
+            auth_method, token_string = get_auth_method_and_token(
+                headers['authorization'])
+        except KeyError:
             return
 
         if auth_method != 'Bearer':
@@ -124,20 +125,26 @@ class AuthorizationPolicy:
 
 
 def parse_authorization_header(authorization: str):
+    invalid_header_exception = InvalidAuthorizationHeader(
+        "<Method> base64(<agent_id>:<secret>)"
+    )
+
     try:
         auth_method, encoded_string = authorization.split(' ')
-    except (AttributeError, ValueError):
+    except AttributeError:
         raise AuthorizationHeaderNotFound
+    except ValueError:
+        raise invalid_header_exception
 
     if not auth_method == 'Basic':
         raise InvalidAuthorizationMethod('Basic')
+
     decoded_header = base64.b64decode(encoded_string).decode('utf-8')
+
     try:
         agent_id, secret = decoded_header.split(':')
     except ValueError:
-        raise InvalidAuthorizationHeader(
-            "<Method> base64(<agent_id>:<secret>)"
-        )
+        raise invalid_header_exception
     return {
         'agent_id': agent_id,
         'secret': secret
@@ -153,3 +160,16 @@ def create_session_cookie(user):
             algorithm=JWT_ALGORITHM
         ).decode('utf-8')
     )
+
+
+def get_auth_method_and_token(authorization: str):
+    try:
+        auth_method, token_string = authorization.split(' ')
+        return auth_method, token_string
+    except (AttributeError, ValueError):
+        return None, None
+
+
+def get_client_id_from_authorization_header(session, authorization):
+    _, token = get_auth_method_and_token(authorization)
+    return get_access_token_by_token(session, token).client_id

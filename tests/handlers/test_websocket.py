@@ -1,6 +1,7 @@
 from tests.asserts import raisesHTTPForbidden
 
 import pytest
+
 from apollo.lib.websocket_manager import WebSocketManager
 
 
@@ -20,3 +21,5 @@ def test_shell_unauthenticated(test_client):
         test_client.websocket_connect('/ws')
 
 
+@pytest.mark.asyncio
+async def test_close_websocket_connect(test_client):
