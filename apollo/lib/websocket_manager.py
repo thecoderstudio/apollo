@@ -1,4 +1,3 @@
-import asyncio
 import uuid
 
 from fastapi import WebSocket
@@ -53,7 +52,6 @@ class WebSocketManager(metaclass=Singleton):
     ):
         message_id = uuid.uuid4()
         target_websocket = self.connections[target_websocket_id]
-        loop = asyncio.get_event_loop()
         await self._send_message(
             target_websocket=target_websocket,
             message={

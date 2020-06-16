@@ -1,9 +1,7 @@
-import json
 import uuid
 
 import pytest
 from fastapi.websockets import WebSocket
-from starlette.websockets import WebSocketState
 
 from apollo import app
 from apollo.lib.websocket_manager import WebSocketManager
@@ -60,12 +58,11 @@ async def test_websocket_manager_close_runetime_error(test_client):
 async def test_send_message_and_wait_for_response_sucess_key_error(
         test_client):
     websocket_manager = WebSocketManager()
-    message_id = uuid.uuid4()
     add_websocket_send_message_route(app)
 
     with test_client.websocket_connect(
             '/send_message') as target_websocket:
-        response = target_websocket.receive_json()
+        target_websocket.receive_json()
         target_websocket.send_json({
             'message': 'message'
         })

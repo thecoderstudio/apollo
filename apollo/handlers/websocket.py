@@ -1,4 +1,3 @@
-from fastapi import APIRouter
 from sqlalchemy.orm import Session
 from fastapi import WebSocket, Depends
 
