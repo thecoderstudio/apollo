@@ -40,8 +40,10 @@ async def test_websocket_manager_send_message(test_client):
     websocket_manager = WebSocketManager()
     add_websocket_connect_route(app)
     with test_client.websocket_connect('/websocket_connect') as websocket:
-        websocket_manager.send_message(
-            list(websocket_manager.connections)[0], 'test_message')
+        await websocket_manager.send_message_and_wait_for_response(
+            target_websocket_id=list(websocket_manager.connections)[0],
+            message='test_message'
+        )
         websocket.receive_json()['message'] == 'test_message'
     await websocket_manager.close_and_remove_all_connections()
 
@@ -98,4 +100,3 @@ def add_websocket_connect_route(app):
     async def connect(websocket: WebSocket):
         WebSocketManager().connections[uuid.uuid4()] = websocket
         await websocket.accept()
-        # await WebSocketManager()._keep_connection_open(websocket)
