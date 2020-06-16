@@ -3,6 +3,7 @@ import uuid
 
 import pytest
 from fastapi.websockets import WebSocket
+from starlette.websockets import WebSocketState
 
 from apollo import app
 from apollo.lib.websocket_manager import WebSocketManager
@@ -36,19 +37,6 @@ async def test_websocket_manager_add(test_client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_websocket_manager_send_message(test_client):
-    websocket_manager = WebSocketManager()
-    add_websocket_connect_route(app)
-    with test_client.websocket_connect('/websocket_connect') as websocket:
-        await websocket_manager.send_message_and_wait_for_response(
-            target_websocket_id=list(websocket_manager.connections)[0],
-            message='test_message'
-        )
-        websocket.receive_json()['message'] == 'test_message'
-    await websocket_manager.close_and_remove_all_connections()
-
-
-@pytest.mark.asyncio
 async def test_wesocket_manager_close_and_remove_connections(test_client):
     websocket_manager = WebSocketManager()
     add_websocket_connect_route(app)
@@ -69,23 +57,30 @@ async def test_websocket_manager_close_runetime_error(test_client):
 
 
 @pytest.mark.asyncio
-async def test_wait_for_response_success(test_client):
+async def test_send_message_and_wait_for_response_sucess_key_error(
+        test_client):
     websocket_manager = WebSocketManager()
     message_id = uuid.uuid4()
-    add_websocket_connect_route(app)
-
-    @app.websocket_route('/wait_for_response')
-    async def wait_for_response(websocket: WebSocket):
-        WebSocketManager().connections[uuid.uuid4()] = websocket
-        await websocket.accept()
-        await websocket_manager.send_message_and_wait_for_response(
-            target_websocket_id=list(
-                websocket_manager.connections.keys())[0],
-            message={'message': 'message'}
-        )
+    add_websocket_send_message_route(app)
 
     with test_client.websocket_connect(
-            '/wait_for_response') as target_websocket:
+            '/send_message') as target_websocket:
+        response = target_websocket.receive_json()
+        target_websocket.send_json({
+            'message': 'message'
+        })
+
+    await websocket_manager.close_and_remove_all_connections()
+
+
+@pytest.mark.asyncio
+async def test_send_message_and_wait_for_response_sucess(test_client):
+    websocket_manager = WebSocketManager()
+    message_id = uuid.uuid4()
+    add_websocket_send_message_route(app)
+
+    with test_client.websocket_connect(
+            '/send_message') as target_websocket:
         response = target_websocket.receive_json()
         target_websocket.send_json({
             'message_id': str(response['message_id']),
@@ -98,5 +93,21 @@ async def test_wait_for_response_success(test_client):
 def add_websocket_connect_route(app):
     @app.websocket_route('/websocket_connect')
     async def connect(websocket: WebSocket):
-        WebSocketManager().connections[uuid.uuid4()] = websocket
-        await websocket.accept()
+        await add_websocket_to_manager_and_accept(websocket)
+
+
+def add_websocket_send_message_route(app):
+    @app.websocket_route('/send_message')
+    async def send_message(websocket: WebSocket):
+        await add_websocket_to_manager_and_accept(websocket)
+        websocket_manager = WebSocketManager()
+        await websocket_manager.send_message_and_wait_for_response(
+            target_websocket_id=list(
+                websocket_manager.connections.keys())[0],
+            message={'message': 'message'}
+        )
+
+
+async def add_websocket_to_manager_and_accept(websocket):
+    WebSocketManager().connections[uuid.uuid4()] = websocket
+    await websocket.accept()
