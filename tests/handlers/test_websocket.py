@@ -1,6 +1,7 @@
 from tests.asserts import raisesHTTPForbidden
 
 import pytest
+from starlette.websockets import WebSocketState
 
 from apollo.lib.websocket_manager import WebSocketManager
 
@@ -23,3 +24,15 @@ def test_shell_unauthenticated(test_client):
 
 @pytest.mark.asyncio
 async def test_close_websocket_connect(test_client):
+    websocket_id = uuid.uuid4()
+
+    @app.websocket_route('/websocket_connect')
+    async def connect(websocket: WebSocket):
+        WebSocketManager().connections[websocket_id] = websocket
+        await websocket.accept()
+
+    with test_client.websocket_connect('/websocket_connect'):
+        test_client.websocket_connect(f'ws/{websocket_id}')
+
+        assert WebSocketManager(
+        ).connections[websocket_id].client_state == WebSocketState.DISCONNECTED
