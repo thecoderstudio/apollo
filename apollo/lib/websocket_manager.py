@@ -35,7 +35,6 @@ class WebSocketManager(metaclass=Singleton):
                 except KeyError:
                     continue
         except (WebSocketDisconnect, RuntimeError):
-            print("websocketdisconnect")
             return
 
     async def add_and_connect_websocket(self, client_id: uuid.UUID,
