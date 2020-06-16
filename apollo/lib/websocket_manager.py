@@ -29,11 +29,9 @@ class WebSocketManager(metaclass=Singleton):
         try:
             while True:
                 response = await target_websocket.receive_json()
-                print(response)
                 try:
                     if response['message_id'] == str(message_id):
-                        # message received.
-                        pass
+                        return response
                 except KeyError:
                     continue
         except (WebSocketDisconnect, RuntimeError):
@@ -50,6 +48,7 @@ class WebSocketManager(metaclass=Singleton):
         self, target_websocket_id: uuid.UUID,
         message: str
     ):
+
         message_id = uuid.uuid4()
         target_websocket = self.connections[target_websocket_id]
         await self._send_message(
@@ -58,7 +57,7 @@ class WebSocketManager(metaclass=Singleton):
                 'message_id': str(message_id),
                 'message': message
             })
-        await self._wait_for_response(
+        return await self._wait_for_response(
             target_websocket=target_websocket,
             message_id=message_id
         )
