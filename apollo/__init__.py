@@ -1,9 +1,11 @@
 from configparser import ConfigParser
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from apollo.handlers import agent, auth, oauth, root, user, websocket
 from apollo.lib.initialisation import initialise_if_needed
+from apollo.lib.security.cors import get_origins
 from apollo.lib.settings import update_settings
 from apollo.models import init_sqlalchemy
 
@@ -26,7 +28,18 @@ async def main(*args, **kwargs):
 def configure():
     read_settings_files()
     init_sqlalchemy()
+    add_cors()
     add_validation_exception_handler()
+
+
+def add_cors():
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=get_origins(),
+        allow_credentials=True,
+        allow_methods=['*'],
+        allow_headers=['*']
+    )
 
 
 def add_validation_exception_handler():
