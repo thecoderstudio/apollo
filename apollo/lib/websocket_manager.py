@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 
 from fastapi import WebSocket
@@ -14,46 +15,58 @@ class WebSocketManager(metaclass=Singleton):
     @staticmethod
     async def _keep_connection_open(websocket: WebSocket):
         try:
-            await websocket.receive_json()
+            while True:
+                await websocket.receive_json()
         except WebSocketDisconnect:
             return
 
-    async def add_and_connect_websocket(self, id: uuid.UUID,
+    async def add_and_connect_websocket(self, client_id: uuid.UUID,
                                         websocket: WebSocket):
-        self.connections[id] = websocket
+        self.connections[client_id] = websocket
         await websocket.accept()
         await websocket.send_json("Connection accepted")
-        try:
-            return await websocket.receive_json()
-        except WebSocketDisconnect:
-            print("**" * 10)
-            return
+        await self._keep_connection_open(websocket)
 
-    async def send_message(self, websocket_id: uuid.UUID, message: str):
+    async def send_message_and_wait_for_response(
+        self, target_websocket_id: uuid.UUID,
+        message: str
+    ):
         message_id = uuid.uuid4()
-        await self.connections[websocket_id].send_json({
-            'message_id': str(message_id),
-            'message': message
-        })
-        return message_id
+        target_websocket = self.connections[target_websocket_id]
+        loop = asyncio.get_event_loop()
+        loop.create_task(
+            self._wait_for_response(
+                target_websocket=target_websocket,
+                message_id=message_id
+            )
+        )
+        await self._send_message(
+            target_websocket=target_websocket,
+            message={
+                'message_id': str(message_id),
+                'message': message
+            })
 
-    async def wait_for_response(self, websocket_id: uuid.UUID,
-                                message_id: uuid.UUID):
+    @staticmethod
+    async def _send_message(target_websocket, message):
+        await target_websocket.send_json(message)
+
+    async def _wait_for_response(self, target_websocket: WebSocket,
+                                 message_id: uuid.UUID):
         while True:
             try:
-                response = await self.connections[websocket_id].receive_json()
+                response = await target_websocket.receive_json()
                 if response['message_id'] == str(message_id):
-                    return response
+                    # message received.
+                    pass
             except KeyError:
                 continue
-            except WebSocketDisconnect:
+            except (WebSocketDisconnect, RuntimeError):
                 return
 
     async def close_and_remove_connection(self, websocket_id):
         websocket = self.connections.pop(websocket_id)
         try:
-            print("--")
-            print(websocket_id)
             await websocket.send_json("Closing connection")
             await websocket.close()
         except RuntimeError:

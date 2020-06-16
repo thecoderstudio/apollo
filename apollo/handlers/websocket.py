@@ -17,6 +17,6 @@ async def shell(
     session: Session = Depends(get_session)
 ):
     client_id = get_client_id_from_authorization_header(
-        session, websocket.headers['authorization'])
+        session=session, authorization=websocket.headers['authorization'])
     await WebSocketManager().add_and_connect_websocket(
-        client_id, websocket)
+        client_id=client_id, websocket=websocket)

@@ -26,32 +26,33 @@ async def test_websocket_manager_add(test_client, db_session):
         await websocket_manager.add_and_connect_websocket(ids.pop(0),
                                                           websocket)
 
-    test_client.websocket_connect('/websocket_mock')
-    assert len(websocket_manager.connections) == 1
+    with test_client.websocket_connect('/websocket_mock'):
+        assert len(websocket_manager.connections) == 1
 
-    # test_client.websocket_connect('/websocket_mock')
-    # assert len(websocket_manager.connections) == 2
+    with test_client.websocket_connect('/websocket_mock'):
+        assert len(websocket_manager.connections) == 2
 
     await websocket_manager.close_and_remove_all_connections()
 
 
-# @pytest.mark.asyncio
-# async def test_websocket_manager_send_message(test_client):
-#     websocket_manager = WebSocketManager()
-#     add_websocket_connect_route(app)
-#     with test_client.websocket_connect('/websocket_connect') as websocket:
-#         await websocket_manager.send_message(
-#             list(websocket_manager.connections)[0], 'test_message')
-#         assert websocket.receive_json()['message'] == 'test_message'
-#     await websocket_manager.close_and_remove_all_connections()
+@pytest.mark.asyncio
+async def test_websocket_manager_send_message(test_client):
+    websocket_manager = WebSocketManager()
+    add_websocket_connect_route(app)
+    with test_client.websocket_connect('/websocket_connect') as websocket:
+        websocket_manager.send_message(
+            list(websocket_manager.connections)[0], 'test_message')
+        websocket.receive_json()['message'] == 'test_message'
+    await websocket_manager.close_and_remove_all_connections()
 
 
 # @pytest.mark.asyncio
 # async def test_wesocket_manager_close_and_remove_connections(test_client):
 #     websocket_manager = WebSocketManager()
 #     add_websocket_connect_route(app)
-#     test_client.websocket_connect('/websocket_connect')
-#     assert len(websocket_manager.connections) == 1
+#     with test_client.websocket_connect('/websocket_connect'):
+#         assert len(websocket_manager.connections) == 1
+
 #     await websocket_manager.close_and_remove_all_connections()
 #     assert len(websocket_manager.connections) == 0
 
@@ -60,27 +61,41 @@ async def test_websocket_manager_add(test_client, db_session):
 # async def test_websocket_manager_close_runetime_error(test_client):
 #     websocket_manager = WebSocketManager()
 #     add_websocket_connect_route(app)
-#     test_client.websocket_connect('/websocket_connect')
-#     await list(websocket_manager.connections.values())[0].close()
-#     await websocket_manager.close_and_remove_all_connections()
+#     with test_client.websocket_connect('/websocket_connect'):
+#         await list(websocket_manager.connections.values())[0].close()
+#         await websocket_manager.close_and_remove_all_connections()
 
 
-# @pytest.mark.asyncio
-# async def test_wait_for_response(test_client):
-#     websocket_manager = WebSocketManager()
-#     add_websocket_connect_route(app)
-#     with test_client.websocket_connect('/websocket_connect') as websocket:
-#         message_id = uuid.uuid4()
-#         await list(websocket_manager.connections.values())[0].send_json({
-#             'message_id': str(message_id),
-#             'message': 'message'
-#         })
-#         response = await websocket_manager.wait_for_response(message_id)
-#         assert response['message_id'] == message_id
+@pytest.mark.asyncio
+async def test_wait_for_response_success(test_client):
+    websocket_manager = WebSocketManager()
+    message_id = uuid.uuid4()
+    add_websocket_connect_route(app)
+
+    @app.websocket_route('/wait_for_response')
+    async def wait_for_response(websocket: WebSocket):
+        WebSocketManager().connections[uuid.uuid4()] = websocket
+        await websocket.accept()
+        await websocket_manager.send_message_and_wait_for_response(
+            target_websocket_id=list(
+                websocket_manager.connections.keys())[0],
+            message={'message': 'message'}
+        )
+
+    with test_client.websocket_connect(
+            '/wait_for_response') as target_websocket:
+        response = target_websocket.receive_json()
+        target_websocket.send_json({
+            'message_id': str(response['message_id']),
+            'message': 'message'
+        })
+
+    await websocket_manager.close_and_remove_all_connections()
 
 
-# def add_websocket_connect_route(app):
-#     @ app.websocket_route('/websocket_connect')
-#     async def connect(websocket: WebSocket):
-#         WebSocketManager().connections[uuid.uuid4()] = websocket
-#         await websocket.accept()
+def add_websocket_connect_route(app):
+    @app.websocket_route('/websocket_connect')
+    async def connect(websocket: WebSocket):
+        WebSocketManager().connections[uuid.uuid4()] = websocket
+        await websocket.accept()
+        # await WebSocketManager()._keep_connection_open(websocket)
