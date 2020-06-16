@@ -73,7 +73,6 @@ async def test_send_message_and_wait_for_response_sucess_key_error(
 @pytest.mark.asyncio
 async def test_send_message_and_wait_for_response_sucess(test_client):
     websocket_manager = WebSocketManager()
-    message_id = uuid.uuid4()
     add_websocket_send_message_route(app)
 
     with test_client.websocket_connect(
