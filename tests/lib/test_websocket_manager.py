@@ -48,24 +48,24 @@ async def test_websocket_manager_send_message(test_client):
     await websocket_manager.close_and_remove_all_connections()
 
 
-# @pytest.mark.asyncio
-# async def test_wesocket_manager_close_and_remove_connections(test_client):
-#     websocket_manager = WebSocketManager()
-#     add_websocket_connect_route(app)
-#     with test_client.websocket_connect('/websocket_connect'):
-#         assert len(websocket_manager.connections) == 1
+@pytest.mark.asyncio
+async def test_wesocket_manager_close_and_remove_connections(test_client):
+    websocket_manager = WebSocketManager()
+    add_websocket_connect_route(app)
+    with test_client.websocket_connect('/websocket_connect'):
+        assert len(websocket_manager.connections) == 1
 
-#     await websocket_manager.close_and_remove_all_connections()
-#     assert len(websocket_manager.connections) == 0
+    await websocket_manager.close_and_remove_all_connections()
+    assert len(websocket_manager.connections) == 0
 
 
-# @pytest.mark.asyncio
-# async def test_websocket_manager_close_runetime_error(test_client):
-#     websocket_manager = WebSocketManager()
-#     add_websocket_connect_route(app)
-#     with test_client.websocket_connect('/websocket_connect'):
-#         await list(websocket_manager.connections.values())[0].close()
-#         await websocket_manager.close_and_remove_all_connections()
+@pytest.mark.asyncio
+async def test_websocket_manager_close_runetime_error(test_client):
+    websocket_manager = WebSocketManager()
+    add_websocket_connect_route(app)
+    with test_client.websocket_connect('/websocket_connect'):
+        await list(websocket_manager.connections.values())[0].close()
+        await websocket_manager.close_and_remove_all_connections()
 
 
 @pytest.mark.asyncio
