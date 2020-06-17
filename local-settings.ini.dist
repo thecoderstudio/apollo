@@ -11,17 +11,17 @@ sqlalchemy.url = postgres://<username>:<password>@<host>:5432/apollo
 
 # Logging configuration
 [loggers]
-keys = root,sqlalchemy,alembic
+keys = root, sqlalchemy, uvicorn, uvicorn.error, uvicorn.access, alembic
 
 [handlers]
-keys = console
+keys = default, simple, access
 
 [formatters]
-keys = generic
+keys = default, simple, access
 
 [logger_root]
 level = WARN
-handlers = console
+handlers = default
 qualname =
 
 [logger_sqlalchemy]
@@ -29,17 +29,54 @@ level = WARN
 handlers =
 qualname = sqlalchemy.engine
 
+[logger_uvicorn]
+level = INFO
+handlers = simple
+qualname = uvicorn
+propagate=0
+
+[logger_uvicorn.error]
+level = INFO
+handlers =
+qualname = uvicorn.error
+
+[logger_uvicorn.access]
+level = INFO
+handlers = simple
+qualname = uvicorn.access
+propagate=0
+
 [logger_alembic]
 level = INFO
 handlers =
 qualname = alembic
 
-[handler_console]
+[handler_default]
 class = StreamHandler
 args = (sys.stderr,)
 level = NOTSET
-formatter = generic
+formatter = default
 
-[formatter_generic]
-format = %(levelname)-5.5s [%(name)s] %(message)s
+[handler_simple]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = simple
+
+[handler_access]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = access
+
+[formatter_default]
+format = %(levelname)-5.5s %(asctime)s [%(name)s:%(lineno)s] %(message)s
 datefmt = %H:%M:%S
+
+[formatter_simple]
+format = %(levelprefix)s %(message)s
+class = uvicorn.logging.DefaultFormatter
+
+[formatter_access]
+format = "%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s"
+class = uvicorn.logging.AccessFormatter
