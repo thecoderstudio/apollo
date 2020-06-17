@@ -1,8 +1,8 @@
 import uuid
+from typing import Dict
 
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
-from typing import Dict
 
 from apollo.lib.singleton import Singleton
 
@@ -74,4 +74,3 @@ class WebSocketManager(metaclass=Singleton):
     async def close_and_remove_all_connections(self):
         for id_ in list(self.connections):
             await self.close_and_remove_connection(id_)
-        self.connections = {}
