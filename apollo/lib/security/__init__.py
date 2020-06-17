@@ -157,6 +157,11 @@ def parse_authorization_header(authorization: str):
         agent_id, secret = decoded_header.split(':')
     except ValueError:
         raise invalid_header_exception
+
+    log.info(
+        f"Verified OAuth client credentials for agent: {agent_id}"
+    )
+
     return {
         'agent_id': agent_id,
         'secret': secret
