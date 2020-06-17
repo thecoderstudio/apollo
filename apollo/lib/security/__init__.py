@@ -172,4 +172,7 @@ def get_auth_method_and_token(authorization: str):
 
 def get_client_id_from_authorization_header(session, authorization):
     _, token = get_auth_method_and_token(authorization)
-    return get_access_token_by_token(session, token).client_id
+    try:
+        return get_access_token_by_token(session, token).client_id
+    except NoResultFound:
+        return
