@@ -11,18 +11,24 @@ sqlalchemy.url = postgres://<username>:<password>@<host>:5432/apollo
 
 # Logging configuration
 [loggers]
-keys = root, sqlalchemy, uvicorn, uvicorn.error, uvicorn.access, alembic
+keys = root, security, sqlalchemy, uvicorn, uvicorn.error, uvicorn.access, alembic
 
 [handlers]
-keys = default, simple, access
+keys = simple, error, access, security, uvicorn
 
 [formatters]
-keys = default, simple, access
+keys = simple, verbose, access, security
 
 [logger_root]
 level = WARN
-handlers = default
+handlers = simple, error
 qualname =
+
+[logger_security]
+level = INFO
+handlers = security, error
+qualname = security
+propagate=0
 
 [logger_sqlalchemy]
 level = WARN
@@ -31,7 +37,7 @@ qualname = sqlalchemy.engine
 
 [logger_uvicorn]
 level = INFO
-handlers = simple
+handlers = uvicorn
 qualname = uvicorn
 propagate=0
 
@@ -42,7 +48,7 @@ qualname = uvicorn.error
 
 [logger_uvicorn.access]
 level = INFO
-handlers = simple
+handlers = access
 qualname = uvicorn.access
 propagate=0
 
@@ -51,13 +57,25 @@ level = INFO
 handlers =
 qualname = alembic
 
-[handler_default]
+[handler_simple]
 class = StreamHandler
 args = (sys.stderr,)
 level = NOTSET
-formatter = default
+formatter = simple
 
-[handler_simple]
+[handler_error]
+class = StreamHandler
+args = (sys.stderr,)
+level = ERROR
+formatter = verbose
+
+[handler_security]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = security
+
+[handler_uvicorn]
 class = StreamHandler
 args = (sys.stderr,)
 level = NOTSET
@@ -69,14 +87,19 @@ args = (sys.stderr,)
 level = NOTSET
 formatter = access
 
-[formatter_default]
-format = %(levelname)-5.5s %(asctime)s [%(name)s:%(lineno)s] %(message)s
-datefmt = %H:%M:%S
-
 [formatter_simple]
 format = %(levelprefix)s %(message)s
 class = uvicorn.logging.DefaultFormatter
 
+[formatter_verbose]
+format = %(levelprefix)s %(asctime)s [%(pathname)s:%(lineno)s] %(message)s
+datefmt = %H:%M:%S
+class = uvicorn.logging.DefaultFormatter
+
+[formatter_security]
+format = %(levelprefix)s %(asctime)s %(message)s
+class = uvicorn.logging.DefaultFormatter
+
 [formatter_access]
-format = "%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s"
+format = %(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s
 class = uvicorn.logging.AccessFormatter
