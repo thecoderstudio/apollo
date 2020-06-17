@@ -41,8 +41,21 @@ async def test_wesocket_manager_close_and_remove_connections(test_client):
     with test_client.websocket_connect('/websocket_connect'):
         assert len(websocket_manager.connections) == 1
 
-    await websocket_manager.close_and_remove_all_connections()
-    assert len(websocket_manager.connections) == 0
+        await websocket_manager.close_and_remove_all_connections()
+        assert len(websocket_manager.connections) == 0
+
+
+@pytest.mark.asyncio
+async def test_wesocket_manager_close_and_remove_connection(test_client):
+    websocket_manager = WebSocketManager()
+    add_websocket_connect_route(app)
+    with test_client.websocket_connect('/websocket_connect'):
+        assert len(websocket_manager.connections) == 1
+
+        await websocket_manager.close_and_remove_connection(
+            list(websocket_manager.connections.keys())[0]
+        )
+        assert len(websocket_manager.connections) == 0
 
 
 @pytest.mark.asyncio
