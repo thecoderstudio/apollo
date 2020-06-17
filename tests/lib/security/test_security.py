@@ -300,7 +300,8 @@ def test_get_client_id_from_authorization_header(db_session, token,
             type='confidential',
             tokens=[
                 OAuthAccessToken(
-                    access_token=("e678cd491f837f4e2317a6c60ac0b0c6033d863633ab48da542aa6b72a366dec")  # noqa 1501
+                    access_token=('e678cd491f837f4e2317a6c60ac0b0c603'
+                                  + '3d863633ab48da542aa6b72a366dec')
                 )
             ]
         )
