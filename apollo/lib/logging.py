@@ -6,11 +6,14 @@ from uvicorn.logging import ColourizedFormatter
 
 audit_logger = logging.getLogger('audit')
 
+GRANTED = 'granted'
+DENIED = 'denied'
+
 
 class AuditFormatter(ColourizedFormatter):
     access_colors = {
-        'granted': 'green',
-        'denied': 'red'
+        GRANTED: 'green',
+        DENIED: 'red'
     }
 
     def format_access(self, access):
@@ -18,12 +21,12 @@ class AuditFormatter(ColourizedFormatter):
                            bold=False)
 
     def format_permission_log(self, record_msg):
-        if 'granted' in record_msg:
-            record_msg = record_msg.replace('granted',
-                                            self.format_access('granted'))
-        elif 'denied' in record_msg:
-            record_msg = record_msg.replace('denied',
-                                            self.format_access('denied'))
+        if GRANTED in record_msg:
+            record_msg = record_msg.replace(GRANTED,
+                                            self.format_access(GRANTED))
+        elif DENIED in record_msg:
+            record_msg = record_msg.replace(DENIED,
+                                            self.format_access(DENIED))
 
         return record_msg
 
