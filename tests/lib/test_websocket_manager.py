@@ -69,7 +69,7 @@ async def test_websocket_manager_close_runetime_error(test_client):
 
 
 @pytest.mark.asyncio
-async def test_websocket_manager_close_runetime_error(test_client):
+async def test_websocket_manager_close_runetime_error_unexpected(test_client):
 
     class WebSocketMock:
         @staticmethod
@@ -98,7 +98,7 @@ async def test_websocket_manager_close_runetime_error(test_client):
         websocket_manager.connections[id] = websocket
         await websocket_manager.close_and_remove_connection(id)
 
-    await websocket_manager.close_and_remove_all_connections()
+        await websocket_manager.close_and_remove_all_connections()
 
 
 @pytest.mark.asyncio
