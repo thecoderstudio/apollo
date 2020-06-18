@@ -26,7 +26,8 @@ def test_shell_unauthenticated(test_client):
 
 
 @pytest.mark.asyncio
-async def test_close_websocket_connect(test_client):
+async def test_close_websocket_connect(test_client,
+                                       authenticated_agent_headers):
     websocket_id = uuid.uuid4()
     websocket_manager = WebSocketManager()
 
@@ -36,7 +37,12 @@ async def test_close_websocket_connect(test_client):
         await websocket.accept()
 
     with test_client.websocket_connect('/websocket_connect'):
-        test_client.websocket_connect(f'ws/{websocket_id}')
+        test_client.websocket_connect(f'ws/{websocket_id}/close')
 
         assert (websocket_manager.connections[websocket_id].client_state
                 == WebSocketState.DISCONNECTED)
+
+
+def test_close_websocket_unauthenticated(test_client):
+    with raisesHTTPForbidden:
+        test_client.websocket_connect(f'ws/{uuid.uuid4()}/close')
