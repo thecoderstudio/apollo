@@ -10,12 +10,14 @@ from apollo.lib.singleton import Singleton
 class WebSocketManager(metaclass=Singleton):
     def __init__(self):
         self.connections: Dict[uuid.UUID, WebSocket] = {}
+        self.messages: Dict[uuid.UUID, WebSocket] = {}
 
-    @staticmethod
-    async def _keep_connection_open(websocket: WebSocket):
+    async def _keep_connection_open(self, websocket: WebSocket):
         try:
             while True:
-                await websocket.receive_json()
+                response = await websocket.receive_json()
+                requesting_socket = self.messages.pop(response['message_id'])
+                await requesting_socket.send_text(response['message'])
         except WebSocketDisconnect:
             return
 
@@ -55,23 +57,19 @@ class WebSocketManager(metaclass=Singleton):
         await websocket.send_json("Connection accepted")
         await self._keep_connection_open(websocket)
 
-    async def send_message_and_wait_for_response(
-        self, target_websocket_id: uuid.UUID,
+    async def send_message(
+        self, target_websocket_id: uuid.UUID, requesting_socket: WebSocket,
         message: str
     ):
-
         message_id = uuid.uuid4()
         target_websocket = self.connections[target_websocket_id]
+        self.messages[str(message_id)] = requesting_socket
         await self._send_message(
             target_websocket=target_websocket,
             message={
                 'message_id': str(message_id),
                 'message': message
             })
-        return await self._wait_for_response(
-            target_websocket=target_websocket,
-            message_id=message_id
-        )
 
     async def close_and_remove_connection(self, websocket_id):
         websocket = self.connections.pop(websocket_id)

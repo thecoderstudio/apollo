@@ -7,7 +7,7 @@ from apollo.lib.security import (
 from apollo.lib.websocket_manager import WebSocketManager
 from apollo.models import get_session
 
-router = SecureRouter([(Allow, Agent, 'shell')])
+router = SecureRouter([(Allow, Agent, 'connect')])
 
 
 @router.websocket('/ws')
