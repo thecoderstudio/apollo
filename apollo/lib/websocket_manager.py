@@ -24,7 +24,13 @@ class WebSocketManager(metaclass=Singleton):
         await target_websocket.send_json(message)
 
     @staticmethod
-    async def _wait_for_response(target_websocket: WebSocket,
+    def _check_runtime_error(error, message):
+        if message in str(error):
+            return
+
+        raise error
+
+    async def _wait_for_response(self, target_websocket: WebSocket,
                                  message_id: uuid.UUID):
         try:
             while True:
@@ -34,8 +40,13 @@ class WebSocketManager(metaclass=Singleton):
                         return response
                 except KeyError:
                     continue
-        except (WebSocketDisconnect, RuntimeError):
+        except WebSocketDisconnect:
             return
+        except RuntimeError as e:
+            self._check_runtime_error(
+                error=e,
+                message='Cannot call "receive" once a disconnect'
+            )
 
     async def add_and_connect_websocket(self, client_id: uuid.UUID,
                                         websocket: WebSocket):
@@ -68,11 +79,10 @@ class WebSocketManager(metaclass=Singleton):
             await websocket.send_json("Closing connection")
             await websocket.close()
         except RuntimeError as e:
-            print(e)
-            if 'Cannot call "send" once a close message' in str(e):
-                return
-
-            raise e
+            self._check_runtime_error(
+                error=e,
+                message='Cannot call "send" once a close message'
+            )
 
     async def close_and_remove_all_connections(self):
         for id_ in list(self.connections):
