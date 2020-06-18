@@ -11,7 +11,7 @@ router = SecureRouter([(Allow, Agent, 'shell')])
 
 
 @router.websocket('/ws')
-async def shell(
+async def connect(
     websocket: WebSocket,
     session: Session = Depends(get_session)
 ):

@@ -6,7 +6,7 @@ from apollo.lib.websocket_manager import WebSocketManager
 
 
 @pytest.mark.asyncio
-async def test_shell(test_client, authenticated_agent_headers):
+async def test_connect(test_client, authenticated_agent_headers):
     with test_client.websocket_connect(
         '/ws', headers=authenticated_agent_headers
     ) as websocket:
@@ -16,6 +16,6 @@ async def test_shell(test_client, authenticated_agent_headers):
     await websocket_manager.close_and_remove_all_connections()
 
 
-def test_shell_unauthenticated(test_client):
+def test_connect_unauthenticated(test_client):
     with raisesHTTPForbidden:
         test_client.websocket_connect('/ws')
