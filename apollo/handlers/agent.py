@@ -1,7 +1,7 @@
-import logging
 from uuid import UUID
 
 from fastapi import Depends, WebSocket
+from starlette.websockets import WebSocketDisconnect
 from sqlalchemy.orm import Session
 
 from apollo.lib.router import SecureRouter
@@ -31,7 +31,9 @@ def post_agent(agent_data: CreateAgentSchema,
 @router.websocket("/agent/{agent_id}/shell", permission='public')
 async def shell(websocket: WebSocket, agent_id: UUID):
     await websocket.accept()
-    while True:
-        command = await websocket.receive_text()
-        print(command)
-        await WebSocketManager().send_message(agent_id, websocket, command)
+    try:
+        while True:
+            command = await websocket.receive_text()
+            await WebSocketManager().send_message(agent_id, websocket, command)
+    except WebSocketDisconnect:
+        return
