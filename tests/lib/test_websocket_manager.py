@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 
 import pytest
@@ -6,6 +7,24 @@ from fastapi.websockets import WebSocket
 from apollo import app
 from apollo.lib.websocket_manager import WebSocketManager
 from apollo.models.agent import Agent
+
+
+class WebSocketMock:
+    @staticmethod
+    async def send_json(message):
+        return message
+
+    @staticmethod
+    async def receive_json():
+        raise RuntimeError
+
+    @staticmethod
+    async def close():
+        raise RuntimeError()
+
+    @staticmethod
+    async def accept():
+        return "accepted"
 
 
 @pytest.mark.asyncio
@@ -41,8 +60,21 @@ async def test_wesocket_manager_close_and_remove_connections(test_client):
     with test_client.websocket_connect('/websocket_connect'):
         assert len(websocket_manager.connections) == 1
 
-    await websocket_manager.close_and_remove_all_connections()
-    assert len(websocket_manager.connections) == 0
+        await websocket_manager.close_and_remove_all_connections()
+        assert len(websocket_manager.connections) == 0
+
+
+@pytest.mark.asyncio
+async def test_wesocket_manager_close_and_remove_connection(test_client):
+    websocket_manager = WebSocketManager()
+    add_websocket_connect_route(app)
+    with test_client.websocket_connect('/websocket_connect'):
+        assert len(websocket_manager.connections) == 1
+
+        await websocket_manager.close_and_remove_connection(
+            list(websocket_manager.connections.keys())[0]
+        )
+        assert len(websocket_manager.connections) == 0
 
 
 @pytest.mark.asyncio
@@ -51,6 +83,35 @@ async def test_websocket_manager_close_runetime_error(test_client):
     add_websocket_connect_route(app)
     with test_client.websocket_connect('/websocket_connect'):
         await list(websocket_manager.connections.values())[0].close()
+        await websocket_manager.close_and_remove_all_connections()
+
+
+@pytest.mark.asyncio
+async def test_websocket_manager_close_runetime_error_unexpected(
+        test_client, mocker):
+    mock_websocket_init(mocker)
+    websocket_manager = WebSocketManager()
+
+    with pytest.raises(RuntimeError):
+        id = uuid.uuid4()
+        websocket = WebSocketMock()
+        websocket_manager.connections[id] = websocket
+        await websocket_manager.close_and_remove_connection(id)
+
+        await websocket_manager.close_and_remove_all_connections()
+
+
+@pytest.mark.asyncio
+async def test_websocket_manager_wait_runetime_error_unexpected(
+        test_client, mocker):
+
+    mock_websocket_init(mocker)
+    websocket_manager = WebSocketManager()
+
+    with pytest.raises(RuntimeError):
+        websocket = WebSocketMock()
+        await websocket_manager._wait_for_response(websocket, uuid.uuid4())
+
         await websocket_manager.close_and_remove_all_connections()
 
 
@@ -134,3 +195,13 @@ async def setup_websocket_send_message_route(websocket):
 async def add_websocket_to_manager_and_accept(websocket):
     WebSocketManager().connections[uuid.uuid4()] = websocket
     await websocket.accept()
+
+
+def mock_websocket_init(mocker):
+    mocker.patch(
+        'tests.lib.test_websocket_manager.WebSocketManager.__init__',
+        side_effect=mock_init)
+
+
+def mock_init(self):
+    self.connections: Dict[uuid.UUID, WebSocketMock] = {}

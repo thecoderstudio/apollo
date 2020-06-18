@@ -9,7 +9,8 @@ from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
 from apollo.lib.security import (
-    Allow, Authenticated, Deny, Everyone, Human, parse_authorization_header,
+    Allow, Authenticated, Deny, Everyone, get_auth_method_and_token,
+    get_client_id_from_authorization_header, Human, parse_authorization_header,
     Agent as AgentPrincipal)
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
@@ -274,3 +275,41 @@ def test_validate_permission_invalid_acl(mock_policy, http_connection_mock):
 
     with raisesHTTPForbidden:
         policy.validate_permission('public', http_connection_mock)
+
+
+@pytest.mark.parametrize('authorization, expected', [
+    ("Bearer 123", ('Bearer', '123')),
+    ("", (None, None)),
+    (None, (None, None))
+])
+def test_get_auth_method_and_token_success(authorization, expected):
+    assert get_auth_method_and_token(authorization) == expected
+
+
+@pytest.mark.parametrize('token, expected_id', [
+    ('e678cd491f837f4e2317a6c60ac0b0c6033d863633ab48da542aa6b72a366dec',
+     'd10b92dc-521b-45e9-bf4b-69dc55a26c19'),
+    ('fake token', None)
+])
+def test_get_client_id_from_authorization_header(db_session, token,
+                                                 expected_id):
+    agent = Agent(
+        id='d10b92dc-521b-45e9-bf4b-69dc55a26c19',
+        name='test',
+        oauth_client=OAuthClient(
+            type='confidential',
+            tokens=[
+                OAuthAccessToken(
+                    access_token=('e678cd491f837f4e2317a6c60ac0b0c603'
+                                  + '3d863633ab48da542aa6b72a366dec')
+                )
+            ]
+        )
+    )
+    db_session.add(agent)
+    db_session.flush()
+    agent_id = agent.id
+
+    db_session.commit()
+    assert str(get_client_id_from_authorization_header(
+        db_session, f'bearer {token}')) == str(expected_id)
