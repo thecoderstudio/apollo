@@ -11,35 +11,95 @@ sqlalchemy.url = postgres://<username>:<password>@<host>:5432/apollo
 
 # Logging configuration
 [loggers]
-keys = root,sqlalchemy,alembic
+keys = root, audit, sqlalchemy, uvicorn, uvicorn.error, uvicorn.access, alembic
 
 [handlers]
-keys = console
+keys = simple, error, access, audit, uvicorn
 
 [formatters]
-keys = generic
+keys = simple, verbose, access, audit
 
 [logger_root]
 level = WARN
-handlers = console
+handlers = simple, error
 qualname =
+
+[logger_audit]
+level = INFO
+handlers = audit, error
+qualname = audit
+propagate=0
 
 [logger_sqlalchemy]
 level = WARN
 handlers =
 qualname = sqlalchemy.engine
 
+[logger_uvicorn]
+level = INFO
+handlers = uvicorn
+qualname = uvicorn
+propagate=0
+
+[logger_uvicorn.error]
+level = INFO
+handlers =
+qualname = uvicorn.error
+
+[logger_uvicorn.access]
+level = INFO
+handlers = access
+qualname = uvicorn.access
+propagate=0
+
 [logger_alembic]
 level = INFO
 handlers =
 qualname = alembic
 
-[handler_console]
+[handler_simple]
 class = StreamHandler
 args = (sys.stderr,)
 level = NOTSET
-formatter = generic
+formatter = simple
 
-[formatter_generic]
-format = %(levelname)-5.5s [%(name)s] %(message)s
+[handler_error]
+class = StreamHandler
+args = (sys.stderr,)
+level = ERROR
+formatter = verbose
+
+[handler_audit]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = audit
+
+[handler_uvicorn]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = simple
+
+[handler_access]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = access
+
+[formatter_simple]
+format = %(levelprefix)s %(message)s
+class = uvicorn.logging.DefaultFormatter
+
+[formatter_verbose]
+format = %(levelprefix)s %(asctime)s [%(pathname)s:%(lineno)s] %(message)s
 datefmt = %H:%M:%S
+class = uvicorn.logging.DefaultFormatter
+
+[formatter_audit]
+format = %(levelprefix)s %(asctime)s %(message)s
+class = apollo.lib.logging.AuditFormatter
+
+[formatter_access]
+format = %(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s
+class = uvicorn.logging.AccessFormatter

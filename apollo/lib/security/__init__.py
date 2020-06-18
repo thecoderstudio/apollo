@@ -1,5 +1,4 @@
 import base64
-import logging
 
 import jwt
 from sqlalchemy.orm.exc import NoResultFound
@@ -9,11 +8,10 @@ from apollo.lib.exceptions import HTTPException
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
+from apollo.lib.logging import audit_logger as log
 from apollo.lib.settings import settings
 from apollo.models.oauth import get_access_token_by_token
 from apollo.models.user import get_user_by_id
-
-log = logging.getLogger(__name__)
 
 Authenticated = 'Authenticated'
 Allow = 'Allow'
@@ -47,6 +45,8 @@ class AuthorizationPolicy:
             if authenticated_user.role:
                 principals.append(f"role:{authenticated_user.role.name}")
 
+        log.debug(f"Found principals: {principals}")
+
         return principals
 
     @staticmethod
@@ -67,6 +67,9 @@ class AuthorizationPolicy:
         if not access_token.client.active or access_token.expired:
             return
 
+        log.info(
+            f"Authenticated access token for agent: {access_token.client_id}"
+        )
         return access_token
 
     @staticmethod
@@ -80,14 +83,20 @@ class AuthorizationPolicy:
         except KeyError:
             return None
 
-        return get_user_by_id(session, payload['authenticated_user_id'])
+        auth_user_id = payload['authenticated_user_id']
+        log.info(f"Authenticated user: {auth_user_id}")
+
+        return get_user_by_id(session, auth_user_id)
 
     def get_complete_acl(self, context_acl_provider=None):
         acl = self.acl_provider.__acl__()
         if not context_acl_provider:
             return acl
 
-        return context_acl_provider.__acl__() + acl
+        complete_acl = context_acl_provider.__acl__() + acl
+        log.debug(f"complete ACL: {complete_acl}")
+
+        return complete_acl
 
     def check_permission(self, requested_permission,
                          http_connection, context_acl_provider=None):
@@ -101,8 +110,10 @@ class AuthorizationPolicy:
                 continue
 
             if action is Allow:
+                log.info(f"Permission '{permission}' granted")
                 return True
             elif action is Deny:
+                log.info(f"Permission '{permission}' denied")
                 return False
             else:
                 raise ValueError("Invalid action in ACL")
@@ -145,6 +156,11 @@ def parse_authorization_header(authorization: str):
         agent_id, secret = decoded_header.split(':')
     except ValueError:
         raise invalid_header_exception
+
+    log.info(
+        f"Verified OAuth client credentials for agent: {agent_id}"
+    )
+
     return {
         'agent_id': agent_id,
         'secret': secret
