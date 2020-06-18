@@ -67,9 +67,11 @@ class WebSocketManager(metaclass=Singleton):
         try:
             await websocket.send_json("Closing connection")
             await websocket.close()
-        except RuntimeError:
-            # Connection already closed
-            return
+        except RuntimeError as e:
+            if 'Cannot call "send" once a close message' in str(e):
+                return
+
+            raise e
 
     async def close_and_remove_all_connections(self):
         for id_ in list(self.connections):
