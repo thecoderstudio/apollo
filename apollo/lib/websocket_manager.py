@@ -68,6 +68,7 @@ class WebSocketManager(metaclass=Singleton):
             await websocket.send_json("Closing connection")
             await websocket.close()
         except RuntimeError as e:
+            print(e)
             if 'Cannot call "send" once a close message' in str(e):
                 return
 
