@@ -13,7 +13,7 @@ from apollo.lib.settings import settings
 from apollo.models.oauth import get_access_token_by_token
 from apollo.models.user import get_user_by_id
 
-log = logging.getLogger('security')
+log = logging.getLogger('audit')
 
 Authenticated = 'Authenticated'
 Allow = 'Allow'

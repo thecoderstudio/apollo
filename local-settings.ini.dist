@@ -11,23 +11,23 @@ sqlalchemy.url = postgres://<username>:<password>@<host>:5432/apollo
 
 # Logging configuration
 [loggers]
-keys = root, security, sqlalchemy, uvicorn, uvicorn.error, uvicorn.access, alembic
+keys = root, audit, sqlalchemy, uvicorn, uvicorn.error, uvicorn.access, alembic
 
 [handlers]
-keys = simple, error, access, security, uvicorn
+keys = simple, error, access, audit, uvicorn
 
 [formatters]
-keys = simple, verbose, access, security
+keys = simple, verbose, access, audit
 
 [logger_root]
 level = WARN
 handlers = simple, error
 qualname =
 
-[logger_security]
+[logger_audit]
 level = INFO
-handlers = security, error
-qualname = security
+handlers = audit, error
+qualname = audit
 propagate=0
 
 [logger_sqlalchemy]
@@ -69,11 +69,11 @@ args = (sys.stderr,)
 level = ERROR
 formatter = verbose
 
-[handler_security]
+[handler_audit]
 class = StreamHandler
 args = (sys.stderr,)
 level = NOTSET
-formatter = security
+formatter = audit
 
 [handler_uvicorn]
 class = StreamHandler
@@ -96,7 +96,7 @@ format = %(levelprefix)s %(asctime)s [%(pathname)s:%(lineno)s] %(message)s
 datefmt = %H:%M:%S
 class = uvicorn.logging.DefaultFormatter
 
-[formatter_security]
+[formatter_audit]
 format = %(levelprefix)s %(asctime)s %(message)s
 class = apollo.lib.logging.SecurityFormatter
 
