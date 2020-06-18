@@ -1,7 +1,10 @@
+import logging
 from copy import copy
 
 import click
 from uvicorn.logging import ColourizedFormatter
+
+audit_logger = logging.getLogger('audit')
 
 
 class AuditFormatter(ColourizedFormatter):

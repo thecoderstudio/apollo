@@ -1,5 +1,4 @@
 import base64
-import logging
 
 import jwt
 from sqlalchemy.orm.exc import NoResultFound
@@ -9,11 +8,10 @@ from apollo.lib.exceptions import HTTPException
 from apollo.lib.exceptions.oauth import (
     AuthorizationHeaderNotFound, InvalidAuthorizationMethod,
     InvalidAuthorizationHeader)
+from apollo.lib.logging import audit_logger as log
 from apollo.lib.settings import settings
 from apollo.models.oauth import get_access_token_by_token
 from apollo.models.user import get_user_by_id
-
-log = logging.getLogger('audit')
 
 Authenticated = 'Authenticated'
 Allow = 'Allow'
