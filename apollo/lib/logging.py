@@ -15,8 +15,6 @@ class AuditFormatter(ColourizedFormatter):
                            bold=False)
 
     def format_permission_log(self, record_msg):
-        record_msg = click.style(record_msg, bold=True)
-
         if 'granted' in record_msg:
             record_msg = record_msg.replace('granted',
                                             self.format_access('granted'))
@@ -29,9 +27,11 @@ class AuditFormatter(ColourizedFormatter):
     def formatMessage(self, record):
         record_copy = copy(record)
 
+        styled_message = click.style(record_copy.msg, bold=True)
+
         if 'Permission' in record_copy.msg:
-            record_copy.__dict__['color_message'] = self.format_permission_log(
-                record_copy.msg
-            )
+            styled_message = self.format_permission_log(styled_message)
+
+        record_copy.__dict__['color_message'] = styled_message
 
         return super().formatMessage(record_copy)
