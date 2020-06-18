@@ -1,5 +1,5 @@
-import asyncio
 import uuid
+from typing import Dict
 
 import pytest
 from fastapi.websockets import WebSocket
@@ -93,10 +93,10 @@ async def test_websocket_manager_close_runtime_error_unexpected(
     websocket_manager = WebSocketManager()
 
     with pytest.raises(RuntimeError):
-        id = uuid.uuid4()
+        id_ = uuid.uuid4()
         websocket = WebSocketMock()
-        websocket_manager.connections[id] = websocket
-        await websocket_manager.close_and_remove_connection(id)
+        websocket_manager.connections[id_] = websocket
+        await websocket_manager.close_and_remove_connection(id_)
 
         await websocket_manager.close_and_remove_all_connections()
 

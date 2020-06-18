@@ -1,8 +1,8 @@
 import uuid
+from typing import Dict
 
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
-from typing import Dict
 
 from apollo.lib.singleton import Singleton
 
