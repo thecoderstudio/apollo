@@ -98,7 +98,7 @@ class = uvicorn.logging.DefaultFormatter
 
 [formatter_audit]
 format = %(levelprefix)s %(asctime)s %(message)s
-class = apollo.lib.logging.SecurityFormatter
+class = apollo.lib.logging.AuditFormatter
 
 [formatter_access]
 format = %(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s
