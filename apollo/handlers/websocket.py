@@ -6,13 +6,13 @@ from sqlalchemy.orm import Session
 from apollo.models import get_session
 from apollo.lib.websocket_manager import WebSocketManager
 from apollo.lib.security import (
-    Agent, Allow, get_client_id_from_authorization_header)
+    Agent, Allow, Authenticated, get_client_id_from_authorization_header)
 from apollo.lib.router import SecureRouter
 
 
 router = SecureRouter([
     (Allow, Agent, 'shell'),
-    (Allow, 'role:admin', 'websocket.close')
+    (Allow, Authenticated, 'websocket.close')
 ])
 
 
