@@ -8,6 +8,7 @@ with open(os.path.join(here, 'VERSION')) as f:
 
 requires = [
     'bcrypt',
+    'click',
     'fastapi',
     'psycopg2',
     'pydantic',
