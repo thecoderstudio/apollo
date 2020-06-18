@@ -10,7 +10,10 @@ from apollo.lib.security import (
 from apollo.lib.router import SecureRouter
 
 
-router = SecureRouter([(Allow, Agent, 'shell')])
+router = SecureRouter([
+    (Allow, Agent, 'shell'),
+    (Allow, 'role:admin', 'websocket.close')
+])
 
 
 @router.websocket('/ws', permission='shell')
@@ -24,8 +27,7 @@ async def shell(
         client_id=client_id, websocket=websocket)
 
 
-# , permission='websocket.close'
-@router.get('/ws/{websocket_id}/close')
+@router.get('/ws/{websocket_id}/close', permission='websocket.close')
 async def close_websocket_connection(websocket_id: uuid.UUID):
     try:
         await WebSocketManager().close_and_remove_connection(websocket_id)
