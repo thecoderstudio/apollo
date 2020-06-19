@@ -7,6 +7,8 @@ from starlette.websockets import WebSocketState
 
 from apollo import app
 from apollo.lib.websocket_manager import WebSocketManager
+from apollo.handlers.websocket import close_websocket_connection
+from tests import create_http_connection_mock
 
 
 @pytest.mark.asyncio
@@ -26,25 +28,33 @@ def test_shell_unauthenticated(test_client):
 
 
 @pytest.mark.asyncio
-async def test_close_websocket_connect(test_client,
-                                       authenticated_agent_headers):
+async def test_close_websocket_connect(
+        db_session, test_client, access_token, session_cookie,
+        authenticated_agent_headers):
     websocket_id = uuid.uuid4()
     websocket_manager = WebSocketManager()
 
-    @app.websocket_route('/websocket_connect')
+    access_token.access_token = (
+        "b8887eefe2179eccb0565674fe196ee12f0621d1d2017a61b195ec17e5d2ac57"
+    )
+    db_session.commit()
+
+    @app.websocket_route('/websocket_connect', session_cookie)
     async def connect(websocket: WebSocket):
         websocket_manager.connections[websocket_id] = websocket
         await websocket.accept()
 
-    with test_client.websocket_connect('/websocket_connect'):
-        test_client.websocket_connect(f'ws/{websocket_id}/close')
-
-        # assert (websocket_manager.connections[websocket_id].client_state
-        #         == WebSocketState.DISCONNECTED)
+    with test_client.websocket_connect('/websocket_connect') as websocket:
+        http_mock = create_http_connection_mock(headers={
+            'authorization': "Bearer b8887eefe2179eccb0565674fe196ee"
+            + "12f0621d1d2017a61b195ec17e5d2ac57",
+        })
+        await close_websocket_connection(http_mock, websocket_id)
+        assert len(websocket_manager.connections) == 0
 
         await websocket_manager.close_and_remove_all_connections()
 
 
-# def test_close_websocket_unauthenticated(test_client):
-#     with raisesHTTPForbidden:
-#         test_client.websocket_connect(f'ws/{uuid.uuid4()}/close')
+def test_close_websocket_unauthenticated(test_client):
+    with raisesHTTPForbidden:
+        test_client.websocket_connect(f'ws/{uuid.uuid4()}/close')
