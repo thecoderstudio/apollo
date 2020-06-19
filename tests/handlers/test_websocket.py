@@ -2,7 +2,7 @@ import uuid
 from tests.asserts import raisesHTTPForbidden
 
 import pytest
-from fastapi import HTTPException, WebSocket
+from fastapi import WebSocket
 
 from apollo import app
 from apollo.lib.websocket_manager import WebSocketManager
