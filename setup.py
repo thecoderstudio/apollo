@@ -8,11 +8,13 @@ with open(os.path.join(here, 'VERSION')) as f:
 
 requires = [
     'bcrypt',
+    'click',
     'fastapi',
     'psycopg2',
     'pydantic',
     'pyjwt',
-    'sqlalchemy'
+    'sqlalchemy',
+    'uvicorn'
 ]
 
 test_requires = [
@@ -24,8 +26,7 @@ test_requires = [
 ]
 
 dev_requires = [
-    'alembic',
-    'uvicorn'
+    'alembic'
 ]
 
 extras = {
