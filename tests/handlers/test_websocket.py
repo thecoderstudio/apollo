@@ -3,7 +3,6 @@ from tests.asserts import raisesHTTPForbidden
 
 import pytest
 from fastapi import WebSocket
-from starlette.websockets import WebSocketState
 
 from apollo import app
 from apollo.lib.websocket_manager import WebSocketManager
@@ -44,7 +43,7 @@ async def test_close_websocket_connect(
         websocket_manager.connections[websocket_id] = websocket
         await websocket.accept()
 
-    with test_client.websocket_connect('/websocket_connect') as websocket:
+    with test_client.websocket_connect('/websocket_connect'):
         http_mock = create_http_connection_mock(headers={
             'authorization': "Bearer b8887eefe2179eccb0565674fe196ee"
             + "12f0621d1d2017a61b195ec17e5d2ac57",
