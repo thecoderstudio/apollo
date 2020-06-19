@@ -56,5 +56,7 @@ async def test_close_websocket_connect(
 
 
 def test_close_websocket_unauthenticated(test_client):
-    with raisesHTTPForbidden:
-        test_client.websocket_connect(f'ws/{uuid.uuid4()}/close')
+    response = test_client.get(f'ws/{uuid.uuid4()}/close')
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."

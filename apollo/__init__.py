@@ -28,7 +28,7 @@ async def main(*args, **kwargs):
 def configure():
     read_settings_files()
     init_sqlalchemy()
-    # add_cors()
+    add_cors()
     add_validation_exception_handler()
 
 
