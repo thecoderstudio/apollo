@@ -4,7 +4,7 @@ from fastapi import WebSocket, Depends
 from apollo.lib.router import SecureRouter
 from apollo.lib.security import (
     Allow, Agent, get_client_id_from_authorization_header)
-from apollo.lib.websocket_manager import WebSocketManager
+from apollo.lib.websocket import WebSocketManager
 from apollo.models import get_session
 
 router = SecureRouter([(Allow, Agent, 'connect')])
