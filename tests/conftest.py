@@ -1,9 +1,11 @@
 import contextlib
 from configparser import ConfigParser
 
+from fastapi.testclient import TestClient
 from pytest import fixture
 
 import apollo.lib.settings
+from apollo import app
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.security import create_session_cookie
 from apollo.models import Base, init_sqlalchemy, SessionLocal
@@ -12,6 +14,11 @@ from apollo.models.oauth import OAuthAccessToken, OAuthClient
 from apollo.models.role import Role
 from apollo.models.user import User
 from tests import create_http_connection_mock
+
+
+@fixture
+def test_client():
+    return TestClient(app)
 
 
 @fixture
