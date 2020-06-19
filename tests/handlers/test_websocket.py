@@ -2,7 +2,7 @@ import uuid
 from tests.asserts import raisesHTTPForbidden
 
 import pytest
-from fastapi import WebSocket
+from fastapi import HTTPException, WebSocket
 
 from apollo import app
 from apollo.lib.websocket_manager import WebSocketManager
@@ -52,6 +52,13 @@ async def test_close_websocket_connect(
         assert len(websocket_manager.connections) == 0
 
         await websocket_manager.close_and_remove_all_connections()
+
+
+def test_close_websocket_connect_not_found(test_client, session_cookie):
+    response = test_client.get(
+        f'ws/{uuid.uuid4()}/close', cookies=session_cookie)
+
+    assert response.status_code == 404
 
 
 def test_close_websocket_unauthenticated(test_client):
