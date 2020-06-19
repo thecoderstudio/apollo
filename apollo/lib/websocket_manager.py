@@ -24,7 +24,7 @@ class WebSocketManager(metaclass=Singleton):
         await target_websocket.send_json(message)
 
     @staticmethod
-    def _check_runtime_error(error, message):
+    def _raise_if_unexpected_exception(error, message):
         if message in str(error):
             return
 
@@ -43,7 +43,7 @@ class WebSocketManager(metaclass=Singleton):
         except WebSocketDisconnect:
             return
         except RuntimeError as e:
-            self._check_runtime_error(
+            self._raise_if_unexpected_exception(
                 error=e,
                 message='Cannot call "receive" once a disconnect'
             )
@@ -79,7 +79,7 @@ class WebSocketManager(metaclass=Singleton):
             await websocket.send_json("Closing connection")
             await websocket.close()
         except RuntimeError as e:
-            self._check_runtime_error(
+            self._raise_if_unexpected_exception(
                 error=e,
                 message='Cannot call "send" once a close message'
             )
