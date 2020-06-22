@@ -105,14 +105,12 @@ def call_http_method_decorated_mock(http_method, router_acl, permission,
     endpoint_mock(request=request_mock)
 
 
-@ pytest.mark.parametrize("permission,authenticated,role,permitted",
-                          cookie_permission_expectations)
-@ pytest.mark.parametrize('http_method', testable_http_methods)
+@pytest.mark.parametrize("permission,authenticated,role,permitted",
+                         cookie_permission_expectations)
+@pytest.mark.parametrize('http_method', testable_http_methods)
 def test_secure_router_http_methods_cookie_permissions(
     db_session, user, session_cookie, permission, authenticated, role,
     permitted, http_method
-
-
 ):
     router_acl, request_mock = generate_http_test_parameters(
         db_session, user, authenticated, session_cookie, role)
