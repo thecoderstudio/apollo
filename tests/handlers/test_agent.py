@@ -29,7 +29,7 @@ def test_post_agent_name_exists(test_client, session_cookie):
     agent = {'name': 'test'}
     test_client.post('/agent', json=agent, cookies=session_cookie)
     response = test_client.post('/agent', json=agent)
-    print(response.json())
+
     assert response.status_code == 400
 
 
@@ -73,13 +73,13 @@ async def test_close_websocket_connect(
 
 def test_close_websocket_connect_not_found(test_client, session_cookie):
     response = test_client.get(
-        f'ws/{uuid.uuid4()}/close', cookies=session_cookie)
+        f'agent/{uuid.uuid4()}/close', cookies=session_cookie)
 
     assert response.status_code == 404
 
 
 def test_close_websocket_unauthenticated(test_client):
-    response = test_client.get(f'ws/{uuid.uuid4()}/close')
+    response = test_client.get(f'agent/{uuid.uuid4()}/close')
 
     assert response.status_code == 403
     assert response.json()['detail'] == "Permission denied."
