@@ -16,7 +16,7 @@ class WebSocketManager(metaclass=Singleton):
         try:
             while True:
                 response = await websocket.receive_json()
-                requesting_socket = self.connections[
+                requesting_socket = self.sessions[
                     uuid.UUID(response['session_id'])
                 ]
                 await requesting_socket.send_text(response['message'])
