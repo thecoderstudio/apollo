@@ -28,7 +28,6 @@ def post_agent(agent_data: CreateAgentSchema,
 
 @router.get('/agent/{agent_id}/close', permission='public')
 async def close_websocket_connection(agent_id: uuid.UUID):
-    pass
     try:
         await WebSocketManager().close_and_remove_connection(agent_id)
     except KeyError:
