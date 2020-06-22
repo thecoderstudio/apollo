@@ -1,6 +1,7 @@
 import uuid
 
 import pytest
+from fastapi import WebSocket
 
 from apollo import app
 from apollo.lib.websocket_manager import WebSocketManager
@@ -28,7 +29,7 @@ def test_post_agent_name_exists(test_client, session_cookie):
     agent = {'name': 'test'}
     test_client.post('/agent', json=agent, cookies=session_cookie)
     response = test_client.post('/agent', json=agent)
-
+    print(response.json())
     assert response.status_code == 400
 
 
