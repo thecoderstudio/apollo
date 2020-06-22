@@ -74,10 +74,13 @@ class WebSocketManager(metaclass=Singleton):
         )
 
     async def close_and_remove_connection(self, websocket_id):
-        websocket = self.connections.pop(websocket_id)
+        websocket = self.connections[websocket_id]
         try:
-            await websocket.send_json("Closing connection")
-            await websocket.close()
+            await websocket.send_json({
+                'session_id': str(uuid.uuid4()),
+                'message': "self destruct"
+            })
+            # await websocket.close()
         except RuntimeError as e:
             self._raise_if_unexpected_exception(
                 error=e,

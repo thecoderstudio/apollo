@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import Depends, HTTPException, WebSocket
+from fastapi import Depends, WebSocket
 from sqlalchemy.orm import Session
 
 from apollo.models import get_session
@@ -10,10 +10,7 @@ from apollo.lib.security import (
 from apollo.lib.router import SecureRouter
 
 
-router = SecureRouter([
-    (Allow, Agent, 'shell'),
-    (Allow, Authenticated, 'websocket.close')
-])
+router = SecureRouter([(Allow, Agent, 'shell')])
 
 
 @router.websocket('/ws', permission='shell')
