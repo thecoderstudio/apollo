@@ -64,9 +64,6 @@ class SecureRouter(APIRouter):
         route = getattr(super(SecureRouter, self), http_method)
 
         if inspect.iscoroutinefunction(func):
-            print(outer_args)
-            print(outer_kwargs)
-
             @route(*outer_args, **outer_kwargs)
             async def wrapped(request: Request, *args, **kwargs):
                 self.acl_policy.validate_permission(permission, request)
