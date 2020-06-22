@@ -20,3 +20,11 @@ def post_agent(agent_data: CreateAgentSchema,
         **dict(agent_data)
     ))
     return agent
+
+
+@router.get('/ws/{agent_id}/close', permission='websocket.close')
+async def close_websocket_connection(websocket_id: uuid.UUID):
+    try:
+        await WebSocketManager().close_and_remove_connection(agent_id)
+    except KeyError:
+        raise HTTPException(status_code=404)

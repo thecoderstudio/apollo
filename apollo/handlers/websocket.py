@@ -25,11 +25,3 @@ async def shell(
         session=session, authorization=websocket.headers['authorization'])
     await WebSocketManager().add_and_connect_websocket(
         client_id=client_id, websocket=websocket)
-
-
-@router.get('/ws/{websocket_id}/close', permission='websocket.close')
-async def close_websocket_connection(websocket_id: uuid.UUID):
-    try:
-        await WebSocketManager().close_and_remove_connection(websocket_id)
-    except KeyError:
-        raise HTTPException(status_code=404)
