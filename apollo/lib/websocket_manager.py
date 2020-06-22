@@ -78,9 +78,9 @@ class WebSocketManager(metaclass=Singleton):
         try:
             await websocket.send_json({
                 'session_id': str(uuid.uuid4()),
-                'message': "self destruct"
+                'message': "close and remove"
             })
-            # await websocket.close()
+            await websocket.close()
         except RuntimeError as e:
             self._raise_if_unexpected_exception(
                 error=e,

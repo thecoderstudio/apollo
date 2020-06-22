@@ -1,5 +1,6 @@
 import datetime
 import pytest
+import inspect
 
 from apollo.lib.router import SecureRouter
 from apollo.lib.security import Allow, Agent, Authenticated, Everyone, Human
@@ -104,12 +105,14 @@ def call_http_method_decorated_mock(http_method, router_acl, permission,
     endpoint_mock(request=request_mock)
 
 
-@pytest.mark.parametrize("permission,authenticated,role,permitted",
-                         cookie_permission_expectations)
-@pytest.mark.parametrize('http_method', testable_http_methods)
+@ pytest.mark.parametrize("permission,authenticated,role,permitted",
+                          cookie_permission_expectations)
+@ pytest.mark.parametrize('http_method', testable_http_methods)
 def test_secure_router_http_methods_cookie_permissions(
     db_session, user, session_cookie, permission, authenticated, role,
     permitted, http_method
+
+
 ):
     router_acl, request_mock = generate_http_test_parameters(
         db_session, user, authenticated, session_cookie, role)
@@ -236,3 +239,22 @@ async def test_websocket_oauth_expired_token(db_session, access_token,
             'test',
             http_connection_mock
         )
+
+
+async def async_method():
+    pass
+
+
+def sync_method():
+    pass
+
+
+@pytest.mark.parametrize("method,expected_result",
+                         [(async_method, True), (sync_method, False)])
+def test_http_method_async_or_sync_method(method, expected_result):
+    router = SecureRouter()
+
+    wrapped = router._http_method(
+        method, 'get', *('/async_method',))
+
+    assert inspect.iscoroutinefunction(wrapped) is expected_result
