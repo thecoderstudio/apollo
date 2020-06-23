@@ -4,8 +4,8 @@ import pytest
 from fastapi import WebSocket
 
 from apollo import app
+from apollo.handlers.agent import cleanup_agent
 from apollo.lib.websocket_manager import WebSocketManager
-from apollo.handlers.agent import close_websocket_connection
 from tests import create_http_connection_mock
 
 
@@ -65,7 +65,7 @@ async def test_close_websocket_connect(
             'authorization': "Bearer b8887eefe2179eccb0565674fe196ee"
             + "12f0621d1d2017a61b195ec17e5d2ac57",
         })
-        await close_websocket_connection(http_mock, websocket_id)
+        await cleanup_agent(http_mock, websocket_id)
         assert len(websocket_manager.connections) == 0
 
         await websocket_manager.close_and_remove_all_connections()
