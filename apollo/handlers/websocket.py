@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Session
 from fastapi import WebSocket, Depends
+from sqlalchemy.orm import Session
 
 from apollo.lib.router import SecureRouter
 from apollo.lib.security import (

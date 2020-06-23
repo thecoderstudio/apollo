@@ -307,9 +307,6 @@ def test_get_client_id_from_authorization_header(db_session, token,
         )
     )
     db_session.add(agent)
-    db_session.flush()
-    agent_id = agent.id
-
     db_session.commit()
     assert str(get_client_id_from_authorization_header(
         db_session, f'bearer {token}')) == str(expected_id)

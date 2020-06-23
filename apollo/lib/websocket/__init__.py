@@ -1,8 +1,8 @@
 import uuid
+from typing import Dict
 
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
-from typing import Dict
 
 from apollo.lib.singleton import Singleton
 
@@ -28,7 +28,7 @@ class WebSocketManager(metaclass=Singleton):
         await target_websocket.send_json(message)
 
     @staticmethod
-    def _check_runtime_error(error, message):
+    def _raise_if_unexpected_exception(error, message):
         if message in str(error):
             return
 
@@ -59,7 +59,7 @@ class WebSocketManager(metaclass=Singleton):
             await websocket.send_json("Closing connection")
             await websocket.close()
         except RuntimeError as e:
-            self._check_runtime_error(
+            self._raise_if_unexpected_exception(
                 error=e,
                 message='Cannot call "send" once a close message'
             )
@@ -67,4 +67,3 @@ class WebSocketManager(metaclass=Singleton):
     async def close_and_remove_all_connections(self):
         for id_ in list(self.connections):
             await self.close_and_remove_connection(id_)
-        self.connections = {}

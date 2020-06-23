@@ -1,5 +1,5 @@
-import asyncio
 import uuid
+from typing import Dict
 
 import pytest
 from fastapi.websockets import WebSocket
@@ -54,7 +54,7 @@ async def test_websocket_manager_add(test_client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_wesocket_manager_close_and_remove_connections(test_client):
+async def test_websocket_manager_close_and_remove_connections(test_client):
     websocket_manager = WebSocketManager()
     add_websocket_connect_route(app)
     with test_client.websocket_connect('/websocket_connect'):
@@ -65,7 +65,7 @@ async def test_wesocket_manager_close_and_remove_connections(test_client):
 
 
 @pytest.mark.asyncio
-async def test_wesocket_manager_close_and_remove_connection(test_client):
+async def test_websocket_manager_close_and_remove_connection(test_client):
     websocket_manager = WebSocketManager()
     add_websocket_connect_route(app)
     with test_client.websocket_connect('/websocket_connect'):
@@ -78,7 +78,7 @@ async def test_wesocket_manager_close_and_remove_connection(test_client):
 
 
 @pytest.mark.asyncio
-async def test_websocket_manager_close_runetime_error(test_client):
+async def test_websocket_manager_close_runtime_error(test_client):
     websocket_manager = WebSocketManager()
     add_websocket_connect_route(app)
     with test_client.websocket_connect('/websocket_connect'):
@@ -87,22 +87,22 @@ async def test_websocket_manager_close_runetime_error(test_client):
 
 
 @pytest.mark.asyncio
-async def test_websocket_manager_close_runetime_error_unexpected(
+async def test_websocket_manager_close_runtime_error_unexpected(
         test_client, mocker):
     mock_websocket_init(mocker)
     websocket_manager = WebSocketManager()
 
     with pytest.raises(RuntimeError):
-        id = uuid.uuid4()
+        id_ = uuid.uuid4()
         websocket = WebSocketMock()
-        websocket_manager.connections[id] = websocket
-        await websocket_manager.close_and_remove_connection(id)
+        websocket_manager.connections[id_] = websocket
+        await websocket_manager.close_and_remove_connection(id_)
 
         await websocket_manager.close_and_remove_all_connections()
 
 
 @pytest.mark.asyncio
-async def test_websocket_manager_wait_runetime_error_unexpected(
+async def test_websocket_manager_wait_runtime_error_unexpected(
         test_client, mocker):
 
     mock_websocket_init(mocker)
@@ -132,7 +132,7 @@ async def test_send_message_and_wait_for_response_catch_disconnect(
 
 
 @pytest.mark.asyncio
-async def test_send_message_and_wait_for_response_sucess_key_error_catch(
+async def test_send_message_and_wait_for_response_success_key_error_catch(
         test_client):
     websocket_manager = WebSocketManager()
 
@@ -156,7 +156,7 @@ async def test_send_message_and_wait_for_response_sucess_key_error_catch(
 
 
 @pytest.mark.asyncio
-async def test_send_message_and_wait_for_response_sucess(test_client):
+async def test_send_message_and_wait_for_response_success(test_client):
     websocket_manager = WebSocketManager()
 
     @app.websocket_route('/send_message')

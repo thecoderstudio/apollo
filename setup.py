@@ -14,7 +14,7 @@ requires = [
     'pydantic',
     'pyjwt',
     'sqlalchemy',
-    'uvicorn'
+    'uvicorn[watchgodreload]'
 ]
 
 test_requires = [
