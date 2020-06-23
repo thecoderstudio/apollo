@@ -28,7 +28,14 @@ def post_agent(agent_data: CreateAgentSchema,
 
 @router.get('/agent/{agent_id}/close', permission='agent.cleanup')
 async def cleanup_agent(agent_id: uuid.UUID):
+    websocket_manager = WebSocketManager()
     try:
-        await WebSocketManager().close_and_remove_connection(agent_id)
+        await websocket_manager.send_message_and_wait_for_response(
+            target_websocket_id=agent_id,
+            message="close and remove"
+        )
     except KeyError:
         raise HTTPException(status_code=404)
+
+    # try:
+    #     await WebSocketManager().close_and_remove_connection(agent_id)

@@ -68,18 +68,14 @@ class WebSocketManager(metaclass=Singleton):
                 'message_id': str(message_id),
                 'message': message
             })
-        return await self._wait_for_response(
-            target_websocket=target_websocket,
-            message_id=message_id
-        )
+        # return await self._wait_for_response(
+        #     target_websocket=target_websocket,
+        #     message_id=message_id
+        # )
 
     async def close_and_remove_connection(self, websocket_id):
         websocket = self.connections.pop(websocket_id)
         try:
-            await websocket.send_json({
-                'session_id': str(uuid.uuid4()),
-                'message': "close and remove"
-            })
             await websocket.close()
         except RuntimeError as e:
             self._raise_if_unexpected_exception(
