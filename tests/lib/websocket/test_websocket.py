@@ -46,3 +46,22 @@ async def test_get_agent_connection_not_found():
 
     with pytest.raises(KeyError):
         await manager.get_agent_connection(uuid.uuid4())
+
+
+@pytest.mark.asyncio
+async def test_get_user_connection(mocker):
+    websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
+    manager = WebSocketManager()
+    connection_id = await manager.connect_user(websocket_mock)
+
+    connection = manager.get_user_connection(connection_id)
+
+    assert connection is websocket_mock
+
+
+@pytest.mark.asyncio
+async def test_get_user_connection_not_found():
+    manager = WebSocketManager()
+
+    with pytest.raises(KeyError):
+        await manager.get_user_connection(uuid.uuid4())
