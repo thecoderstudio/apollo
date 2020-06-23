@@ -39,6 +39,10 @@ class WebSocketManager(metaclass=Singleton):
             'message': message
         })
 
+    async def message_user(self, user_connection_id, message):
+        user_connection = self.get_user_connection(user_connection_id)
+        await user_connection.send_text(message)
+
 
 class ConnectionManager():
     websocket_manager = WebSocketManager()

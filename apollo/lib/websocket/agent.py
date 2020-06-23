@@ -16,10 +16,10 @@ class AgentConnectionManager(ConnectionManager):
         try:
             while True:
                 response = await connection.receive_json()
-                recipient_socket = self.websocket_manager.get_user_connection(
-                    uuid.UUID(response['connection_id'])
+                await self.websocket_manager.message_user(
+                    uuid.UUID(response['connection_id']),
+                    response['message']
                 )
-                await recipient_socket.send_text(response['message'])
         except WebSocketDisconnect:
             return
 
