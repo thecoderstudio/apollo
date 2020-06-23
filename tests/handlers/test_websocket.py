@@ -11,9 +11,7 @@ async def test_connect(test_client, authenticated_agent_headers):
         '/ws', headers=authenticated_agent_headers
     ) as websocket:
         assert websocket.receive_json() == "Connection accepted"
-
-    websocket_manager = WebSocketManager()
-    await websocket_manager.close_and_remove_all_connections()
+        websocket.close(code=1000)
 
 
 def test_connect_unauthenticated(test_client):

@@ -10,7 +10,7 @@ from apollo.models import get_session
 router = SecureRouter([(Allow, Agent, 'connect')])
 
 
-@router.websocket('/ws')
+@router.websocket('/ws', permission='connect')
 async def connect(
     websocket: WebSocket,
     session: Session = Depends(get_session)
