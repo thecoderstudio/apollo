@@ -7,7 +7,6 @@ from apollo.lib.security import (
 from apollo.lib.router import SecureRouter
 from apollo.models import get_session
 
-
 router = SecureRouter([(Allow, Agent, 'shell')])
 
 
