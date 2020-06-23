@@ -2,7 +2,7 @@ from tests.asserts import raisesHTTPForbidden
 
 import pytest
 
-from apollo.lib.websocket_manager import WebSocketManager
+from apollo.lib.websocket import WebSocketManager
 
 
 @pytest.mark.asyncio
