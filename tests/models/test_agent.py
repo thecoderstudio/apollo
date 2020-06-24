@@ -1,4 +1,9 @@
-from apollo.models.agent import Agent, get_agent_by_name
+import pytest
+from fastapi.websockets import WebSocket
+
+from apollo import app
+from apollo.lib.websocket_manager import WebSocketManager
+from apollo.models.agent import Agent, list_all_agents, get_agent_by_name
 from apollo.models.oauth import OAuthClient
 
 
@@ -38,3 +43,36 @@ def test_get_agent_by_name_not_found(db_session):
     db_session.commit()
 
     assert get_agent_by_name(db_session, 'different') is None
+
+
+def test_list_all_agents_size(db_session):
+    agent = Agent(name='test')
+    db_session.add(agent)
+    db_session.commit()
+
+    assert len(list_all_agents(db_session)) == 1
+
+    agent = Agent(name='test2')
+    db_session.add(agent)
+    db_session.commit()
+
+    assert len(list_all_agents(db_session)) == 2
+
+
+def test_agent_connection_status(db_session, test_client):
+    agent = Agent(name='test')
+    db_session.add(agent)
+    agent_id = agent.id
+    db_session.commit()
+
+    @app.websocket_route('/websocket_connect')
+    async def connect(websocket: WebSocket):
+        WebSocketManager().connections[agent_id] = websocket
+        await websocket.accept()
+        assert get_agent_by_name(
+            db_session, 'test').connection_status == 'connected'
+
+    test_client.websocket_connect('/websocket_connect')
+
+    assert get_agent_by_name(
+        db_session, 'test').connection_status == 'disconnected'
