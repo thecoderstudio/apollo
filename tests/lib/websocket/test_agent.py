@@ -5,12 +5,10 @@ import pytest
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
-from apollo.lib.websocket.agent import AgentConnectionManager
-
 
 @pytest.mark.asyncio
-async def test_connect(mocker):
-    manager = AgentConnectionManager()
+async def test_connect(mocker, agent_connection_manager):
+    manager = agent_connection_manager
     mock_agent_id = uuid.uuid4()
     agent_websocket_mock = mocker.create_autospec(WebSocket)
 
@@ -35,8 +33,8 @@ async def test_connect(mocker):
 
 
 @pytest.mark.asyncio
-async def test_close_connection(mocker):
-    manager = AgentConnectionManager()
+async def test_close_connection(mocker, agent_connection_manager):
+    manager = agent_connection_manager
 
     mock_agent_id = uuid.uuid4()
     agent_websocket_mock = mocker.create_autospec(WebSocket)
@@ -49,10 +47,13 @@ async def test_close_connection(mocker):
         "Closing connection")
     agent_websocket_mock.close.assert_awaited_once()
 
+    with pytest.raises(KeyError):
+        assert manager.get_connection(mock_agent_id)
+
 
 @pytest.mark.asyncio
-async def test_close_closed_connection(mocker):
-    manager = AgentConnectionManager()
+async def test_close_closed_connection(mocker, agent_connection_manager):
+    manager = agent_connection_manager
 
     mock_agent_id = uuid.uuid4()
     agent_websocket_mock = mocker.create_autospec(WebSocket)
@@ -68,10 +69,15 @@ async def test_close_closed_connection(mocker):
     agent_websocket_mock.send_json.assert_awaited_once_with(
         "Closing connection")
 
+    with pytest.raises(KeyError):
+        assert manager.get_connection(mock_agent_id)
+
 
 @pytest.mark.asyncio
-async def test_close_connect_unexpected_runtime_error(mocker):
-    manager = AgentConnectionManager()
+async def test_close_connect_unexpected_runtime_error(
+    mocker, agent_connection_manager
+):
+    manager = agent_connection_manager
 
     mock_agent_id = uuid.uuid4()
     agent_websocket_mock = mocker.create_autospec(WebSocket)
@@ -85,7 +91,25 @@ async def test_close_connect_unexpected_runtime_error(mocker):
     with pytest.raises(RuntimeError, match='Test unexpected'):
         await manager.close_connection(mock_agent_id)
 
+    assert manager.get_connection(mock_agent_id) is agent_websocket_mock
+
 
 @pytest.mark.asyncio
-async def test_close_all_connections(mocker):
-    pass
+async def test_close_all_connections(mocker, agent_connection_manager):
+    manager = agent_connection_manager
+
+    agent_websocket_mock_1 = mocker.create_autospec(WebSocket)
+    agent_websocket_mock_2 = mocker.create_autospec(WebSocket)
+
+    agent_websocket_mock_2.send_json.side_effect = RuntimeError(
+        'Cannot call "send" once a close message has been sent.'
+    )
+
+    await manager.websocket_manager.connect_agent(uuid.uuid4(),
+                                                  agent_websocket_mock_1)
+    await manager.websocket_manager.connect_agent(uuid.uuid4(),
+                                                  agent_websocket_mock_2)
+
+    await manager.close_all_connections()
+
+    assert len(manager.websocket_manager.open_agent_connections) == 0

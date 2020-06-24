@@ -8,6 +8,9 @@ import apollo.lib.settings
 from apollo import app
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.security import create_session_cookie
+from apollo.lib.websocket import WebSocketManager
+from apollo.lib.websocket.agent import AgentConnectionManager
+from apollo.lib.websocket.user import UserConnectionManager
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
@@ -114,3 +117,25 @@ def mock_http_connection():
 @fixture
 def http_connection_mock(mock_http_connection):
     return mock_http_connection()
+
+
+@fixture
+def websocket_manager():
+    manager = WebSocketManager()
+    yield manager
+    manager.open_agent_connections = {}
+    manager.open_user_connections = {}
+
+
+@fixture
+def agent_connection_manager(websocket_manager):
+    manager = AgentConnectionManager()
+    manager.websocket_manager = websocket_manager
+    return manager
+
+
+@fixture
+def user_connection_manager(websocket_manager):
+    manager = UserConnectionManager()
+    manager.websocket_manager = websocket_manager
+    return manager
