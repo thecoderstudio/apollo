@@ -3,6 +3,7 @@ import uuid
 from fastapi import Depends, WebSocket
 from sqlalchemy.orm import Session
 
+from apollo.lib.exceptions import HTTPException
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.agent import AgentSchema, CreateAgentSchema
 from apollo.lib.security import Allow, Authenticated
@@ -12,7 +13,8 @@ from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
 
 router = SecureRouter([
-    (Allow, Authenticated, 'agent.post')
+    (Allow, Authenticated, 'agent.post'),
+    (Allow, Authenticated, 'agent.shell')
 ])
 
 
@@ -27,6 +29,9 @@ def post_agent(agent_data: CreateAgentSchema,
     return agent
 
 
-@router.websocket("/agent/{agent_id}/shell", permission='public')
+@router.websocket("/agent/{agent_id}/shell", permission='agent.shell')
 async def shell(websocket: WebSocket, agent_id: uuid.UUID):
-    await UserConnectionManager().connect(websocket, agent_id)
+    try:
+        await UserConnectionManager().connect(websocket, agent_id)
+    except KeyError:
+        raise HTTPException(status_code=404)

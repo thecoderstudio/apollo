@@ -8,6 +8,9 @@ from apollo.lib.websocket import ConnectionManager
 
 class UserConnectionManager(ConnectionManager):
     async def connect(self, websocket: WebSocket, target_agent_id: uuid.UUID):
+        # Verify the agent connection exists before continuing.
+        self.websocket_manager.get_agent_connection(target_agent_id)
+
         connection_id = await self.websocket_manager.connect_user(websocket)
         await self._listen_and_forward(connection_id, target_agent_id,
                                        websocket)

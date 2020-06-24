@@ -9,6 +9,8 @@ from starlette.websockets import WebSocketDisconnect
 @pytest.mark.asyncio
 async def test_connect(mocker, user_connection_manager):
     mock_agent_id = uuid.uuid4()
+    await user_connection_manager.websocket_manager.connect_agent(
+        mock_agent_id, mocker.create_autospec(WebSocket))
 
     user_websocket_mock = mocker.create_autospec(WebSocket)
     user_websocket_mock.receive_text.side_effect = ["test",
@@ -22,6 +24,15 @@ async def test_connect(mocker, user_connection_manager):
             connection_id, mock_agent_id, 'test')
         with pytest.raises(KeyError):
             assert user_connection_manager.get_connection(connection_id)
+
+
+@pytest.mark.asyncio
+async def test_connect_agent_not_found(mocker, user_connection_manager):
+    user_websocket_mock = mocker.create_autospec(WebSocket)
+
+    with pytest.raises(KeyError):
+        await user_connection_manager.connect(user_websocket_mock,
+                                              uuid.uuid4())
 
 
 @pytest.mark.asyncio
