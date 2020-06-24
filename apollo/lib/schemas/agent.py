@@ -27,6 +27,7 @@ class ConnectionStateEnum(str, Enum):
     connecting = 'connecting'
     connected = 'connected'
     disconnected = 'disconnected'
+    no_connection_available = 'no connection available'
 
 
 class AgentSchema(ORMBase):

@@ -1,4 +1,5 @@
 from apollo.models.agent import Agent
+from apollo.models.oauth import OAuthClient
 
 
 def test_post_agent_success(test_client, session_cookie):
@@ -35,13 +36,13 @@ def test_post_agent_unauthenticated(test_client, db_session):
     assert response.json()['detail'] == "Permission denied."
 
 
-def test_post_agent_success(test_client, session_cookie):
+def test_list_agent_success(db_session, test_client, session_cookie):
     response = test_client.get('/agent', cookies=session_cookie)
 
     assert response.status_code == 200
     assert response.json() == []
 
-    agent = Agent(name='test')
+    agent = Agent(name='test', oauth_client=OAuthClient(type='confidential'))
     db_session.add(agent)
     db_session.commit()
 
@@ -51,7 +52,7 @@ def test_post_agent_success(test_client, session_cookie):
     response_body = response.json()
 
     assert len(response_body) == 1
-    assert response_body[0].name == 'test'
+    assert response_body[0]['name'] == 'test'
 
 
 def test_post_agent_unauthenticated(test_client):

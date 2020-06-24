@@ -22,9 +22,10 @@ class Agent(Base):
         try:
             return str(
                 WebSocketManager().connections[self.id].client_state).split(
-                    '.')[1].lower()
+                    '.')[1].lower() is None
+
         except KeyError:
-            return 'disconnected'
+            return 'no connection available'
 
 
 def get_agent_by_name(session, name):
