@@ -11,6 +11,7 @@ class UserConnectionManager(ConnectionManager):
         connection_id = await self.websocket_manager.connect_user(websocket)
         await self._listen_and_forward(connection_id, target_agent_id,
                                        websocket)
+        await self.close_connection(connection_id)
         return connection_id
 
     async def _listen_and_forward(
@@ -24,6 +25,9 @@ class UserConnectionManager(ConnectionManager):
                     connection_id, target_agent_id, command)
         except WebSocketDisconnect:
             return
+
+    async def close_connection(self, connection_id: uuid.UUID):
+        await self.websocket_manager.close_user_connection(connection_id)
 
     def get_connection(self, connection_id: uuid.UUID):
         return self.websocket_manager.get_user_connection(connection_id)

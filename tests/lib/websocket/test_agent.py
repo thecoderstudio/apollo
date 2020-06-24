@@ -25,11 +25,10 @@ async def test_connect(mocker, agent_connection_manager):
         'apollo.lib.websocket.WebSocketManager.message_user'
     ) as message_user_mock:
         await manager.connect(mock_agent_id, agent_websocket_mock)
+
+        message_user_mock.assert_awaited_once_with(mock_user_id, 'test')
         with pytest.raises(KeyError):
             assert manager.get_connection(mock_agent_id)
-
-        message_user_mock.assert_awaited_once_with(
-            mock_user_id, 'test')
 
 
 @pytest.mark.asyncio

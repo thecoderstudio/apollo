@@ -74,5 +74,8 @@ class WebSocketManager(metaclass=Singleton):
 class ConnectionManager():
     websocket_manager = WebSocketManager()
 
-    def get_connection(self, connection_id):
+    def get_connection(self, connection_id: uuid.UUID):
+        raise NotImplementedError
+
+    async def close_connection(self, connection_id: uuid.UUID):
         raise NotImplementedError

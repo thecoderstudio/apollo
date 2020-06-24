@@ -196,3 +196,12 @@ def test_connection_manager_get_connection(websocket_manager):
 
     with pytest.raises(NotImplementedError):
         manager.get_connection(uuid.uuid4())
+
+
+@pytest.mark.asyncio
+async def test_connection_manager_close_connection(websocket_manager):
+    manager = ConnectionManager()
+    manager.websocket_manager = websocket_manager
+
+    with pytest.raises(NotImplementedError):
+        await manager.close_connection(uuid.uuid4())
