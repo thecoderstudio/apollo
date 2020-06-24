@@ -67,9 +67,11 @@ def test_agent_connection_status(db_session, test_client):
     agent_id = agent.id
     db_session.commit()
 
+    websocket_manager = WebSocketManager()
+
     @app.websocket_route('/websocket_connect')
     async def connect(websocket: WebSocket):
-        WebSocketManager().connections[agent_id] = websocket
+        websocket_manager.connections[agent_id] = websocket
         await websocket.accept()
         agent = get_agent_by_name(
             db_session, 'test').connection_status == 'connected'
@@ -78,7 +80,9 @@ def test_agent_connection_status(db_session, test_client):
         assert agent.client_state == 'connecting'
 
         websocket.close()
-        assert get_agent_by_name(
-            db_session, 'test').connection_status == 'disconnected'
+        assert agent.connection_status == 'disconnected'
+
+        await websocket_manager.close_and_remove_all_connections()
+        assert agent.connection_status == 'no connection available'
 
     test_client.websocket_connect('/websocket_connect')
