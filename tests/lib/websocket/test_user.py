@@ -9,7 +9,7 @@ from apollo.lib.websocket.user import UserConnectionManager
 
 
 @pytest.mark.asyncio
-async def test_user_connection_manager_connect(mocker):
+async def test_connect(mocker):
     manager = UserConnectionManager()
     mock_agent_id = uuid.uuid4()
 
@@ -26,7 +26,7 @@ async def test_user_connection_manager_connect(mocker):
 
 
 @pytest.mark.asyncio
-async def test_user_connection_manager_get_connection(mocker):
+async def test_get_connection(mocker):
     manager = UserConnectionManager()
     websocket_mock = mocker.create_autospec(WebSocket)
     connection_id = await manager.websocket_manager.connect_user(
@@ -35,7 +35,7 @@ async def test_user_connection_manager_get_connection(mocker):
     assert manager.get_connection(connection_id) is websocket_mock
 
 
-def test_user_connection_manager_get_connection_not_found():
+def test_get_connection_not_found():
     manager = UserConnectionManager()
 
     with pytest.raises(KeyError):
