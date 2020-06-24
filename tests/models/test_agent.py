@@ -63,6 +63,7 @@ def test_list_all_agents_size(db_session):
 def test_agent_connection_status(db_session, test_client):
     agent = Agent(name='test')
     db_session.add(agent)
+    db_session.flush()
     agent_id = agent.id
     db_session.commit()
 
@@ -76,7 +77,8 @@ def test_agent_connection_status(db_session, test_client):
         websocket.client_state = WebSocketState.CONNECTING
         assert agent.client_state == 'connecting'
 
-    test_client.websocket_connect('/websocket_connect')
+        websocket.close()
+        assert get_agent_by_name(
+            db_session, 'test').connection_status == 'disconnected'
 
-    assert get_agent_by_name(
-        db_session, 'test').connection_status == 'disconnected'
+    test_client.websocket_connect('/websocket_connect')

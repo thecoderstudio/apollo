@@ -1,3 +1,6 @@
+from apollo.models.agent import Agent
+
+
 def test_post_agent_success(test_client, session_cookie):
     response = test_client.post(
         '/agent',
@@ -27,6 +30,32 @@ def test_post_agent_unauthenticated(test_client, db_session):
         '/agent',
         json={'name': 'test'}
     )
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
+
+
+def test_post_agent_success(test_client, session_cookie):
+    response = test_client.get('/agent', cookies=session_cookie)
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+    agent = Agent(name='test')
+    db_session.add(agent)
+    db_session.commit()
+
+    response = test_client.get('/agent', cookies=session_cookie)
+
+    response.status_code == 200
+    response_body = response.json()
+
+    assert len(response_body) == 1
+    assert response_body[0].name == 'test'
+
+
+def test_post_agent_unauthenticated(test_client):
+    response = test_client.get('/agent')
 
     assert response.status_code == 403
     assert response.json()['detail'] == "Permission denied."
