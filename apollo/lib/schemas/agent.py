@@ -1,6 +1,7 @@
 import uuid
 from enum import Enum
 
+from starlette.websockets import WebSocketState
 from pydantic import BaseModel, constr, validator
 
 from apollo.lib.decorators import with_db_session
@@ -23,15 +24,12 @@ class CreateAgentSchema(BaseModel):
         raise ValueError("An agent with the given name already exists")
 
 
-class ConnectionStateEnum(str, Enum):
-    connecting = 'connecting'
-    connected = 'connected'
-    disconnected = 'disconnected'
-    no_connection_available = 'no connection available'
-
-
 class AgentSchema(ORMBase):
     id: uuid.UUID
     name: str
     oauth_client: OAuthClientSchema
-    connection_status: ConnectionStateEnum
+    connection_state: WebSocketState
+
+    @validator('connection_state')
+    def parse_to_string(cls, v):
+        return v.name.lower()

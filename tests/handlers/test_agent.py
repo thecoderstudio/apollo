@@ -36,11 +36,13 @@ def test_post_agent_unauthenticated(test_client, db_session):
     assert response.json()['detail'] == "Permission denied."
 
 
-def test_list_agent_success(db_session, test_client, session_cookie):
+def test_list_agent_empty_list(db_session, test_client, session_cookie):
     response = test_client.get('/agent', cookies=session_cookie)
 
     assert response.json() == []
 
+
+def test_list_agent_success(db_session, test_client, session_cookie):
     agent = Agent(name='test', oauth_client=OAuthClient(type='confidential'))
     db_session.add(agent)
     db_session.commit()
@@ -51,7 +53,18 @@ def test_list_agent_success(db_session, test_client, session_cookie):
     response_body = response.json()
 
     assert len(response_body) == 1
+
     assert response_body[0]['name'] == 'test'
+    # assert response_body[0]['connection_type'] == 'd'
+    assert oauth_client['agent_id'] is not None
+    assert oauth_client['secret'] is not None
+    assert oauth_client['type'] == 'confidential'
+
+    agent = Agent(name='test2', oauth_client=OAuthClient(type='confidential'))
+    db_session.add(agent)
+    db_session.commit()
+
+    response = test_client.get('/agent', cookies=session_cookie)
 
 
 def test_list_agent_unauthenticated(test_client):

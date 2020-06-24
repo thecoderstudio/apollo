@@ -1,8 +1,10 @@
 import uuid
 
+
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+from starlette.websockets import WebSocketState
 
 from apollo.lib.websocket_manager import WebSocketManager
 from apollo.models import Base
@@ -18,13 +20,11 @@ class Agent(Base):
                                 cascade="all, delete-orphan")
 
     @property
-    def connection_status(self):
+    def connection_state(self):
         try:
-            return str(
-                WebSocketManager().connections[self.id].client_state).split(
-                    '.')[1].lower() is None
+            return WebSocketManager().connections[self.id].client_state
         except KeyError:
-            return 'no connection available'
+            return WebSocketState.DISCONNECTED
 
 
 def get_agent_by_name(session, name):

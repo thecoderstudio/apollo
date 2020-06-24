@@ -28,4 +28,4 @@ def post_agent(agent_data: CreateAgentSchema,
 @router.get('/agent', status_code=200, response_model=List[AgentSchema],
             permission='agent.list')
 def list_agents(session: Session = Depends(get_session)):
-    return list_all_agents(session)
+    return list_all_agents(session)[0]
