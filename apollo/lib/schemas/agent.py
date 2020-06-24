@@ -1,4 +1,5 @@
 import uuid
+from enum import Enum
 
 from pydantic import BaseModel, constr, validator
 
@@ -22,7 +23,14 @@ class CreateAgentSchema(BaseModel):
         raise ValueError("An agent with the given name already exists")
 
 
+class ConnectionStateEnum(str, Enum):
+    connecting = 'connecting'
+    connected = 'connected'
+    disconnected = 'disconnected'
+
+
 class AgentSchema(ORMBase):
     id: uuid.UUID
     name: str
     oauth_client: OAuthClientSchema
+    connection_status: ConnectionStateEnum
