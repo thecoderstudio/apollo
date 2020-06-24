@@ -47,14 +47,14 @@ def test_list_agent_success(db_session, test_client, session_cookie):
 
     response = test_client.get('/agent', cookies=session_cookie)
 
-    response.status_code == 200
+    assert response.status_code == 200
     response_body = response.json()
 
     assert len(response_body) == 1
     assert response_body[0]['name'] == 'test'
 
 
-def test_post_agent_unauthenticated(test_client):
+def test_list_agent_unauthenticated(test_client):
     response = test_client.get('/agent')
 
     assert response.status_code == 403
