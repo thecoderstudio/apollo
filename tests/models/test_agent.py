@@ -5,6 +5,7 @@ from apollo import app
 from apollo.lib.websocket_manager import WebSocketManager
 from apollo.models.agent import Agent, list_all_agents, get_agent_by_name
 from apollo.models.oauth import OAuthClient
+from starlette.websockets import WebSocketState
 
 
 def test_agent_cascades(db_session):
@@ -69,8 +70,11 @@ def test_agent_connection_status(db_session, test_client):
     async def connect(websocket: WebSocket):
         WebSocketManager().connections[agent_id] = websocket
         await websocket.accept()
-        assert get_agent_by_name(
+        agent = get_agent_by_name(
             db_session, 'test').connection_status == 'connected'
+
+        websocket.client_state = WebSocketState.CONNECTING
+        assert agent.client_state == 'connecting'
 
     test_client.websocket_connect('/websocket_connect')
 
