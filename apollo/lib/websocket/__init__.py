@@ -20,6 +20,10 @@ class WebSocketManager(metaclass=Singleton):
 
     async def close_agent_connection(self, agent_id: uuid.UUID):
         connection = self.get_agent_connection(agent_id)
+        await self._close_connection(connection)
+        self.open_agent_connections.pop(agent_id)
+
+    async def _close_connection(self, connection: WebSocket):
         try:
             await connection.send_json("Closing connection")
             await connection.close()
@@ -28,7 +32,11 @@ class WebSocketManager(metaclass=Singleton):
                 error=e,
                 message='Cannot call "send" once a close message'
             )
-        self.open_agent_connections.pop(agent_id)
+
+    async def close_user_connection(self, user_id: uuid.UUID):
+        connection = self.get_user_connection(user_id)
+        await self._close_connection(connection)
+        self.open_user_connections.pop(user_id)
 
     async def connect_user(self, websocket: WebSocket):
         await websocket.accept()

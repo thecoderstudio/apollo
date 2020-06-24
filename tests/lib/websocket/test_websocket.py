@@ -1,6 +1,7 @@
 import uuid
 
 import pytest
+from fastapi import WebSocket
 
 from apollo.lib.websocket import ConnectionManager
 
@@ -15,6 +16,33 @@ async def test_connect_agent(mocker, websocket_manager):
     assert (websocket_manager.open_agent_connections[mock_agent_id] is
             websocket_mock)
     websocket_mock.accept.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("closed_connection", [True, False])
+async def test_close_agent_connection(mocker, websocket_manager,
+                                      closed_connection):
+    manager = websocket_manager
+
+    mock_agent_id = uuid.uuid4()
+    agent_websocket_mock = mocker.create_autospec(WebSocket)
+    await manager.connect_agent(mock_agent_id, agent_websocket_mock)
+
+    if closed_connection:
+        agent_websocket_mock.send_json.side_effect = RuntimeError(
+            'Cannot call "send" once a close message has been sent.'
+        )
+
+    await manager.close_agent_connection(mock_agent_id)
+
+    agent_websocket_mock.send_json.assert_awaited_once_with(
+        "Closing connection")
+
+    if not closed_connection:
+        agent_websocket_mock.close.assert_awaited_once()
+
+    with pytest.raises(KeyError):
+        assert manager.get_agent_connection(mock_agent_id)
 
 
 @pytest.mark.asyncio
