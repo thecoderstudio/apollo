@@ -1,5 +1,4 @@
 import uuid
-from enum import Enum
 
 from starlette.websockets import WebSocketState
 from pydantic import BaseModel, constr, validator
