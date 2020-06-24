@@ -46,6 +46,69 @@ async def test_close_agent_connection(mocker, websocket_manager,
 
 
 @pytest.mark.asyncio
+async def test_close_agent_connection_unexpected_runtime_error(
+    mocker, websocket_manager
+):
+    manager = websocket_manager
+    mock_agent_id = uuid.uuid4()
+    agent_websocket_mock = mocker.create_autospec(WebSocket)
+    await manager.connect_agent(mock_agent_id, agent_websocket_mock)
+
+    agent_websocket_mock.send_json.side_effect = RuntimeError(
+        "Test unexpected"
+    )
+
+    with pytest.raises(RuntimeError, match="Test unexpected"):
+        await manager.close_agent_connection(mock_agent_id)
+
+    assert manager.get_agent_connection(mock_agent_id) is agent_websocket_mock
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("closed_connection", [True, False])
+async def test_close_user_connection(mocker, websocket_manager,
+                                     closed_connection):
+    manager = websocket_manager
+
+    user_websocket_mock = mocker.create_autospec(WebSocket)
+    connection_id = await manager.connect_user(user_websocket_mock)
+
+    if closed_connection:
+        user_websocket_mock.send_json.side_effect = RuntimeError(
+            'Cannot call "send" once a close message has been sent.'
+        )
+
+    await manager.close_user_connection(connection_id)
+
+    user_websocket_mock.send_json.assert_awaited_once_with(
+        "Closing connection")
+
+    if not closed_connection:
+        user_websocket_mock.close.assert_awaited_once()
+
+    with pytest.raises(KeyError):
+        assert manager.get_user_connection(connection_id)
+
+
+@pytest.mark.asyncio
+async def test_close_user_connection_unexpected_runtime_error(
+    mocker, websocket_manager
+):
+    manager = websocket_manager
+    user_websocket_mock = mocker.create_autospec(WebSocket)
+    connection_id = await manager.connect_user(user_websocket_mock)
+
+    user_websocket_mock.send_json.side_effect = RuntimeError(
+        "Test unexpected"
+    )
+
+    with pytest.raises(RuntimeError, match="Test unexpected"):
+        await manager.close_user_connection(connection_id)
+
+    assert manager.get_user_connection(connection_id) is user_websocket_mock
+
+
+@pytest.mark.asyncio
 async def test_connect_user(mocker, websocket_manager):
     websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
 
