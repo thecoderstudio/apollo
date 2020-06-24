@@ -18,6 +18,18 @@ class WebSocketManager(metaclass=Singleton):
     def get_agent_connection(self, agent_id: uuid.UUID):
         return self.open_agent_connections[agent_id]
 
+    async def close_agent_connection(self, agent_id: uuid.UUID):
+        connection = self.get_agent_connection(agent_id)
+        try:
+            await connection.send_json("Closing connection")
+            await connection.close()
+        except RuntimeError as e:
+            self._raise_if_unexpected_exception(
+                error=e,
+                message='Cannot call "send" once a close message'
+            )
+        self.open_agent_connections.pop(agent_id)
+
     async def connect_user(self, websocket: WebSocket):
         await websocket.accept()
         connection_id = uuid.uuid4()
@@ -43,16 +55,16 @@ class WebSocketManager(metaclass=Singleton):
         user_connection = self.get_user_connection(user_connection_id)
         await user_connection.send_text(message)
 
-
-class ConnectionManager():
-    websocket_manager = WebSocketManager()
-
-    def get_connection(self, connection_id):
-        raise NotImplementedError
-
     @staticmethod
     def _raise_if_unexpected_exception(error, message):
         if message in str(error):
             return
 
         raise error
+
+
+class ConnectionManager():
+    websocket_manager = WebSocketManager()
+
+    def get_connection(self, connection_id):
+        raise NotImplementedError

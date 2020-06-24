@@ -27,6 +27,9 @@ async def test_connect(mocker):
         'apollo.lib.websocket.WebSocketManager.message_user'
     ) as message_user_mock:
         await manager.connect(mock_agent_id, agent_websocket_mock)
+        with pytest.raises(KeyError):
+            assert manager.get_connection(mock_agent_id)
+
         message_user_mock.assert_awaited_once_with(
             mock_user_id, 'test')
 
@@ -81,3 +84,8 @@ async def test_close_connect_unexpected_runtime_error(mocker):
 
     with pytest.raises(RuntimeError, match='Test unexpected'):
         await manager.close_connection(mock_agent_id)
+
+
+@pytest.mark.asyncio
+async def test_close_all_connections(mocker):
+    pass

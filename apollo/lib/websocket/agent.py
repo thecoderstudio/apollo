@@ -11,6 +11,7 @@ class AgentConnectionManager(ConnectionManager):
         await self.websocket_manager.connect_agent(agent_id, websocket)
         await websocket.send_json("Connection accepted")
         await self._listen_and_forward(websocket)
+        await self.close_connection(agent_id)
 
     async def _listen_and_forward(self, connection: WebSocket):
         try:
@@ -24,15 +25,7 @@ class AgentConnectionManager(ConnectionManager):
             return
 
     async def close_connection(self, agent_id: uuid.UUID):
-        connection = self.get_connection(agent_id)
-        try:
-            await connection.send_json("Closing connection")
-            await connection.close()
-        except RuntimeError as e:
-            self._raise_if_unexpected_exception(
-                error=e,
-                message='Cannot call "send" once a close message'
-            )
+        await self.websocket_manager.close_agent_connection(agent_id)
 
     async def close_all_connections(self):
         for agent_id in list(self.websocket.open_agent_connections):
