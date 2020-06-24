@@ -23,7 +23,6 @@ class Agent(Base):
             return str(
                 WebSocketManager().connections[self.id].client_state).split(
                     '.')[1].lower() is None
-
         except KeyError:
             return 'no connection available'
 

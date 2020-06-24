@@ -39,7 +39,6 @@ def test_post_agent_unauthenticated(test_client, db_session):
 def test_list_agent_success(db_session, test_client, session_cookie):
     response = test_client.get('/agent', cookies=session_cookie)
 
-    assert response.status_code == 200
     assert response.json() == []
 
     agent = Agent(name='test', oauth_client=OAuthClient(type='confidential'))

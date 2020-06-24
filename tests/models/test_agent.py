@@ -47,14 +47,12 @@ def test_get_agent_by_name_not_found(db_session):
 
 
 def test_list_all_agents_size(db_session):
-    agent = Agent(name='test')
-    db_session.add(agent)
+    db_session.add(Agent(name='test'))
     db_session.commit()
 
     assert len(list_all_agents(db_session)) == 1
 
-    agent = Agent(name='test2')
-    db_session.add(agent)
+    db_session.add(Agent(name='test2'))
     db_session.commit()
 
     assert len(list_all_agents(db_session)) == 2
