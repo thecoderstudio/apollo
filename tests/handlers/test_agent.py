@@ -56,6 +56,7 @@ def test_list_agent_success(db_session, test_client, session_cookie):
 
     assert response_body[0]['name'] == 'test'
     # assert response_body[0]['connection_type'] == 'd'
+    oauth_client = response_body[0]['oauth_client']
     assert oauth_client['agent_id'] is not None
     assert oauth_client['secret'] is not None
     assert oauth_client['type'] == 'confidential'

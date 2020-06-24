@@ -1,3 +1,4 @@
+import pytest
 from fastapi.websockets import WebSocket
 
 from apollo import app
@@ -57,7 +58,8 @@ def test_list_all_agents_size(db_session):
     assert len(list_all_agents(db_session)) == 2
 
 
-def test_agent_connection_status(db_session, test_client):
+@pytest.mark.asyncio
+async def test_agent_connection_status(db_session, test_client):
     agent = Agent(name='test')
     db_session.add(agent)
     db_session.flush()
@@ -70,16 +72,15 @@ def test_agent_connection_status(db_session, test_client):
     async def connect(websocket: WebSocket):
         websocket_manager.connections[agent_id] = websocket
         await websocket.accept()
-        agent = get_agent_by_name(
-            db_session, 'test').connection_status == 'connected'
+
+        agent = get_agent_by_name(db_session, 'test')
+        assert agent.connection_state == WebSocketState.CONNECTED
 
         websocket.client_state = WebSocketState.CONNECTING
-        assert agent.client_state == 'connecting'
-
-        websocket.close()
-        assert agent.connection_status == 'disconnected'
+        assert agent.connection_state == WebSocketState.CONNECTING
 
         await websocket_manager.close_and_remove_all_connections()
-        assert agent.connection_status == 'no connection available'
+        assert agent.connection_state == WebSocketState.DISCONNECTED
+        assert agent.connection_state == WebSocketState.DISCONNECTED
 
     test_client.websocket_connect('/websocket_connect')
