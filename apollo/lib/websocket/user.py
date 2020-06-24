@@ -11,6 +11,7 @@ class UserConnectionManager(ConnectionManager):
         connection_id = await self.websocket_manager.connect_user(websocket)
         await self._listen_and_forward(connection_id, target_agent_id,
                                        websocket)
+        return connection_id
 
     async def _listen_and_forward(
         self, connection_id: uuid.UUID, target_agent_id: uuid.UUID,

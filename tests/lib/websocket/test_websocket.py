@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from apollo.lib.websocket import WebSocketManager
+from apollo.lib.websocket import ConnectionManager, WebSocketManager
 
 
 @pytest.mark.asyncio
@@ -108,3 +108,8 @@ async def test_message_user_not_found():
 
     with pytest.raises(KeyError):
         await manager.message_user(uuid.uuid4(), 'test')
+
+
+def test_connection_manager_get_connection():
+    with pytest.raises(NotImplementedError):
+        ConnectionManager().get_connection(uuid.uuid4())
