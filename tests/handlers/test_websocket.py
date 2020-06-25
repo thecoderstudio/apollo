@@ -2,8 +2,6 @@ from tests.asserts import raisesHTTPForbidden
 
 import pytest
 
-from apollo.lib.websocket import WebSocketManager
-
 
 @pytest.mark.asyncio
 async def test_connect(test_client, authenticated_agent_headers):

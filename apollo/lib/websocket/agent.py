@@ -24,8 +24,8 @@ class AgentConnectionManager(ConnectionManager):
         except WebSocketDisconnect:
             return
 
-    async def close_connection(self, agent_id: uuid.UUID):
-        await self.websocket_manager.close_agent_connection(agent_id)
+    async def close_connection(self, connection_id: uuid.UUID):
+        await self.websocket_manager.close_agent_connection(connection_id)
 
     async def close_all_connections(self):
         for agent_id in list(self.websocket_manager.open_agent_connections):
