@@ -1,11 +1,11 @@
 import pytest
 from fastapi.websockets import WebSocket
+from starlette.websockets import WebSocketState
 
 from apollo import app
 from apollo.lib.websocket_manager import WebSocketManager
 from apollo.models.agent import Agent, get_agent_by_name, list_all_agents
 from apollo.models.oauth import OAuthClient
-from starlette.websockets import WebSocketState
 
 
 def test_agent_cascades(db_session):
@@ -56,31 +56,3 @@ def test_list_all_agents_size(db_session):
     db_session.commit()
 
     assert len(list_all_agents(db_session)) == 2
-
-
-@pytest.mark.asyncio
-async def test_agent_connection_status(db_session, test_client):
-    agent = Agent(name='test')
-    db_session.add(agent)
-    db_session.flush()
-    agent_id = agent.id
-    db_session.commit()
-
-    websocket_manager = WebSocketManager()
-
-    @app.websocket_route('/websocket_connect')
-    async def connect(websocket: WebSocket):
-        websocket_manager.connections[agent_id] = websocket
-        await websocket.accept()
-
-        agent = get_agent_by_name(db_session, 'test')
-        assert agent.connection_state == WebSocketState.CONNECTED
-
-        websocket.client_state = WebSocketState.CONNECTING
-        assert agent.connection_state == WebSocketState.CONNECTING
-
-        await websocket_manager.close_and_remove_all_connections()
-        assert agent.connection_state == WebSocketState.DISCONNECTED
-        assert agent.connection_state == WebSocketState.DISCONNECTED
-
-    test_client.websocket_connect('/websocket_connect')

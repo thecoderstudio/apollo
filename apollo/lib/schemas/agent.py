@@ -1,7 +1,7 @@
 import uuid
 
-from starlette.websockets import WebSocketState
 from pydantic import BaseModel, constr, validator
+from starlette.websockets import WebSocketState
 
 from apollo.lib.decorators import with_db_session
 from apollo.lib.schemas import ORMBase
@@ -23,12 +23,16 @@ class CreateAgentSchema(BaseModel):
         raise ValueError("An agent with the given name already exists")
 
 
-class AgentSchema(ORMBase):
+class BaseAgentSchema(ORMBase):
     id: uuid.UUID
     name: str
-    oauth_client: OAuthClientSchema
     connection_state: WebSocketState
 
     @validator('connection_state')
+    @classmethod
     def parse_to_string(cls, v):
         return v.name.lower()
+
+
+class AgentSchema(BaseAgentSchema):
+    oauth_client: OAuthClientSchema

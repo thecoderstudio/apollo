@@ -44,28 +44,22 @@ def test_list_agent_empty_list(db_session, test_client, session_cookie):
 
 def test_list_agent_success(db_session, test_client, session_cookie):
     agent = Agent(name='test', oauth_client=OAuthClient(type='confidential'))
+    agent2 = Agent(name='test2', oauth_client=OAuthClient(type='confidential'))
     db_session.add(agent)
+    db_session.add(agent2)
     db_session.commit()
 
     response = test_client.get('/agent', cookies=session_cookie)
 
     assert response.status_code == 200
     response_body = response.json()
-
-    assert len(response_body) == 1
+    assert len(response_body) == 2
 
     assert response_body[0]['name'] == 'test'
-    # assert response_body[0]['connection_type'] == 'd'
     oauth_client = response_body[0]['oauth_client']
     assert oauth_client['agent_id'] is not None
-    assert oauth_client['secret'] is not None
     assert oauth_client['type'] == 'confidential'
-
-    agent = Agent(name='test2', oauth_client=OAuthClient(type='confidential'))
-    db_session.add(agent)
-    db_session.commit()
-
-    response = test_client.get('/agent', cookies=session_cookie)
+    assert oauth_client.get('secret') is None
 
 
 def test_list_agent_unauthenticated(test_client):

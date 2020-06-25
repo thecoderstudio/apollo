@@ -4,7 +4,8 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from apollo.lib.router import SecureRouter
-from apollo.lib.schemas.agent import AgentSchema, CreateAgentSchema
+from apollo.lib.schemas.agent import (
+    AgentSchema, BaseAgentSchema, CreateAgentSchema)
 from apollo.lib.security import Allow, Authenticated
 from apollo.models import get_session, save
 from apollo.models.agent import Agent, list_all_agents
@@ -25,7 +26,7 @@ def post_agent(agent_data: CreateAgentSchema,
     return agent
 
 
-@router.get('/agent', status_code=200, response_model=List[AgentSchema],
+@router.get('/agent', status_code=200, response_model=List[BaseAgentSchema],
             permission='agent.list')
 def list_agents(session: Session = Depends(get_session)):
     return list_all_agents(session)
