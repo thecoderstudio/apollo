@@ -2,6 +2,7 @@ import uuid
 
 import pytest
 from fastapi import WebSocket
+from websockets.exceptions import ConnectionClosed
 
 from apollo.lib.websocket import ConnectionManager
 
@@ -19,26 +20,28 @@ async def test_connect_agent(mocker, websocket_manager):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("closed_connection", [True, False])
+@pytest.mark.parametrize("side_effect", [
+    None,
+    RuntimeError('Cannot call "send" once a close message has been sent'),
+    ConnectionClosed(code=1000, reason="connection closed")
+])
 async def test_close_agent_connection(mocker, websocket_manager,
-                                      closed_connection):
+                                      side_effect):
     manager = websocket_manager
 
     mock_agent_id = uuid.uuid4()
     agent_websocket_mock = mocker.create_autospec(WebSocket)
     await manager.connect_agent(mock_agent_id, agent_websocket_mock)
 
-    if closed_connection:
-        agent_websocket_mock.send_json.side_effect = RuntimeError(
-            'Cannot call "send" once a close message has been sent.'
-        )
+    if side_effect:
+        agent_websocket_mock.send_json.side_effect = side_effect
 
     await manager.close_agent_connection(mock_agent_id)
 
     agent_websocket_mock.send_json.assert_awaited_once_with(
         "Closing connection")
 
-    if not closed_connection:
+    if not side_effect:
         agent_websocket_mock.close.assert_awaited_once()
 
     with pytest.raises(KeyError):
@@ -65,25 +68,27 @@ async def test_close_agent_connection_unexpected_runtime_error(
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("closed_connection", [True, False])
+@pytest.mark.parametrize("side_effect", [
+    None,
+    RuntimeError('Cannot call "send" once a close message has been sent'),
+    ConnectionClosed(code=1000, reason="connection closed")
+])
 async def test_close_user_connection(mocker, websocket_manager,
-                                     closed_connection):
+                                     side_effect):
     manager = websocket_manager
 
     user_websocket_mock = mocker.create_autospec(WebSocket)
     connection_id = await manager.connect_user(user_websocket_mock)
 
-    if closed_connection:
-        user_websocket_mock.send_json.side_effect = RuntimeError(
-            'Cannot call "send" once a close message has been sent.'
-        )
+    if side_effect:
+        user_websocket_mock.send_json.side_effect = side_effect
 
     await manager.close_user_connection(connection_id)
 
     user_websocket_mock.send_json.assert_awaited_once_with(
         "Closing connection")
 
-    if not closed_connection:
+    if not side_effect:
         user_websocket_mock.close.assert_awaited_once()
 
     with pytest.raises(KeyError):

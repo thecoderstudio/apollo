@@ -2,7 +2,7 @@ import uuid
 from typing import Dict
 
 from fastapi import WebSocket
-from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
+from websockets.exceptions import ConnectionClosed
 
 from apollo.lib.singleton import Singleton
 
@@ -33,7 +33,7 @@ class WebSocketManager(metaclass=Singleton):
                 error=e,
                 message='Cannot call "send" once a close message'
             )
-        except (ConnectionClosedError, ConnectionClosedOK):
+        except ConnectionClosed:
             pass
 
     async def close_user_connection(self, user_id: uuid.UUID):
