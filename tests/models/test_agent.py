@@ -1,9 +1,3 @@
-import pytest
-from fastapi.websockets import WebSocket
-from starlette.websockets import WebSocketState
-
-from apollo import app
-from apollo.lib.websocket_manager import WebSocketManager
 from apollo.models.agent import Agent, get_agent_by_name, list_all_agents
 from apollo.models.oauth import OAuthClient
 
