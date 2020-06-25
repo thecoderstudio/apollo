@@ -29,7 +29,7 @@ def post_agent(agent_data: CreateAgentSchema,
     return agent
 
 
-@router.websocket("/agent/{agent_id}/shell", permission='agent.shell')
+@router.websocket("/agent/{agent_id}/shell", permission='public')
 async def shell(websocket: WebSocket, agent_id: uuid.UUID):
     try:
         await UserConnectionManager().connect(websocket, agent_id)
