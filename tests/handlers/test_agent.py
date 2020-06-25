@@ -1,3 +1,5 @@
+import uuid
+
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
 
@@ -43,10 +45,14 @@ def test_list_agent_empty_list(db_session, test_client, session_cookie):
 
 
 def test_list_agent_success(db_session, test_client, session_cookie):
-    agent = Agent(name='test', oauth_client=OAuthClient(type='confidential'))
-    agent2 = Agent(name='test2', oauth_client=OAuthClient(type='confidential'))
+    agent_id_1 = uuid.uuid4()
+    agent_id_2 = uuid.uuid4()
+    agent = Agent(id=agent_id_1, name='test',
+                  oauth_client=OAuthClient(type='confidential'))
+    agent_2 = Agent(id=agent_id_2, name='test2',
+                    oauth_client=OAuthClient(type='confidential'))
     db_session.add(agent)
-    db_session.add(agent2)
+    db_session.add(agent_2)
     db_session.commit()
 
     response = test_client.get('/agent', cookies=session_cookie)
@@ -55,11 +61,8 @@ def test_list_agent_success(db_session, test_client, session_cookie):
     response_body = response.json()
     assert len(response_body) == 2
 
-    assert response_body[0]['name'] == 'test'
-    oauth_client = response_body[0]['oauth_client']
-    assert oauth_client['agent_id'] is not None
-    assert oauth_client['type'] == 'confidential'
-    assert oauth_client.get('secret') is None
+    assert response_body[0]['name'] in ['test', 'test2']
+    assert response_body[0]['id'] in [str(agent_id_1), str(agent_id_2)]
 
 
 def test_list_agent_unauthenticated(test_client):
