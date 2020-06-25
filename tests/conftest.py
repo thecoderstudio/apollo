@@ -121,8 +121,13 @@ def http_connection_mock(mock_http_connection):
 
 @fixture
 def websocket_manager():
+    _wipe_websocket_manager()
+    yield WebSocketManager()
+    _wipe_websocket_manager()
+
+
+def _wipe_websocket_manager():
     manager = WebSocketManager()
-    yield manager
     manager.open_agent_connections = {}
     manager.open_user_connections = {}
 
