@@ -3,9 +3,9 @@ from unittest.mock import patch
 
 import pytest
 from fastapi import WebSocket
+from starlette.websockets import WebSocketDisconnect
 
 from apollo.lib.exceptions import HTTPException
-from apollo.lib.websocket import WebSocketManager
 
 
 def test_post_agent_success(test_client, session_cookie):
@@ -43,11 +43,11 @@ def test_post_agent_unauthenticated(test_client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_shell(mocker, test_client, session_cookie):
+async def test_shell(mocker, test_client, session_cookie, websocket_manager):
     connection_id = uuid.uuid4()
     mock_agent_id = uuid.uuid4()
     agent_websocket_mock = mocker.create_autospec(WebSocket)
-    await WebSocketManager().connect_agent(mock_agent_id, agent_websocket_mock)
+    await websocket_manager.connect_agent(mock_agent_id, agent_websocket_mock)
 
     with patch('uuid.uuid4', return_value=connection_id):
         with test_client.websocket_connect(
@@ -64,10 +64,9 @@ async def test_shell(mocker, test_client, session_cookie):
 
 
 def test_shell_agent_not_found(test_client, session_cookie):
-    with pytest.raises(HTTPException) as e:
+    with pytest.raises(WebSocketDisconnect, match="1013"):
         test_client.websocket_connect(f"/agent/{uuid.uuid4()}/shell",
                                       cookies=session_cookie)
-        assert e.status_code == 404
 
 
 def test_shell_unauthenticated(test_client):

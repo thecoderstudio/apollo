@@ -30,9 +30,9 @@ async def test_connect(mocker, user_connection_manager):
 async def test_connect_agent_not_found(mocker, user_connection_manager):
     user_websocket_mock = mocker.create_autospec(WebSocket)
 
-    with pytest.raises(KeyError):
-        await user_connection_manager.connect(user_websocket_mock,
-                                              uuid.uuid4())
+    await user_connection_manager.connect(user_websocket_mock, uuid.uuid4())
+
+    user_websocket_mock.close.assert_awaited_once()
 
 
 @pytest.mark.asyncio
