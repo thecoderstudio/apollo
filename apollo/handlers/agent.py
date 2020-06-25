@@ -3,7 +3,6 @@ import uuid
 from fastapi import Depends, WebSocket
 from sqlalchemy.orm import Session
 
-from apollo.lib.exceptions import HTTPException
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.agent import AgentSchema, CreateAgentSchema
 from apollo.lib.security import Allow, Authenticated
