@@ -29,9 +29,6 @@ def post_agent(agent_data: CreateAgentSchema,
     return agent
 
 
-@router.websocket("/agent/{agent_id}/shell", permission='public')
+@router.websocket("/agent/{agent_id}/shell", permission='agent.shell')
 async def shell(websocket: WebSocket, agent_id: uuid.UUID):
-    try:
-        await UserConnectionManager().connect(websocket, agent_id)
-    except KeyError:
-        raise HTTPException(status_code=404)
+    await UserConnectionManager().connect(websocket, agent_id)
