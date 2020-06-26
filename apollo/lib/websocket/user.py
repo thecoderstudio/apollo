@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 
 from fastapi import WebSocket
@@ -36,8 +37,10 @@ class UserConnectionManager(ConnectionManager):
         try:
             while True:
                 command = await connection.receive_text()
-                await self.websocket_manager.message_agent(
-                    connection_id, target_agent_id, command)
+                asyncio.create_task(
+                    self.websocket_manager.message_agent(
+                        connection_id, target_agent_id, command)
+                )
         except WebSocketDisconnect:
             return
 
