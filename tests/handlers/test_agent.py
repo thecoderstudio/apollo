@@ -56,10 +56,12 @@ def test_list_agent_success(db_session, test_client, session_cookie):
     db_session.commit()
 
     response = test_client.get('/agent', cookies=session_cookie)
+    response_body = response.json()
 
     assert response.status_code == 200
     assert len(response_body) == 2
 
+    agent_data = response_body[0]
     assert agent_data['name'] in ['test', 'test2']
     assert agent_data['id'] in [str(agent_id_1), str(agent_id_2)]
     assert agent_data['connection_state'] == 'disconnected'
