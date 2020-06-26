@@ -58,11 +58,11 @@ def test_list_agent_success(db_session, test_client, session_cookie):
     response = test_client.get('/agent', cookies=session_cookie)
 
     assert response.status_code == 200
-    response_body = response.json()
     assert len(response_body) == 2
 
-    assert response_body[0]['name'] in ['test', 'test2']
-    assert response_body[0]['id'] in [str(agent_id_1), str(agent_id_2)]
+    assert agent_data['name'] in ['test', 'test2']
+    assert agent_data['id'] in [str(agent_id_1), str(agent_id_2)]
+    assert agent_data['connection_state'] == 'disconnected'
 
 
 def test_list_agent_unauthenticated(test_client):
