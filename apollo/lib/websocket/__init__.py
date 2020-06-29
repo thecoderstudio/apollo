@@ -4,6 +4,7 @@ from typing import Dict
 from fastapi import WebSocket
 from websockets.exceptions import ConnectionClosed
 
+from apollo.lib.schemas.message import BaseMessageSchema
 from apollo.lib.singleton import Singleton
 
 
@@ -52,15 +53,12 @@ class WebSocketManager(metaclass=Singleton):
 
     async def message_agent(
         self,
-        sender_connection_id: uuid.UUID,
         agent_id: uuid.UUID,
-        message: str
+        message: BaseMessageSchema
     ):
         recipient_connection = self.get_agent_connection(agent_id)
-        await recipient_connection.send_json({
-            'connection_id': str(sender_connection_id),
-            'message': message
-        })
+        print(message.json())
+        await recipient_connection.send_text(message.json())
 
     async def message_user(self, user_connection_id, message):
         user_connection = self.get_user_connection(user_connection_id)

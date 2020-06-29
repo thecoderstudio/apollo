@@ -4,6 +4,8 @@ import uuid
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
+from apollo.lib.schemas.message import (
+    BaseMessageSchema, Command, CommandSchema, ShellCommunicationSchema)
 from apollo.lib.websocket import ConnectionManager
 
 TRY_AGAIN_LATER = 1013
@@ -37,11 +39,10 @@ class UserConnectionManager(ConnectionManager):
         connection: WebSocket
     ):
         try:
-            asyncio.create_task(
-                self.websocket_manager.message_agent(
-                    connection_id, target_agent_id, "new connection"
-                )
-            )
+            await self._message_agent(target_agent_id, CommandSchema(
+                connection_id=connection_id,
+                command=Command.NEW_CONNECTION
+            ))
         except WebSocketDisconnect:
             return
 
@@ -51,13 +52,23 @@ class UserConnectionManager(ConnectionManager):
     ):
         try:
             while True:
-                command = await connection.receive_text()
-                asyncio.create_task(
-                    self.websocket_manager.message_agent(
-                        connection_id, target_agent_id, command)
+                stdin = await connection.receive_text()
+                await self._message_agent(
+                    target_agent_id,
+                    ShellCommunicationSchema(
+                        connection_id=connection_id,
+                        message=stdin
+                    )
                 )
         except WebSocketDisconnect:
             return
+
+    async def _message_agent(self, target_agent_id: uuid.UUID,
+                             message: BaseMessageSchema):
+        asyncio.create_task(
+            self.websocket_manager.message_agent(
+                target_agent_id, message)
+        )
 
     async def close_connection(self, connection_id: uuid.UUID):
         await self.websocket_manager.close_user_connection(connection_id)
