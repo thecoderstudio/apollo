@@ -57,7 +57,6 @@ class WebSocketManager(metaclass=Singleton):
         message: BaseMessageSchema
     ):
         recipient_connection = self.get_agent_connection(agent_id)
-        print(message.json())
         await recipient_connection.send_text(message.json())
 
     async def message_user(self, user_connection_id, message):
