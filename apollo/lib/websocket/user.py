@@ -15,6 +15,8 @@ class UserConnectionManager(ConnectionManager):
             return
 
         connection_id = await self.websocket_manager.connect_user(websocket)
+        await self._inform_agent_of_new_connection(
+            connection_id, target_agent_id, websocket)
         await self._listen_and_forward(connection_id, target_agent_id,
                                        websocket)
         await self.close_connection(connection_id)
@@ -29,6 +31,19 @@ class UserConnectionManager(ConnectionManager):
             return False
 
         return True
+
+    async def _inform_agent_of_new_connection(
+        self, connection_id: uuid.UUID, target_agent_id: uuid.UUID,
+        connection: WebSocket
+    ):
+        try:
+            asyncio.create_task(
+                self.websocket_manager.message_agent(
+                    connection_id, target_agent_id, "new connection"
+                )
+            )
+        except WebSocketDisconnect:
+            return
 
     async def _listen_and_forward(
         self, connection_id: uuid.UUID, target_agent_id: uuid.UUID,
