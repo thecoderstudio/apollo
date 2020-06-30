@@ -72,7 +72,8 @@ class WebSocketManager(metaclass=Singleton):
 
         return connection_id
 
-    def get_app_connection(self, connection_type: WebSocketObserverInterestTypes,
+    def get_app_connection(self,
+                           connection_type: WebSocketObserverInterestTypes,
                            connection_id: uuid.UUID):
         return self.open_app_connections[connection_type][connection_id]
 
