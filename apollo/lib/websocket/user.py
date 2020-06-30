@@ -5,7 +5,7 @@ from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
 from apollo.lib.schemas.message import (
-    BaseMessageSchema, Command, CommandSchema, ShellCommunicationSchema)
+    BaseMessageSchema, Command, CommandSchema, ShellMessageSchema)
 from apollo.lib.websocket import ConnectionManager
 
 TRY_AGAIN_LATER = 1013
@@ -52,7 +52,7 @@ class UserConnectionManager(ConnectionManager):
                 stdin = await connection.receive_text()
                 await self._message_agent(
                     target_agent_id,
-                    ShellCommunicationSchema(
+                    ShellMessageSchema(
                         connection_id=connection_id,
                         message=stdin
                     )

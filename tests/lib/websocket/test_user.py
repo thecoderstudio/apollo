@@ -6,7 +6,7 @@ from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
 from apollo.lib.schemas.message import (Command, CommandSchema,
-                                        ShellCommunicationSchema)
+                                        ShellMessageSchema)
 
 
 @pytest.mark.asyncio
@@ -29,7 +29,7 @@ async def test_connect(mocker, user_connection_manager):
                 connection_id=connection_id,
                 command=Command.NEW_CONNECTION
             )),
-            call(mock_agent_id, ShellCommunicationSchema(
+            call(mock_agent_id, ShellMessageSchema(
                 connection_id=connection_id,
                 message='test'
             ))
