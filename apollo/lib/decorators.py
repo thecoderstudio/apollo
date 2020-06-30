@@ -2,8 +2,6 @@ from functools import wraps
 from typing import Callable
 
 from apollo.models import SessionLocal
-from apollo.lib.websocket.agent import AppWebSocketConnectionType
-from apollo.lib.websocket.app import AppConnectionManager
 
 
 def with_db_session(func):
@@ -17,12 +15,12 @@ def with_db_session(func):
     return wrapped
 
 
-def notify_websockets(connection_type: AppWebSocketConnectionType,
-                      function: Callable):
+def notify_websockets(connection_type):
     """sends function output to connections with type 'connection_type'"""
 
     def decorate(func):
         def wrapper(*args, **kwargs):
+            from apollo.lib.websocket.app import AppConnectionManager
             output = function_to_decorate(*args, **kw)
 
             result = function()
@@ -31,3 +29,4 @@ def notify_websockets(connection_type: AppWebSocketConnectionType,
             )
             return output
         return wrapper
+    return decorate
