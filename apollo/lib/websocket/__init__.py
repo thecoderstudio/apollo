@@ -4,6 +4,7 @@ from typing import Dict, List
 from fastapi import WebSocket
 from websockets.exceptions import ConnectionClosed
 
+from apollo.lib.decorators import notify_websockets
 from apollo.lib.singleton import Singleton
 from apollo.lib.websocket.app import AppWebSocketConnectionType
 
@@ -15,6 +16,9 @@ class WebSocketManager(metaclass=Singleton):
         self.open_app_connections: Dict[
             AppWebSocketConnectionType, Dict[uuid.UUID, WebSocket]] = {}
 
+    @notify_websockets(
+        connection_type=AppWebSocketConnectionType.AGENT_LISTING,
+        function=list_all_agents)
     async def connect_agent(self, agent_id: uuid.UUID, websocket: WebSocket):
         await websocket.accept()
         self.open_agent_connections[agent_id] = websocket
@@ -22,6 +26,9 @@ class WebSocketManager(metaclass=Singleton):
     def get_agent_connection(self, agent_id: uuid.UUID):
         return self.open_agent_connections[agent_id]
 
+    @notify_websockets(
+        connection_type=AppWebSocketConnectionType.AGENT_LISTING,
+        function=list_all_agents)
     async def close_agent_connection(self, agent_id: uuid.UUID):
         connection = self.get_agent_connection(agent_id)
         await self._close_connection(connection)

@@ -22,6 +22,14 @@ class AppConnectionManager():
         await self._listen(connection)
         await self.close_connection(connection_type, connection_id)
 
+    async def send_message_to_connections(
+            self, connection_type: AppWebSocketConnectionType,
+            json: string):
+        for connection in (
+            self.websocket_manager.open_app_connections[connection_type]
+        ):
+            await self.websocket_manager.connection.send_json(json)
+
     async def _listen(
         self, connection: WebSocket
     ):
