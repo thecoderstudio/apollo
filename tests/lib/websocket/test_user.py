@@ -5,6 +5,8 @@ import pytest
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
+from apollo.lib.schemas.message import ShellCommunicationSchema
+
 
 @pytest.mark.asyncio
 async def test_connect(mocker, user_connection_manager):
@@ -16,12 +18,17 @@ async def test_connect(mocker, user_connection_manager):
     user_websocket_mock.receive_text.side_effect = ["test",
                                                     WebSocketDisconnect]
     with patch(
-        'apollo.lib.websocket.WebSocketManager.message_agent'
+        'apollo.lib.websocket.user.UserConnectionManager._message_agent'
     ) as message_agent_mock:
         connection_id = await user_connection_manager.connect(
             user_websocket_mock, mock_agent_id)
-        message_agent_mock.assert_awaited_once_with(
-            connection_id, mock_agent_id, 'test')
+        message_agent_mock.assert_awaited_with(
+            mock_agent_id,
+            ShellCommunicationSchema(
+                connection_id=connection_id,
+                message='test'
+            )
+        )
         with pytest.raises(KeyError):
             assert user_connection_manager.get_connection(connection_id)
 
