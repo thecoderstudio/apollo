@@ -38,13 +38,10 @@ class UserConnectionManager(ConnectionManager):
         self, connection_id: uuid.UUID, target_agent_id: uuid.UUID,
         connection: WebSocket
     ):
-        try:
-            await self._message_agent(target_agent_id, CommandSchema(
-                connection_id=connection_id,
-                command=Command.NEW_CONNECTION
-            ))
-        except WebSocketDisconnect:
-            return
+        await self._message_agent(target_agent_id, CommandSchema(
+            connection_id=connection_id,
+            command=Command.NEW_CONNECTION
+        ))
 
     async def _listen_and_forward(
         self, connection_id: uuid.UUID, target_agent_id: uuid.UUID,
