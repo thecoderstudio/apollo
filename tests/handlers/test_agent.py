@@ -6,7 +6,6 @@ from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
 from apollo.lib.exceptions import HTTPException
-
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
 
