@@ -80,7 +80,7 @@ class WebSocketManager(metaclass=Singleton):
     ):
         connection = self.get_app_connection(connection_type, connection_id)
         await self._close_connection(connection)
-        self.open_agent_connections.pop(agent_id)
+        self.open_app_connections[connection_type].pop(connection_id)
 
     async def message_agent(
         self,

@@ -31,6 +31,7 @@ async def post_agent(agent_data: CreateAgentSchema,
         oauth_client=OAuthClient(type='confidential'),
         **dict(agent_data)
     ))
+
     return agent
 
 
@@ -40,7 +41,6 @@ def list_agents(session: Session = Depends(get_session)):
     return list_all_agents(session)
 
 
-# permission='agent.list'
 @router.websocket('/agent')
 async def list_agents(websocket: WebSocket,
                       session: Session = Depends(get_session)):
@@ -48,6 +48,6 @@ async def list_agents(websocket: WebSocket,
         websocket, WebSocketInterest.AGENT_LISTING)
 
 
-@router.websocket("/agent/{agent_id}/shell", permission='agent.shell')
+@router.websocket("/agent/{agent_id}/shell", permission='public')
 async def shell(websocket: WebSocket, agent_id: uuid.UUID):
     await UserConnectionManager().connect(websocket, agent_id)
