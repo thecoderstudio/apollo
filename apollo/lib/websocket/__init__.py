@@ -5,7 +5,7 @@ from fastapi import WebSocket
 from websockets.exceptions import ConnectionClosed
 
 from apollo.lib.singleton import Singleton
-from apollo.lib.websocket.web import AppWebSocketConnectionType
+from apollo.lib.websocket.app import AppWebSocketConnectionType
 
 
 class WebSocketManager(metaclass=Singleton):
@@ -13,7 +13,7 @@ class WebSocketManager(metaclass=Singleton):
         self.open_agent_connections: Dict[uuid.UUID, WebSocket] = {}
         self.open_user_connections: Dict[uuid.UUID, WebSocket] = {}
         self.open_app_connections: Dict[
-            AppWebSocketConnectionType, List[Dict[uuid.UUID, WebSocket]]] = {}
+            AppWebSocketConnectionType, Dict[uuid.UUID, WebSocket]] = {}
 
     async def connect_agent(self, agent_id: uuid.UUID, websocket: WebSocket):
         await websocket.accept()
@@ -56,10 +56,26 @@ class WebSocketManager(metaclass=Singleton):
     def connect_app(websocket: WebSocket,
                     connection_type: AppWebSocketConnectionType):
         connection_id = uuid.uuid4()
-        current_connection_for_type = self.open_app_connections.get(
-            AppSocketConnectionType, [])
-        current_connection_for_type.append({connection_id: websocket})
+        current_connections_for_type = self.open_app_connections.get(
+            connection_type, {})
+        current_connections_for_type[connection_id] = websocket
+        self.open_app_connections[connection_type] = (
+            current_connections_for_type
+        )
+
         return connection_id
+
+    def get_app_connection(self, connection_type: AppWebSocketConnectionType,
+                           connection_id: uuid.UUID):
+        return self.open_app_connections[connection_type][connection_id]
+
+    async def close_app_connection(
+        self, connection_type: AppWebSocketConnectionType,
+        connection_id: uuid.UUID
+    ):
+        connection = self.get_agent_connection(agent_id)
+        await self._close_connection(connection)
+        self.open_agent_connections.pop(agent_id)
 
     async def message_agent(
         self,

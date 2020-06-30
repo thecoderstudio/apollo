@@ -2,25 +2,38 @@ import enum
 import uuid
 
 from fastapi import WebSocket
-from starlette import WebSOcketDisconnect
+from starlette.websockets import WebSocketDisconnect
 
 
 from apollo.lib.websocket import ConnectionManager
 
 
-class AppSocketConnectionType(enum.Enum):
+class AppWebSocketConnectionType(enum.Enum):
     AGENT_LISTING = 0
 
 
-class AppConnectionManager(connectionManager):
-    async def connect(self, websocket: WebSocket,
-                      connection_type: WebSocketConnectionType):
+class AppConnectionManager():
+    async def connect(
+        self, websocket: WebSocket,
+        connection_type: AppWebSocketConnectionType
+    ):
         connection_id = await self.websocket_manager.connect_app(
             websocket, connection_type)
+        await self._listen(connection)
+        await self.close_connection(connection_type, connection_id)
 
-    async def close_connection(self, connection_id: uuid.UUID):
-        # await self.websocket_managager.close_web_connection
-        pass
+    async def _listen(
+        self, connection: WebSocket
+    ):
+        try:
+            while True:
+                data = await connection.receive_text()
+        except WebSocketDisconnect:
+            return
 
-    def get_connection(self, connection_id: uuid.UUID):
-        pass
+    async def close_connection(
+        self, connection_type: AppWebSocketConnectionType,
+        connection_id: uuid.UUID
+    ):
+        await self.websocket_managager.close_app_connection(
+            connection_type, connection_id)
