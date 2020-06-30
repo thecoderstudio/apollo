@@ -12,7 +12,7 @@ class BaseMessageSchema(BaseModel):
     connection_id: uuid.UUID
 
 
-class ShellMessageSchema(BaseMessageSchema):
+class ShellIOSchema(BaseMessageSchema):
     message: str
 
 

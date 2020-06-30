@@ -7,7 +7,7 @@ from starlette.websockets import WebSocketDisconnect
 
 from apollo.lib.exceptions import HTTPException
 from apollo.lib.schemas.message import (Command, CommandSchema,
-                                        ShellMessageSchema)
+                                        ShellIOSchema)
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
 
@@ -66,7 +66,7 @@ async def test_shell(mocker, test_client, session_cookie, websocket_manager):
             connection_id=connection_id,
             command=Command.NEW_CONNECTION
         ).json()),
-        call(ShellMessageSchema(
+        call(ShellIOSchema(
             connection_id=connection_id,
             message="test command"
         ).json())

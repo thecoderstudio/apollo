@@ -4,7 +4,7 @@ import pytest
 from fastapi import WebSocket
 from websockets.exceptions import ConnectionClosed
 
-from apollo.lib.schemas.message import ShellMessageSchema
+from apollo.lib.schemas.message import ShellIOSchema
 from apollo.lib.websocket import ConnectionManager
 
 
@@ -162,7 +162,7 @@ async def test_get_user_connection_not_found(websocket_manager):
 async def test_message_agent(mocker, websocket_manager):
     websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
     mock_agent_id = uuid.uuid4()
-    message = ShellMessageSchema(
+    message = ShellIOSchema(
         connection_id=uuid.uuid4(),
         message='test'
     )
@@ -178,7 +178,7 @@ async def test_message_agent_not_found(websocket_manager):
     with pytest.raises(KeyError):
         await websocket_manager.message_agent(
             uuid.uuid4(),
-            ShellMessageSchema(
+            ShellIOSchema(
                 connection_id=uuid.uuid4(),
                 message='test'
             )
