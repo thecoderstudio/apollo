@@ -1,5 +1,11 @@
 import uuid
+from unittest.mock import patch
 
+import pytest
+from fastapi import WebSocket
+from starlette.websockets import WebSocketDisconnect
+
+from apollo.lib.exceptions import HTTPException
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
 
@@ -36,6 +42,38 @@ def test_post_agent_unauthenticated(test_client, db_session):
 
     assert response.status_code == 403
     assert response.json()['detail'] == "Permission denied."
+
+
+@pytest.mark.asyncio
+async def test_shell(mocker, test_client, session_cookie, websocket_manager):
+    connection_id = uuid.uuid4()
+    mock_agent_id = uuid.uuid4()
+    agent_websocket_mock = mocker.create_autospec(WebSocket)
+    await websocket_manager.connect_agent(mock_agent_id, agent_websocket_mock)
+
+    with patch('uuid.uuid4', return_value=connection_id):
+        with test_client.websocket_connect(
+            f"/agent/{mock_agent_id}/shell",
+            cookies=session_cookie
+        ) as websocket:
+            websocket.send_text("test command")
+            websocket.close(code=1000)
+
+    agent_websocket_mock.send_json.assert_awaited_once_with({
+        'connection_id': str(connection_id),
+        'message': "test command"
+    })
+
+
+def test_shell_agent_not_found(test_client, session_cookie):
+    with pytest.raises(WebSocketDisconnect, match="1013"):
+        test_client.websocket_connect(f"/agent/{uuid.uuid4()}/shell",
+                                      cookies=session_cookie)
+
+
+def test_shell_unauthenticated(test_client):
+    with pytest.raises(HTTPException, match="Permission denied."):
+        test_client.websocket_connect(f"/agent/{uuid.uuid4()}/shell")
 
 
 def test_list_agent_empty_list(db_session, test_client, session_cookie):
