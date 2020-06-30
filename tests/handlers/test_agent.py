@@ -1,12 +1,13 @@
 import uuid
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
 from apollo.lib.exceptions import HTTPException
-from apollo.lib.schemas.message import ShellCommunicationSchema
+from apollo.lib.schemas.message import (Command, CommandSchema,
+                                        ShellCommunicationSchema)
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
 
@@ -60,12 +61,16 @@ async def test_shell(mocker, test_client, session_cookie, websocket_manager):
             websocket.send_text("test command")
             websocket.close(code=1000)
 
-    agent_websocket_mock.send_text.assert_awaited_with(
-        ShellCommunicationSchema(
+    agent_websocket_mock.send_text.assert_has_awaits([
+        call(CommandSchema(
+            connection_id=connection_id,
+            command=Command.NEW_CONNECTION
+        ).json()),
+        call(ShellCommunicationSchema(
             connection_id=connection_id,
             message="test command"
-        ).json()
-    )
+        ).json())
+    ])
 
 
 def test_shell_agent_not_found(test_client, session_cookie):
