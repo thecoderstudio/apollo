@@ -30,3 +30,10 @@ def post_agent(agent_data: CreateAgentSchema,
             permission='agent.list')
 def list_agents(session: Session = Depends(get_session)):
     return list_all_agents(session)
+
+
+# permission='agent.list'
+@router.websocket('/agent')
+def list_agents(websocket: Websocket,
+                session: Session = Depends(get_session)):
+    return list_all_agents(session)
