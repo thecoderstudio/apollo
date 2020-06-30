@@ -17,14 +17,12 @@ def with_db_session(func):
 
 def notify_websockets(connection_type):
     """sends function output to connections with type 'connection_type'"""
-
     def decorate(func):
-        def wrapper(*args, **kwargs):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
             from apollo.lib.websocket.app import AppConnectionManager
-            output = function_to_decorate(*args, **kw)
-
-            result = function()
-            AppConnectionManager().send_message_to_connections(
+            output = await func(*args, **kwargs)
+            await AppConnectionManager().send_message_to_connections(
                 connection_type
             )
             return output

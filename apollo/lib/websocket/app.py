@@ -21,12 +21,14 @@ class AppConnectionManager():
             WebSocketInterest.AGENT_LISTING: self._list_all_agents
         }
 
+    @staticmethod
     @with_db_session
     def _list_all_agents(session):
         from apollo.models.agent import list_all_agents
-        pass
-        # from apollo.lib.schemas.agent import BaseAgentSchema
-        # return BaseAgentSchema.from_orm(list_all_agents(session))
+        from apollo.lib.schemas.agent import BaseAgentSchema
+
+        return [BaseAgentSchema.from_orm(agent).json() for
+                agent in list_all_agents(session)]
 
     async def connect(
         self, websocket: WebSocket,
@@ -39,10 +41,13 @@ class AppConnectionManager():
 
     async def send_message_to_connections(self,
                                           connection_type: WebSocketInterest):
-        for connection in (
-            self.websocket_manager.open_app_connections[connection_type]
+        print('1')
+        for websocket in (
+            self.websocket_manager.open_app_connections.get(
+                connection_type, {}).values()
         ):
-            await self.websocket_manager.connection.send_json(
+            print('2')
+            await websocket.send_json(
                 self.websocket_interest_functions[connection_type]()
             )
 
@@ -58,5 +63,5 @@ class AppConnectionManager():
         self, connection_type: WebSocketInterest,
         connection_id: uuid.UUID
     ):
-        await self.websocket_managager.close_app_connection(
+        await self.websocket_manager.close_app_connection(
             connection_type, connection_id)

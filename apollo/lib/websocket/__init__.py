@@ -78,7 +78,7 @@ class WebSocketManager(metaclass=Singleton):
         self, connection_type: WebSocketInterest,
         connection_id: uuid.UUID
     ):
-        connection = self.get_agent_connection(agent_id)
+        connection = self.get_app_connection(connection_type, connection_id)
         await self._close_connection(connection)
         self.open_agent_connections.pop(agent_id)
 
