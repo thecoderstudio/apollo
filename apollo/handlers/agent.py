@@ -1,18 +1,23 @@
+import uuid
 from typing import List
 
-from fastapi import Depends
+from fastapi import Depends, WebSocket
 from sqlalchemy.orm import Session
 
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.agent import (
     AgentSchema, BaseAgentSchema, CreateAgentSchema)
 from apollo.lib.security import Allow, Authenticated
+from apollo.lib.websocket.user import UserConnectionManager
 from apollo.models import get_session, save
 from apollo.models.agent import Agent, list_all_agents
 from apollo.models.oauth import OAuthClient
 
-router = SecureRouter([(Allow, Authenticated, 'agent.post'),
-                       (Allow, Authenticated, 'agent.list')])
+router = SecureRouter([
+    (Allow, Authenticated, 'agent.post'),
+    (Allow, Authenticated, 'agent.list'),
+    (Allow, Authenticated, 'agent.shell')
+])
 
 
 @router.post("/agent", status_code=201, response_model=AgentSchema,
@@ -30,3 +35,8 @@ def post_agent(agent_data: CreateAgentSchema,
             permission='agent.list')
 def list_agents(session: Session = Depends(get_session)):
     return list_all_agents(session)
+
+
+@router.websocket("/agent/{agent_id}/shell", permission='agent.shell')
+async def shell(websocket: WebSocket, agent_id: uuid.UUID):
+    await UserConnectionManager().connect(websocket, agent_id)
