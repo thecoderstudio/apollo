@@ -9,16 +9,6 @@ from apollo.lib.decorators import with_db_session
 
 
 class WebSocketObserverTypes(enum.Enum):
-    AGENT_LISTING = 0
-
-
-class WebSocketObserverHandler():
-    def __init__(self):
-        self.websocket_observer_functions: Dict[WebSocketObserverTypes] = {
-            WebSocketObserverTypes.AGENT_LISTING: self._list_all_agents
-        }
-
-    @staticmethod
     @with_db_session
     def _list_all_agents(session):
         from apollo.models.agent import list_all_agents
@@ -27,12 +17,13 @@ class WebSocketObserverHandler():
         return [BaseAgentSchema.from_orm(agent).json() for
                 agent in list_all_agents(session)]
 
+    AGENT_LISTING = _list_all_agents
+
 
 class AppConnectionManager():
     def __init__(self):
         from apollo.lib.websocket import WebSocketManager
         self.websocket_manager = WebSocketManager()
-        self.websocket_observer_handler = WebSocketObserverHandler()
 
     @staticmethod
     async def _listen(connection: WebSocket):
@@ -58,8 +49,7 @@ class AppConnectionManager():
                 connection_type, {}).values()
         ):
             await websocket.send_json(
-                self.websocket_observer_handler.websocket_observer_functions[
-                    connection_type]()
+                connection_type()
             )
 
     async def close_connection(

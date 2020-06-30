@@ -9,7 +9,8 @@ from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.agent import (
     AgentSchema, BaseAgentSchema, CreateAgentSchema)
 from apollo.lib.security import Allow, Authenticated
-from apollo.lib.websocket.app import AppConnectionManager, WebSocketObserverTypes
+from apollo.lib.websocket.app import (
+    AppConnectionManager, WebSocketObserverTypes)
 from apollo.lib.websocket.user import UserConnectionManager
 from apollo.models import get_session, save
 from apollo.models.agent import Agent, list_all_agents
