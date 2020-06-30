@@ -6,7 +6,7 @@ from websockets.exceptions import ConnectionClosed
 
 from apollo.lib.decorators import notify_websockets
 from apollo.lib.singleton import Singleton
-from apollo.lib.websocket.app import WebSocketObserverTypes
+from apollo.lib.websocket.app import WebSocketObserverInterestTypes
 
 
 class WebSocketManager(metaclass=Singleton):
@@ -14,9 +14,10 @@ class WebSocketManager(metaclass=Singleton):
         self.open_agent_connections: Dict[uuid.UUID, WebSocket] = {}
         self.open_user_connections: Dict[uuid.UUID, WebSocket] = {}
         self.open_app_connections: Dict[
-            WebSocketObserverTypes, Dict[uuid.UUID, WebSocket]] = {}
+            WebSocketObserverInterestTypes, Dict[uuid.UUID, WebSocket]] = {}
 
-    @notify_websockets(connection_type=WebSocketObserverTypes.AGENT_LISTING)
+    @notify_websockets(
+        connection_type=WebSocketObserverInterestTypes.AGENT_LISTING)
     async def connect_agent(self, agent_id: uuid.UUID, websocket: WebSocket):
         await websocket.accept()
         self.open_agent_connections[agent_id] = websocket
@@ -24,7 +25,8 @@ class WebSocketManager(metaclass=Singleton):
     def get_agent_connection(self, agent_id: uuid.UUID):
         return self.open_agent_connections[agent_id]
 
-    @notify_websockets(connection_type=WebSocketObserverTypes.AGENT_LISTING)
+    @notify_websockets(
+        connection_type=WebSocketObserverInterestTypes.AGENT_LISTING)
     async def close_agent_connection(self, agent_id: uuid.UUID):
         connection = self.get_agent_connection(agent_id)
         await self._close_connection(connection)
@@ -58,7 +60,7 @@ class WebSocketManager(metaclass=Singleton):
 
     async def connect_app(self,
                           websocket: WebSocket,
-                          connection_type: WebSocketObserverTypes):
+                          connection_type: WebSocketObserverInterestTypes):
         await websocket.accept()
         connection_id = uuid.uuid4()
         current_connections_for_type = self.open_app_connections.get(
@@ -70,12 +72,12 @@ class WebSocketManager(metaclass=Singleton):
 
         return connection_id
 
-    def get_app_connection(self, connection_type: WebSocketObserverTypes,
+    def get_app_connection(self, connection_type: WebSocketObserverInterestTypes,
                            connection_id: uuid.UUID):
         return self.open_app_connections[connection_type][connection_id]
 
     async def close_app_connection(
-        self, connection_type: WebSocketObserverTypes,
+        self, connection_type: WebSocketObserverInterestTypes,
         connection_id: uuid.UUID
     ):
         connection = self.get_app_connection(connection_type, connection_id)

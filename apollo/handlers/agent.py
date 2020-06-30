@@ -10,7 +10,7 @@ from apollo.lib.schemas.agent import (
     AgentSchema, BaseAgentSchema, CreateAgentSchema)
 from apollo.lib.security import Allow, Authenticated
 from apollo.lib.websocket.app import (
-    AppConnectionManager, WebSocketObserverTypes)
+    AppConnectionManager, WebSocketObserverInterestTypes)
 from apollo.lib.websocket.user import UserConnectionManager
 from apollo.models import get_session, save
 from apollo.models.agent import Agent, list_all_agents
@@ -25,7 +25,8 @@ router = SecureRouter([
 
 @router.post("/agent", status_code=201, response_model=AgentSchema,
              permission='agent.post')
-@notify_websockets(connection_type=WebSocketObserverTypes.AGENT_LISTING)
+@notify_websockets(
+    connection_type=WebSocketObserverInterestTypes.AGENT_LISTING)
 async def post_agent(agent_data: CreateAgentSchema,
                      session: Session = Depends(get_session)):
     agent, _ = save(session, Agent(
@@ -46,7 +47,7 @@ def list_agents(session: Session = Depends(get_session)):
 async def list_agents(websocket: WebSocket,
                       session: Session = Depends(get_session)):
     await AppConnectionManager().connect(
-        websocket, WebSocketObserverTypes.AGENT_LISTING)
+        websocket, WebSocketObserverInterestTypes.AGENT_LISTING)
 
 
 @router.websocket("/agent/{agent_id}/shell", permission='public')
