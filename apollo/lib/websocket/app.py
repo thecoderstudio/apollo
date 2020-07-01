@@ -1,6 +1,5 @@
 import enum
 import json
-import uuid
 
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
@@ -15,7 +14,7 @@ class WebSocketObserverInterestTypes(enum.Enum):
         from apollo.models.agent import list_all_agents
         from apollo.lib.schemas.agent import BaseAgentSchema
 
-        return [BaseAgentSchema.from_orm(agent).json() for
+        return [json.loads(BaseAgentSchema.from_orm(agent).json()) for
                 agent in list_all_agents(session)]
 
     AGENT_LISTING = _list_all_agents
@@ -42,7 +41,8 @@ class AppConnectionManager:
             websocket, connection_type)
         await websocket.send_json(connection_type())
         await self._listen(websocket)
-        await self.close_connection(connection_type, connection_id)
+        await self.websocket_manager.close_app_connection(
+            connection_type, connection_id)(connection_type, connection_id)
 
     async def send_message_to_connections(
             self, connection_type: WebSocketObserverInterestTypes):
@@ -53,10 +53,3 @@ class AppConnectionManager:
             await websocket.send_json(
                 connection_type()
             )
-
-    async def close_connection(
-        self, connection_type: WebSocketObserverInterestTypes,
-        connection_id: uuid.UUID
-    ):
-        await self.websocket_manager.close_app_connection(
-            connection_type, connection_id)
