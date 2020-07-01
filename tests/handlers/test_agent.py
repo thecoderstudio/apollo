@@ -76,22 +76,7 @@ def test_shell_unauthenticated(test_client):
         test_client.websocket_connect(f"/agent/{uuid.uuid4()}/shell")
 
 
-def test_list_agent_empty_list(db_session, test_client, session_cookie):
-    response = test_client.get('/agent', cookies=session_cookie)
-
-    assert response.json() == []
-
-
-def test_list_agent_success(db_session, test_client, session_cookie):
-    agent_id_1, agent_id_2 = add_multiple_agents(db_session)
-
-    response = test_client.get('/agent', cookies=session_cookie)
-    response_body = response.json()
-
-    assert response.status_code == 200
-    assert_list_agents(response_body, agent_id_1, agent_id_2)
-
-
+@pytest.mark.asyncio
 async def test_websocket_list_agent_success(db_session, test_client,
                                             session_cookie):
     agent_id_1, agent_id_2 = add_multiple_agents(db_session)
@@ -135,3 +120,18 @@ def test_websocket_list_agent_unauthenticated(test_client):
     with pytest.raises(HTTPException, match="Permission denied."):
         test_client.websocket_connect("/agent")
 
+
+def test_list_agent_empty_list(db_session, test_client, session_cookie):
+    response = test_client.get('/agent', cookies=session_cookie)
+
+    assert response.json() == []
+
+
+def test_list_agent_success(db_session, test_client, session_cookie):
+    agent_id_1, agent_id_2 = add_multiple_agents(db_session)
+
+    response = test_client.get('/agent', cookies=session_cookie)
+    response_body = response.json()
+
+    assert response.status_code == 200
+    assert_list_agents(response_body, agent_id_1, agent_id_2)
