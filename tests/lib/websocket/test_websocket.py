@@ -121,7 +121,7 @@ async def test_close_user_connection_unexpected_runtime_error(
     ConnectionClosed(code=1000, reason="connection closed")
 ])
 async def test_close_app_connection(mocker, websocket_manager,
-                                      side_effect):
+                                    side_effect, db_session):
     manager = websocket_manager
 
     app_websocket_mock = mocker.create_autospec(WebSocket)
@@ -142,7 +142,7 @@ async def test_close_app_connection(mocker, websocket_manager,
         "Closing connection")
 
     if not side_effect:
-        app_websocket_mock.assert_awaited_once()
+        app_websocket_mock.close.assert_awaited_once()
 
     with pytest.raises(KeyError):
         assert manager.get_app_connection(
@@ -152,45 +152,7 @@ async def test_close_app_connection(mocker, websocket_manager,
 
 
 @pytest.mark.asyncio
-async def test_close_app_connection_unexpected_runtime_error(
-    mocker, websocket_manager
-):
-    manager = websocket_manager
-    app_websocket_mock = mocker.create_autospec(WebSocket)
-    connection_id = await manager.connect_app(
-        app_websocket_mock,
-        WebSocketObserverInterestTypes.AGENT_LISTING
-    )
-
-    app_websocket_mock.send_json.side_effect = RuntimeError(
-        "Test unexpected"
-    )
-
-    with pytest.raises(RuntimeError, match="Test unexpected"):
-        await manager.close_app_connection(
-            WebSocketObserverInterestTypes.AGENT_LISTING,
-            connection_id
-        )
-
-    assert manager.get_app_connection(
-        WebSocketObserverInterestTypes.AGENT_LISTING,
-        connection_id
-    ) is user_websocket_mock
-
-
-@pytest.mark.asyncio
-async def test_connect_user(mocker, websocket_manager):
-    websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
-
-    connection_id = await websocket_manager.connect_user(websocket_mock)
-
-    assert (websocket_manager.open_user_connections[connection_id] is
-            websocket_mock)
-    websocket_mock.accept.assert_awaited_once()
-
-
-@pytest.mark.asyncio
-async def test_connect_app(mocker, websocket_manager):
+async def test_connect_app(mocker, websocket_manager, db_session):
     websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
 
     connection_id = await websocket_manager.connect_app(
@@ -201,6 +163,17 @@ async def test_connect_app(mocker, websocket_manager):
         WebSocketObserverInterestTypes.AGENT_LISTING
     ][connection_id] is websocket_mock)
 
+    websocket_mock.accept.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_connect_user(mocker, websocket_manager, db_session):
+    websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
+
+    connection_id = await websocket_manager.connect_user(websocket_mock)
+
+    assert (websocket_manager.open_user_connections[connection_id] is
+            websocket_mock)
     websocket_mock.accept.assert_awaited_once()
 
 
