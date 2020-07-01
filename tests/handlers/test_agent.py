@@ -83,35 +83,34 @@ def test_list_agent_empty_list(db_session, test_client, session_cookie):
 
 
 def test_list_agent_success(db_session, test_client, session_cookie):
-    agent_id_1, agent_id_2 = add_multiple_agents()
+    agent_id_1, agent_id_2 = add_multiple_agents(db_session)
 
     response = test_client.get('/agent', cookies=session_cookie)
     response_body = response.json()
 
     assert response.status_code == 200
-    assert len(response_body) == 2
+    assert_list_agents(response_body, agent_id_1, agent_id_2)
 
-    agent_data = response_body[0]
+
+async def test_websocket_list_agent_success(db_session, test_client,
+                                            session_cookie):
+    agent_id_1, agent_id_2 = add_multiple_agents(db_session)
+    with test_client.websocket_connect(
+            '/agent', cookies=session_cookie) as websocket:
+        received_json = await websocket.receive_json()
+        assert_list_agents(received_json, agent_id_1, agent_id_2)
+
+
+def assert_list_agents(body, agent_id_1, agent_id_2):
+    assert len(body) == 2
+
+    agent_data = body[0]
     assert agent_data['name'] in ['test', 'test2']
     assert agent_data['id'] in [str(agent_id_1), str(agent_id_2)]
     assert agent_data['connection_state'] == 'disconnected'
 
 
-def test_websocket_list_agent_success(db_session, test_client, session_cookie):
-    agent_id_1, agent_id_2 = add_multiple_agents()
-    response = test_client.get('/agent', cookies=session_cookie)
-    response_body = response.json()
-
-    assert response.status_code == 200
-    assert len(response_body) == 2
-
-    agent_data = response_body[0]
-    assert agent_data['name'] in ['test', 'test2']
-    assert agent_data['id'] in [str(agent_id_1), str(agent_id_2)]
-    assert agent_data['connection_state'] == 'disconnected'
-
-
-def add_multiple_agents():
+def add_multiple_agents(db_session):
     agent_id_1 = uuid.uuid4()
     agent_id_2 = uuid.uuid4()
     agent = Agent(id=agent_id_1, name='test',
@@ -136,7 +135,3 @@ def test_websocket_list_agent_unauthenticated(test_client):
     with pytest.raises(HTTPException, match="Permission denied."):
         test_client.websocket_connect("/agent")
 
-
-def test_shell_unauthenticated(test_client):
-    with pytest.raises(HTTPException, match="Permission denied."):
-        test_client.websocket_connect(f"/agent/{uuid.uuid4()}/shell")
