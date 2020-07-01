@@ -14,7 +14,7 @@ async def test_notify_websockets(mocker):
 
     @notify_websockets(WebSocketObserverInterestTypes.AGENT_LISTING)
     def test():
-        print("function")
+        pass
 
     await test()
     mocked.assert_called()
