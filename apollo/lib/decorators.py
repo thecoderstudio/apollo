@@ -1,5 +1,5 @@
+import inspect
 from functools import wraps
-from typing import Callable
 
 from apollo.models import SessionLocal
 
@@ -21,7 +21,10 @@ def notify_websockets(connection_type):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             from apollo.lib.websocket.app import AppConnectionManager
-            output = await func(*args, **kwargs)
+
+            output = await func(*args, **kwargs) if \
+                inspect.iscoroutinefunction(func) else func(*args, **kwargs)
+            print(AppConnectionManager().send_message_to_connections)
             await AppConnectionManager().send_message_to_connections(
                 connection_type
             )

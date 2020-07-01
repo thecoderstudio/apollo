@@ -27,7 +27,7 @@ router = SecureRouter([
              permission='agent.post')
 @notify_websockets(
     connection_type=WebSocketObserverInterestTypes.AGENT_LISTING)
-async def post_agent(agent_data: CreateAgentSchema,
+def post_agent(agent_data: CreateAgentSchema,
                      session: Session = Depends(get_session)):
     agent, _ = save(session, Agent(
         oauth_client=OAuthClient(type='confidential'),
