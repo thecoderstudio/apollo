@@ -16,7 +16,6 @@ def test_websocket_observer_interest_list_all_agents(db_session):
 
     data = WebSocketObserverInterestTypes._list_all_agents()
     assert len(data) == 1
-    print(data)
     assert data[0]['connection_state'] == 'disconnected'
 
 

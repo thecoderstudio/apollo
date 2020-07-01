@@ -42,7 +42,7 @@ class AppConnectionManager:
         await websocket.send_json(connection_type())
         await self._listen(websocket)
         await self.websocket_manager.close_app_connection(
-            connection_type, connection_id)(connection_type, connection_id)
+            connection_type, connection_id)
 
     async def send_message_to_connections(
             self, connection_type: WebSocketObserverInterestTypes):
