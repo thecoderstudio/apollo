@@ -10,6 +10,7 @@ from apollo.lib.hash import hash_plaintext
 from apollo.lib.security import create_session_cookie
 from apollo.lib.websocket import WebSocketManager
 from apollo.lib.websocket.agent import AgentConnectionManager
+from apollo.lib.websocket.app import AppConnectionManager
 from apollo.lib.websocket.user import UserConnectionManager
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
@@ -144,3 +145,11 @@ def user_connection_manager(websocket_manager):
     manager = UserConnectionManager()
     manager.websocket_manager = websocket_manager
     return manager
+
+
+@fixture
+def app_connection_manager(websocket_manager):
+    manager = AppConnectionManager()
+    manager.websocket_manager = websocket_manager
+    return manager
+

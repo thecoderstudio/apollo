@@ -1,3 +1,4 @@
+import json
 import uuid
 from unittest.mock import patch
 
@@ -82,31 +83,8 @@ async def test_websocket_list_agent_success(db_session, test_client,
     agent_id_1, agent_id_2 = add_multiple_agents(db_session)
     with test_client.websocket_connect(
             '/agent', cookies=session_cookie) as websocket:
-        received_json = await websocket.receive_json()
-        assert_list_agents(received_json, agent_id_1, agent_id_2)
-
-
-def assert_list_agents(body, agent_id_1, agent_id_2):
-    assert len(body) == 2
-
-    agent_data = body[0]
-    assert agent_data['name'] in ['test', 'test2']
-    assert agent_data['id'] in [str(agent_id_1), str(agent_id_2)]
-    assert agent_data['connection_state'] == 'disconnected'
-
-
-def add_multiple_agents(db_session):
-    agent_id_1 = uuid.uuid4()
-    agent_id_2 = uuid.uuid4()
-    agent = Agent(id=agent_id_1, name='test',
-                  oauth_client=OAuthClient(type='confidential'))
-    agent_2 = Agent(id=agent_id_2, name='test2',
-                    oauth_client=OAuthClient(type='confidential'))
-    db_session.add(agent)
-    db_session.add(agent_2)
-    db_session.commit()
-
-    return agent_id_1, agent_id_2
+        data = websocket.receive_json()
+        assert_agent_data(json.loads(data[0]), agent_id_1, agent_id_2)
 
 
 def test_list_agent_unauthenticated(test_client):
@@ -134,4 +112,29 @@ def test_list_agent_success(db_session, test_client, session_cookie):
     response_body = response.json()
 
     assert response.status_code == 200
-    assert_list_agents(response_body, agent_id_1, agent_id_2)
+    assert len(response_body) == 2
+
+    agent_data = response_body[0]
+    assert agent_data['name'] in ['test', 'test2']
+    assert agent_data['id'] in [str(agent_id_1), str(agent_id_2)]
+    assert agent_data['connection_state'] == 'disconnected'
+
+
+def assert_agent_data(agent_data, agent_id_1, agent_id_2):
+    assert agent_data['name'] in ['test', 'test2']
+    assert agent_data['id'] in [str(agent_id_1), str(agent_id_2)]
+    assert agent_data['connection_state'] == 'disconnected'
+
+
+def add_multiple_agents(db_session):
+    agent_id_1 = uuid.uuid4()
+    agent_id_2 = uuid.uuid4()
+    agent = Agent(id=agent_id_1, name='test',
+                  oauth_client=OAuthClient(type='confidential'))
+    agent_2 = Agent(id=agent_id_2, name='test2',
+                    oauth_client=OAuthClient(type='confidential'))
+    db_session.add(agent)
+    db_session.add(agent_2)
+    db_session.commit()
+
+    return agent_id_1, agent_id_2

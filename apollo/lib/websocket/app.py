@@ -1,5 +1,5 @@
-from typing import Dict
 import enum
+import json
 import uuid
 
 from fastapi import WebSocket
@@ -9,6 +9,7 @@ from apollo.lib.decorators import with_db_session
 
 
 class WebSocketObserverInterestTypes(enum.Enum):
+    @staticmethod
     @with_db_session
     def _list_all_agents(session):
         from apollo.models.agent import list_all_agents
@@ -20,7 +21,7 @@ class WebSocketObserverInterestTypes(enum.Enum):
     AGENT_LISTING = _list_all_agents
 
 
-class AppConnectionManager():
+class AppConnectionManager:
     def __init__(self):
         from apollo.lib.websocket import WebSocketManager
         self.websocket_manager = WebSocketManager()
@@ -29,7 +30,7 @@ class AppConnectionManager():
     async def _listen(connection: WebSocket):
         try:
             while True:
-                data = await connection.receive_text()
+                await connection.receive_text()
         except WebSocketDisconnect:
             return
 
