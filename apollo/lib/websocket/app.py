@@ -33,12 +33,13 @@ class AppConnectionManager():
         except WebSocketDisconnect:
             return
 
-    async def connect(
+    async def connect_and_send(
         self, websocket: WebSocket,
         connection_type: WebSocketObserverInterestTypes
     ):
         connection_id = await self.websocket_manager.connect_app(
             websocket, connection_type)
+        await websocket.send_json(connection_type())
         await self._listen(websocket)
         await self.close_connection(connection_type, connection_id)
 
