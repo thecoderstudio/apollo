@@ -42,7 +42,7 @@ def list_agents(session: Session = Depends(get_session)):
     return list_all_agents(session)
 
 
-@router.websocket('/agent')
+@router.websocket('/agent', permission='agent.list')
 async def list_agents(websocket: WebSocket):
     await AppConnectionManager().connect_and_send(
         websocket, WebSocketObserverInterestTypes.AGENT_LISTING)
