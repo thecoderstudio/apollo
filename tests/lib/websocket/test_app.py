@@ -25,9 +25,9 @@ async def test_connect_and_send(mocker, app_connection_manager, db_session):
     app_websocket_mock.receive_text.side_effect = WebSocketDisconnect
 
     await app_connection_manager.connect_and_send(
-            app_websocket_mock,
-            WebSocketObserverInterestTypes.AGENT_LISTING
-        )
+        app_websocket_mock,
+        WebSocketObserverInterestTypes.AGENT_LISTING
+    )
 
     app_websocket_mock.receive_text.assert_called_once()
     app_websocket_mock.send_json.assert_called()
