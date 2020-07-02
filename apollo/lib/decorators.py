@@ -22,10 +22,10 @@ def notify_websockets(connection_type):
         async def wrapper(*args, **kwargs):
             from apollo.lib.websocket.app import AppConnectionManager
 
-            if inspect.iscoroutinefunction(func):
-                output = await func(*args, **kwargs)
-            else:
-                output = func(*args, **kwargs)
+            output = func(*args, **kwargs)
+            if inspect.iscoroutine(output):
+                output = await output
+
             await AppConnectionManager().send_message_to_connections(
                 connection_type
             )
