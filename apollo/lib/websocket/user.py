@@ -1,8 +1,11 @@
+import asyncio
 import uuid
 
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
+from apollo.lib.schemas.message import (
+    BaseMessageSchema, Command, CommandSchema, ShellIOSchema)
 from apollo.lib.websocket import ConnectionManager
 
 TRY_AGAIN_LATER = 1013
@@ -14,6 +17,8 @@ class UserConnectionManager(ConnectionManager):
             return
 
         connection_id = await self.websocket_manager.connect_user(websocket)
+        await self._inform_agent_of_new_connection(
+            connection_id, target_agent_id, websocket)
         await self._listen_and_forward(connection_id, target_agent_id,
                                        websocket)
         await self.close_connection(connection_id)
@@ -29,17 +34,38 @@ class UserConnectionManager(ConnectionManager):
 
         return True
 
+    async def _inform_agent_of_new_connection(
+        self, connection_id: uuid.UUID, target_agent_id: uuid.UUID,
+        connection: WebSocket
+    ):
+        await self._message_agent(target_agent_id, CommandSchema(
+            connection_id=connection_id,
+            command=Command.NEW_CONNECTION
+        ))
+
     async def _listen_and_forward(
         self, connection_id: uuid.UUID, target_agent_id: uuid.UUID,
         connection: WebSocket
     ):
         try:
             while True:
-                command = await connection.receive_text()
-                await self.websocket_manager.message_agent(
-                    connection_id, target_agent_id, command)
+                stdin = await connection.receive_text()
+                await self._message_agent(
+                    target_agent_id,
+                    ShellIOSchema(
+                        connection_id=connection_id,
+                        message=stdin
+                    )
+                )
         except WebSocketDisconnect:
             return
+
+    async def _message_agent(self, target_agent_id: uuid.UUID,
+                             message: BaseMessageSchema):
+        asyncio.create_task(
+            self.websocket_manager.message_agent(
+                target_agent_id, message)
+        )
 
     async def close_connection(self, connection_id: uuid.UUID):
         await self.websocket_manager.close_user_connection(connection_id)
