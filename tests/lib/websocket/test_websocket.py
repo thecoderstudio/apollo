@@ -6,7 +6,7 @@ from websockets.exceptions import ConnectionClosed
 
 from apollo.lib.schemas.message import ShellIOSchema
 from apollo.lib.websocket import ConnectionManager
-from apollo.lib.websocket.app import WebSocketObserverInterestTypes
+from apollo.lib.websocket.interest_type import WebSocketObserverInterestTypes
 
 
 @pytest.mark.asyncio

@@ -1,7 +1,7 @@
 import pytest
 
 from apollo.lib.decorators import notify_websockets
-from apollo.lib.websocket.app import WebSocketObserverInterestTypes
+from apollo.lib.websocket.interest_type import WebSocketObserverInterestTypes
 
 
 @pytest.mark.asyncio

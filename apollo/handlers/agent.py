@@ -48,6 +48,6 @@ async def list_agents_via_websocket(websocket: WebSocket):
         websocket, WebSocketObserverInterestTypes.AGENT_LISTING)
 
 
-@router.websocket("/agent/{agent_id}/shell", permission='agent.list')
+@router.websocket("/agent/{agent_id}/shell")
 async def shell(websocket: WebSocket, agent_id: uuid.UUID):
     await UserConnectionManager().connect(websocket, agent_id)

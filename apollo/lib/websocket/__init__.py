@@ -7,7 +7,7 @@ from websockets.exceptions import ConnectionClosed
 from apollo.lib.decorators import notify_websockets
 from apollo.lib.schemas.message import BaseMessageSchema
 from apollo.lib.singleton import Singleton
-from apollo.lib.websocket.app import WebSocketObserverInterestTypes
+from apollo.lib.websocket.interest_type import WebSocketObserverInterestTypes
 
 
 class WebSocketManager(metaclass=Singleton):

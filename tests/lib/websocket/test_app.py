@@ -4,7 +4,7 @@ import pytest
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
-from apollo.lib.websocket.app import WebSocketObserverInterestTypes
+from apollo.lib.websocket.interest_type import WebSocketObserverInterestTypes
 from apollo.models.agent import Agent
 
 
