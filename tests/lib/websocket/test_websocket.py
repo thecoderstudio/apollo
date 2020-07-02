@@ -6,7 +6,7 @@ from websockets.exceptions import ConnectionClosed
 
 from apollo.lib.schemas.message import ShellIOSchema
 from apollo.lib.websocket import ConnectionManager
-from apollo.lib.websocket.interest_type import WebSocketObserverInterestTypes
+from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 
 @pytest.mark.asyncio
@@ -128,14 +128,14 @@ async def test_close_app_connection(mocker, websocket_manager,
     app_websocket_mock = mocker.create_autospec(WebSocket)
     connection_id = await manager.connect_app(
         app_websocket_mock,
-        WebSocketObserverInterestTypes.AGENT_LISTING
+        WebSocketObserverInterestType.AGENT_LISTING
     )
 
     if side_effect:
         app_websocket_mock.send_json.side_effect = side_effect
 
     await manager.close_app_connection(
-        WebSocketObserverInterestTypes.AGENT_LISTING,
+        WebSocketObserverInterestType.AGENT_LISTING,
         connection_id
     )
 
@@ -147,7 +147,7 @@ async def test_close_app_connection(mocker, websocket_manager,
 
     with pytest.raises(KeyError):
         assert manager.get_app_connection(
-            WebSocketObserverInterestTypes.AGENT_LISTING,
+            WebSocketObserverInterestType.AGENT_LISTING,
             connection_id
         )
 
@@ -157,11 +157,11 @@ async def test_connect_app(mocker, websocket_manager, db_session):
     websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
 
     connection_id = await websocket_manager.connect_app(
-        websocket_mock, WebSocketObserverInterestTypes.AGENT_LISTING
+        websocket_mock, WebSocketObserverInterestType.AGENT_LISTING
     )
 
     assert (websocket_manager.open_app_connections[
-        WebSocketObserverInterestTypes.AGENT_LISTING
+        WebSocketObserverInterestType.AGENT_LISTING
     ][connection_id] is websocket_mock)
 
     websocket_mock.accept.assert_awaited_once()
