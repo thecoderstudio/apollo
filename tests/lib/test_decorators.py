@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import patch, AsyncMock
 
 from apollo.lib.decorators import notify_websockets
 from apollo.lib.websocket.app import WebSocketObserverInterestTypes
