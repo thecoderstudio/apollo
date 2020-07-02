@@ -1,5 +1,3 @@
-import os
-import subprocess
 import uuid
 from typing import List
 
@@ -7,6 +5,7 @@ from fastapi import Depends, WebSocket
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from apollo.lib.agent import AgentBinary
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.agent import (
     AgentSchema, BaseAgentSchema, CreateAgentSchema)
@@ -43,17 +42,7 @@ def list_agents(session: Session = Depends(get_session)):
 
 @router.get('/agent/download', status_code=200, permission='agent.download')
 async def download_agent():
-    # Always make sure to get the latest version
-    binary_path = f"/tmp/{uuid.uuid4()}"
-    subprocess.run(["go", "get", "-d", "-u",
-                    "github.com/thecoderstudio/apollo-agent"])
-
-    env = os.environ.copy()
-    env["GOOS"] = "darwin"
-    env["GOARCH"] = "amd64"
-    subprocess.run(["go", "build", "-o", binary_path,
-                    "github.com/thecoderstudio/apollo-agent"], env=env)
-    return FileResponse(binary_path)
+    return FileResponse(AgentBinary("darwin", "amd64").path)
 
 
 @router.websocket("/agent/{agent_id}/shell", permission='agent.shell')

@@ -1,0 +1,39 @@
+import os
+import subprocess
+import uuid
+from enum import Enum
+
+PACKAGE = "github.com/thecoderstudio/apollo-agent"
+
+
+class SupportedOS(Enum):
+    DARWIN = "darwin"
+
+
+class SupportedArch(Enum):
+    AMD_64 = "amd64"
+
+
+class AgentBinary:
+    def __init__(self, target_os: SupportedOS, target_arch: SupportedArch):
+        self.path = f"/tmp/{uuid.uuid4()}"
+        self.target_os = target_os
+        self.target_arch = target_arch
+
+        # Always make sure to get the latest version
+        self._download_source()
+
+        self._compile()
+
+    @staticmethod
+    def _download_source():
+        subprocess.run(["go", "get", "-d", "-u", PACKAGE])
+
+    def _compile(self):
+        env = os.environ.copy()
+        env["GOOS"] = self.target_os
+        env["GOARCH"] = self.target_arch
+        subprocess.run(["go", "build", "-o", self.path, PACKAGE], env=env)
+
+    def delete(self):
+        os.remove(self.path)
