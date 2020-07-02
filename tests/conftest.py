@@ -152,4 +152,3 @@ def app_connection_manager(websocket_manager):
     manager = AppConnectionManager()
     manager.websocket_manager = websocket_manager
     return manager
-
