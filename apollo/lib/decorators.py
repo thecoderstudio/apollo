@@ -24,7 +24,6 @@ def notify_websockets(connection_type):
 
             output = await func(*args, **kwargs) if \
                 inspect.iscoroutinefunction(func) else func(*args, **kwargs)
-            print(AppConnectionManager().send_message_to_connections)
             await AppConnectionManager().send_message_to_connections(
                 connection_type
             )
