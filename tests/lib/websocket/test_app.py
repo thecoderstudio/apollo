@@ -20,7 +20,6 @@ def test_websocket_observer_interest_list_all_agents(db_session):
 
 @pytest.mark.asyncio
 async def test_connect_and_send(mocker, app_connection_manager, db_session):
-
     app_websocket_mock = mocker.create_autospec(WebSocket)
     app_websocket_mock.receive_text.side_effect = WebSocketDisconnect
 
