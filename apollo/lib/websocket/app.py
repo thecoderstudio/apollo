@@ -45,7 +45,8 @@ class AppConnectionManager:
             connection_type, connection_id)
 
     async def send_message_to_connections(
-            self, connection_type: WebSocketObserverInterestTypes):
+        self, connection_type: WebSocketObserverInterestTypes
+    ):
         for websocket in (
             self.websocket_manager.open_app_connections.get(
                 connection_type, {}).values()
