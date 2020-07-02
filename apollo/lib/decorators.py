@@ -15,8 +15,8 @@ def with_db_session(func):
     return wrapped
 
 
-def notify_websockets(connection_type):
-    """sends function output to connections with type 'connection_type'"""
+def notify_websockets(observer_interest_type):
+    """sends function output to connections with type 'interest_type'"""
     def decorate(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -27,7 +27,7 @@ def notify_websockets(connection_type):
                 output = await output
 
             await AppConnectionManager().send_message_to_connections(
-                connection_type
+                observer_interest_type
             )
             return output
         return wrapper

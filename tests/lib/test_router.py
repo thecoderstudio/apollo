@@ -85,14 +85,9 @@ async def test_secure_router_http_methods_oauth_permissions(
     })
 
     if permitted:
-        call_http_method_decorated_mock(http_method, router_acl, permission,
-                                        request_mock)
         await call_async_http_method_decorated_mock(
             http_method, router_acl, permission, request_mock)
     else:
-        with raisesHTTPForbidden:
-            call_http_method_decorated_mock(http_method, router_acl,
-                                            permission, request_mock)
         with raisesHTTPForbidden:
             await call_async_http_method_decorated_mock(
                 http_method, router_acl, permission, request_mock)
@@ -134,14 +129,9 @@ async def test_secure_router_http_methods_cookie_permissions(
         db_session, user, authenticated, session_cookie, role)
 
     if permitted:
-        call_http_method_decorated_mock(http_method, router_acl, permission,
-                                        request_mock)
         await call_async_http_method_decorated_mock(
             http_method, router_acl, permission, request_mock)
     else:
-        with raisesHTTPForbidden:
-            call_http_method_decorated_mock(http_method, router_acl,
-                                            permission, request_mock)
         with raisesHTTPForbidden:
             await call_async_http_method_decorated_mock(
                 http_method, router_acl, permission, request_mock)

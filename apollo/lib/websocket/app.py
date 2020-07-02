@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
@@ -16,20 +18,27 @@ class AppConnectionManager(ConnectionManager):
 
     async def connect_and_send(
         self, websocket: WebSocket,
-        connection_type: WebSocketObserverInterestType
+        observer_interest_type: WebSocketObserverInterestType
     ):
         connection_id = await self.websocket_manager.connect_app(
-            websocket, connection_type)
-        await websocket.send_json(connection_type.run_corresponding_function())
+            websocket, interest_type)
+        await websocket.send_json(
+            observer_interest_type.run_corresponding_function())
         await self.websocket_manager.close_app_connection(
-            connection_type, connection_id)
+            observer_interest_type, connection_id)
 
     async def send_message_to_connections(
-        self, connection_type: WebSocketObserverInterestType
+        self, observer_interest_type: WebSocketObserverInterestType
     ):
         for websocket in (
             self.websocket_manager.open_app_connections.get(
-                connection_type, {}).values()
+                observer_interest_type, {}).values()
         ):
             await websocket.send_json(
-                connection_type.run_corresponding_function())
+                observer_interest_type.run_corresponding_function())
+
+    def get_connection(self, connection_id: uuid.UUID):
+        raise NotImplementedError
+
+    async def close_connection(self, connection_id: uuid.UUID):
+        raise NotImplementedError

@@ -28,6 +28,6 @@ class InterestTypeFunctionHandler(metaclass=Singleton):
                 agent in list_all_agents(session)]
 
     def run_corresponding_function(
-        self, interest_type: WebSocketObserverInterestType
+        self, observer_interest_type: WebSocketObserverInterestType
     ):
-        return self.type_function_mapping[interest_type]()
+        return self.type_function_mapping[observer_interest_type]()

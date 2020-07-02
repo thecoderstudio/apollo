@@ -83,3 +83,4 @@ class SecureRouter(APIRouter):
 
         wrapped.__signature__ = new_signature
         return wrapped
+
