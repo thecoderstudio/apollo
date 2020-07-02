@@ -3,18 +3,18 @@ import subprocess
 import uuid
 from enum import Enum
 
-PACKAGE = "github.com/thecoderstudio/apollo-agent"
+PACKAGE = 'github.com/thecoderstudio/apollo-agent'
 
 
 class SupportedOS(Enum):
-    DARWIN = "darwin"
-    LINUX = "linux"
+    DARWIN = 'darwin'
+    LINUX = 'linux'
 
 
 class SupportedArch(Enum):
-    AMD_64 = "amd64"
-    ARM_64 = "arm64"
-    ARM = "arm"
+    AMD_64 = 'amd64'
+    ARM_64 = 'arm64'
+    ARM = 'arm'
 
 
 class AgentBinary:
@@ -30,13 +30,13 @@ class AgentBinary:
 
     @staticmethod
     def _download_source():
-        subprocess.run(["go", "get", "-d", "-u", PACKAGE])
+        subprocess.run(['go', 'get', '-d', '-u', PACKAGE])
 
     def _compile(self):
         env = os.environ.copy()
-        env["GOOS"] = self.target_os.value
-        env["GOARCH"] = self.target_arch.value
-        subprocess.run(["go", "build", "-o", self.path, PACKAGE], env=env)
+        env['GOOS'] = self.target_os.value
+        env['GOARCH'] = self.target_arch.value
+        subprocess.run(['go', 'build', '-o', self.path, PACKAGE], env=env)
 
     def delete(self):
         os.remove(self.path)
