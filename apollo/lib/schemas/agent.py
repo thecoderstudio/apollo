@@ -3,6 +3,7 @@ import uuid
 from pydantic import BaseModel, constr, validator
 from starlette.websockets import WebSocketState
 
+from apollo.lib.agent import SupportedArch, SupportedOS
 from apollo.lib.decorators import with_db_session
 from apollo.lib.schemas import ORMBase
 from apollo.lib.schemas.oauth import OAuthClientSchema
@@ -36,3 +37,8 @@ class BaseAgentSchema(ORMBase):
 
 class AgentSchema(BaseAgentSchema):
     oauth_client: OAuthClientSchema
+
+
+class AgentBinarySchema(BaseModel):
+    target_os: SupportedOS
+    target_arch: SupportedArch

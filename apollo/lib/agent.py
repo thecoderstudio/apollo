@@ -31,9 +31,19 @@ class AgentBinary:
 
     def _compile(self):
         env = os.environ.copy()
-        env["GOOS"] = self.target_os
-        env["GOARCH"] = self.target_arch
+        env["GOOS"] = self.target_os.value
+        env["GOARCH"] = self.target_arch.value
         subprocess.run(["go", "build", "-o", self.path, PACKAGE], env=env)
 
     def delete(self):
         os.remove(self.path)
+
+
+# Prevent circular import
+from apollo.lib.schemas.agent import AgentBinarySchema  # noqa
+
+
+def create_agent_binary(data: AgentBinarySchema):
+    binary = AgentBinary(**data.dict())
+    yield binary
+    binary.delete()

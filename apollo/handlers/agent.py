@@ -5,7 +5,7 @@ from fastapi import Depends, WebSocket
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from apollo.lib.agent import AgentBinary
+from apollo.lib.agent import AgentBinary, create_agent_binary
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.agent import (
     AgentSchema, BaseAgentSchema, CreateAgentSchema)
@@ -41,8 +41,8 @@ def list_agents(session: Session = Depends(get_session)):
 
 
 @router.get('/agent/download', status_code=200, permission='agent.download')
-async def download_agent():
-    return FileResponse(AgentBinary("darwin", "amd64").path)
+async def download_agent(binary: AgentBinary = Depends(create_agent_binary)):
+    return FileResponse(binary.path)
 
 
 @router.websocket("/agent/{agent_id}/shell", permission='agent.shell')
