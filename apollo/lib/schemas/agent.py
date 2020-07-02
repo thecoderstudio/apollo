@@ -26,7 +26,7 @@ class CreateAgentSchema(BaseModel):
 class BaseAgentSchema(ORMBase):
     id: uuid.UUID
     name: str
-    connection_state: WebSocketState
+    connection_state: WebSocketState = WebSocketState.DISCONNECTED
 
     @validator('connection_state')
     @classmethod

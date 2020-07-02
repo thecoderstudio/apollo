@@ -28,7 +28,7 @@ router = SecureRouter([
 @notify_websockets(
     connection_type=WebSocketObserverInterestTypes.AGENT_LISTING)
 def post_agent(agent_data: CreateAgentSchema,
-                     session: Session = Depends(get_session)):
+               session: Session = Depends(get_session)):
     agent, _ = save(session, Agent(
         oauth_client=OAuthClient(type='confidential'),
         **dict(agent_data)
@@ -42,12 +42,12 @@ def list_agents(session: Session = Depends(get_session)):
     return list_all_agents(session)
 
 
-@router.websocket('/agent')
+@router.websocket('/agent', permission='agent.list')
 async def list_agents(websocket: WebSocket):
     await AppConnectionManager().connect_and_send(
         websocket, WebSocketObserverInterestTypes.AGENT_LISTING)
 
 
-@router.websocket("/agent/{agent_id}/shell", permission='public')
+@router.websocket("/agent/{agent_id}/shell", permission='agent.list')
 async def shell(websocket: WebSocket, agent_id: uuid.UUID):
     await UserConnectionManager().connect(websocket, agent_id)
