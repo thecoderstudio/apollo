@@ -64,9 +64,13 @@ class SecureRouter(APIRouter):
         route = getattr(super(SecureRouter, self), http_method)
 
         @route(*outer_args, **outer_kwargs)
-        def wrapped(request: Request, *args, **kwargs):
+        async def wrapped(request: Request, *args, **kwargs):
             self.acl_policy.validate_permission(permission, request)
-            return func(*args, **kwargs)
+            output = func(*args, **kwargs)
+            if inspect.iscoroutine(output):
+                output = await output
+
+            return output
 
         wrapped_signature = inspect.signature(wrapped)
         func_signature = inspect.signature(func)
