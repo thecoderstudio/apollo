@@ -21,7 +21,7 @@ class AppConnectionManager(ConnectionManager):
         observer_interest_type: WebSocketObserverInterestType
     ):
         connection_id = await self.websocket_manager.connect_app(
-            websocket, interest_type)
+            websocket, observer_interest_type)
         await websocket.send_json(
             observer_interest_type.run_corresponding_function())
         await self.websocket_manager.close_app_connection(

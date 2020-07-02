@@ -2,18 +2,18 @@ import enum
 import json
 
 from apollo.lib.decorators import with_db_session
-from apollo.lib.singleton import Singleton
 
 
 class WebSocketObserverInterestType(enum.Enum):
     AGENT_LISTING = "agent_listing"
 
     def run_corresponding_function(self):
-        return InterestTypeFunctionHandler(self.value)
+        return InterestTypeFunctionHandler().run_corresponding_function(
+            self
+        )
 
 
-class InterestTypeFunctionHandler(metaclass=Singleton):
-
+class InterestTypeFunctionHandler:
     def __init__(self):
         self.type_function_mapping = {
             WebSocketObserverInterestType.AGENT_LISTING: self._list_all_agents
