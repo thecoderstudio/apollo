@@ -8,10 +8,13 @@ PACKAGE = "github.com/thecoderstudio/apollo-agent"
 
 class SupportedOS(Enum):
     DARWIN = "darwin"
+    LINUX = "linux"
 
 
 class SupportedArch(Enum):
     AMD_64 = "amd64"
+    ARM_64 = "arm64"
+    ARM = "arm"
 
 
 class AgentBinary:
