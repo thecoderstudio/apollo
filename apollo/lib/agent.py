@@ -42,7 +42,10 @@ class AgentBinary:
         subprocess.run(['go', 'build', '-o', self.path, PACKAGE], env=env)
 
     def delete(self):
-        os.remove(self.path)
+        try:
+            os.remove(self.path)
+        except FileNotFoundError as e:
+            logging.debug(str(e))
 
 
 def create_agent_binary(target_os: SupportedOS, target_arch: SupportedArch):
@@ -50,8 +53,4 @@ def create_agent_binary(target_os: SupportedOS, target_arch: SupportedArch):
     try:
         yield binary
     finally:
-        try:
-            binary.delete()
-        except FileNotFoundError as e:
-            logging.debug(str(e))
-            pass
+        binary.delete()
