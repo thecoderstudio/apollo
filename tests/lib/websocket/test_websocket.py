@@ -137,14 +137,12 @@ async def test_close_app_connection(mocker, websocket_manager,
     app_websocket_mock = mocker.create_autospec(WebSocket)
     connection_id = await manager.connect_app(
         app_websocket_mock,
-        WebSocketObserverInterestType.AGENT_LISTING
     )
 
     if side_effect:
         app_websocket_mock.send_json.side_effect = side_effect
 
     await manager.close_app_connection(
-        WebSocketObserverInterestType.AGENT_LISTING,
         connection_id
     )
 
@@ -156,7 +154,6 @@ async def test_close_app_connection(mocker, websocket_manager,
 
     with pytest.raises(KeyError):
         assert manager.get_app_connection(
-            WebSocketObserverInterestType.AGENT_LISTING,
             connection_id
         )
 
@@ -165,13 +162,10 @@ async def test_close_app_connection(mocker, websocket_manager,
 async def test_connect_app(mocker, websocket_manager, db_session):
     websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
 
-    connection_id = await websocket_manager.connect_app(
-        websocket_mock, WebSocketObserverInterestType.AGENT_LISTING
-    )
+    connection_id = await websocket_manager.connect_app(websocket_mock)
 
     assert (websocket_manager.open_app_connections[
-        WebSocketObserverInterestType.AGENT_LISTING
-    ][connection_id] is websocket_mock)
+            connection_id] is websocket_mock)
 
     websocket_mock.accept.assert_awaited_once()
 

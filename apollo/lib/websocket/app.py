@@ -10,7 +10,7 @@ from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 class AppConnectionManager(ConnectionManager):
     interested_connections: Dict[WebSocketObserverInterestType,
-                                 List[uuid.UUID]]
+                                 List[uuid.UUID]] = {}
 
     @staticmethod
     async def _listen(connection: WebSocket):
@@ -25,7 +25,8 @@ class AppConnectionManager(ConnectionManager):
         observer_interest_type: WebSocketObserverInterestType,
         connection_id: uuid.UUID
     ):
-        connections = self.interested_connections.get(observer_interest_type, [])
+        connections = self.interested_connections.get(observer_interest_type,
+                                                      [])
         connections.append(connection_id)
         self.interested_connections[observer_interest_type] = connections
 
