@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import uuid
@@ -49,4 +50,8 @@ def create_agent_binary(target_os: SupportedOS, target_arch: SupportedArch):
     try:
         yield binary
     finally:
-        binary.delete()
+        try:
+            binary.delete()
+        except FileNotFoundError as e:
+            logging.debug(str(e))
+            pass
