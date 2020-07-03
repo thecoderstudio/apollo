@@ -11,10 +11,9 @@ from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 
 class WebSocketManager(metaclass=Singleton):
-    def __init__(self):
-        self.open_agent_connections: Dict[uuid.UUID, WebSocket] = {}
-        self.open_user_connections: Dict[uuid.UUID, WebSocket] = {}
-        self.open_app_connections: Dict[uuid.UUID, WebSocket] = {}
+    open_agent_connections: Dict[uuid.UUID, WebSocket] = {}
+    open_user_connections: Dict[uuid.UUID, WebSocket] = {}
+    open_app_connections: Dict[uuid.UUID, WebSocket] = {}
 
     @notify_websockets(
         observer_interest_type=WebSocketObserverInterestType.AGENT_LISTING)
