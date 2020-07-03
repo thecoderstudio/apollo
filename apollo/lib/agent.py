@@ -10,6 +10,7 @@ class SupportedOS(Enum):
     DARWIN = 'darwin'
     LINUX = 'linux'
     FREEBSD = 'freebsd'
+    OPENBSD = 'openbsd'
 
 
 class SupportedArch(Enum):
