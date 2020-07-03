@@ -102,7 +102,12 @@ async def call_http_method_decorated_mock(http_method, router_acl, permission,
     def endpoint_mock():
         pass
 
+    @route_decorator('/test_async', permission=permission)
+    async def async_endpoint_mock():
+        pass
+
     await endpoint_mock(request=request_mock)
+    await async_endpoint_mock(request=request_mock)
 
 
 @pytest.mark.parametrize("permission,authenticated,role,permitted",
