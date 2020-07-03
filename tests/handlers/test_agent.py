@@ -8,24 +8,30 @@ from starlette.websockets import WebSocketDisconnect
 from apollo.lib.exceptions import HTTPException
 from apollo.lib.schemas.message import (Command, CommandSchema,
                                         ShellIOSchema)
+from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
 
 
 def test_post_agent_success(test_client, session_cookie):
-    response = test_client.post(
-        '/agent',
-        json={'name': 'test'},
-        cookies=session_cookie
-    )
-    agent = response.json()
-    oauth_client = agent['oauth_client']
+    with patch('apollo.lib.websocket.app.AppConnectionManager.'
+               + 'send_message_to_connections') as patched_function:
+        response = test_client.post(
+            '/agent',
+            json={'name': 'test'},
+            cookies=session_cookie
+        )
+        agent = response.json()
+        oauth_client = agent['oauth_client']
 
-    assert response.status_code == 201
-    assert agent['id'] is not None
-    assert oauth_client['agent_id'] is not None
-    assert oauth_client['secret'] is not None
-    assert oauth_client['type'] == 'confidential'
+        assert response.status_code == 201
+        assert agent['id'] is not None
+        assert oauth_client['agent_id'] is not None
+        assert oauth_client['secret'] is not None
+        assert oauth_client['type'] == 'confidential'
+        patched_function.assert_called_with(
+            WebSocketObserverInterestType.AGENT_LISTING
+        )
 
 
 def test_post_agent_name_exists(test_client, session_cookie):

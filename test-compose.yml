@@ -20,7 +20,7 @@ services:
     command: >
       -c "../util/wait-for-it.sh db-test:5432 &&
       alembic -c test.ini upgrade heads &&
-      coverage run --source apollo -m pytest -s tests/lib/websocket/test_app.py &&
+      coverage run --source apollo -m pytest &&
       coverage report -m &&
       coverage xml"
     networks:

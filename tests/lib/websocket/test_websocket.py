@@ -1,4 +1,5 @@
 import uuid
+from unittest.mock import patch
 
 import pytest
 from fastapi import WebSocket
@@ -11,15 +12,19 @@ from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 @pytest.mark.asyncio
 async def test_connect_agent(mocker, websocket_manager):
-    websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
-    mock_agent_id = uuid.uuid4()
+    with patch('apollo.lib.websocket.app.AppConnectionManager.'
+               + 'send_message_to_connections') as patched_function:
+        websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
+        mock_agent_id = uuid.uuid4()
 
-    await websocket_manager.connect_agent(mock_agent_id, websocket_mock)
+        await websocket_manager.connect_agent(mock_agent_id, websocket_mock)
 
-    assert (websocket_manager.open_agent_connections[mock_agent_id] is
-            websocket_mock)
-    websocket_mock.accept.assert_awaited_once()
-
+        assert (websocket_manager.open_agent_connections[mock_agent_id] is
+                websocket_mock)
+        websocket_mock.accept.assert_awaited_once()
+        patched_function.assert_called_with(
+            WebSocketObserverInterestType.AGENT_LISTING
+        )
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("side_effect", [
@@ -37,17 +42,21 @@ async def test_close_agent_connection(mocker, websocket_manager,
 
     if side_effect:
         agent_websocket_mock.send_json.side_effect = side_effect
+    with patch('apollo.lib.websocket.app.AppConnectionManager.'
+               + 'send_message_to_connections') as patched_function:
+        await manager.close_agent_connection(mock_agent_id)
 
-    await manager.close_agent_connection(mock_agent_id)
+        agent_websocket_mock.send_json.assert_awaited_once_with(
+            "Closing connection")
 
-    agent_websocket_mock.send_json.assert_awaited_once_with(
-        "Closing connection")
+        if not side_effect:
+            agent_websocket_mock.close.assert_awaited_once()
+            patched_function.assert_called_with(
+                WebSocketObserverInterestType.AGENT_LISTING
+            )
 
-    if not side_effect:
-        agent_websocket_mock.close.assert_awaited_once()
-
-    with pytest.raises(KeyError):
-        assert manager.get_agent_connection(mock_agent_id)
+        with pytest.raises(KeyError):
+            assert manager.get_agent_connection(mock_agent_id)
 
 
 @pytest.mark.asyncio
