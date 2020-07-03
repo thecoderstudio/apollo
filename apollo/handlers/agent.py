@@ -42,7 +42,7 @@ def list_agents(session: Session = Depends(get_session)):
 
 @router.get('/agent/download', status_code=200, permission='agent.download')
 async def download_agent(binary: AgentBinary = Depends(create_agent_binary)):
-    return FileResponse(binary.path)
+    return FileResponse(binary.path, filename='apollo-agent')
 
 
 @router.websocket("/agent/{agent_id}/shell", permission='agent.shell')

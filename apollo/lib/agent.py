@@ -42,11 +42,7 @@ class AgentBinary:
         os.remove(self.path)
 
 
-# Prevent circular import
-from apollo.lib.schemas.agent import AgentBinarySchema  # noqa
-
-
-def create_agent_binary(data: AgentBinarySchema):
-    binary = AgentBinary(**data.dict())
+def create_agent_binary(target_os: SupportedOS, target_arch: SupportedArch):
+    binary = AgentBinary(target_os, target_arch)
     yield binary
     binary.delete()

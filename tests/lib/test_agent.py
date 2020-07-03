@@ -2,16 +2,12 @@ import os
 
 from apollo.lib.agent import (AgentBinary, SupportedArch, SupportedOS,
                               create_agent_binary)
-from apollo.lib.schemas.agent import AgentBinarySchema
 
 
 def test_create_agent_binary():
     path: str
 
-    for binary in create_agent_binary(AgentBinarySchema(
-        target_os='linux',
-        target_arch='amd64'
-    )):
+    for binary in create_agent_binary(SupportedOS.LINUX, SupportedArch.AMD_64):
         assert binary.target_os == SupportedOS.LINUX
         assert binary.target_arch == SupportedArch.AMD_64
         path = binary.path
