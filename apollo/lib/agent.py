@@ -44,5 +44,7 @@ class AgentBinary:
 
 def create_agent_binary(target_os: SupportedOS, target_arch: SupportedArch):
     binary = AgentBinary(target_os, target_arch)
-    yield binary
-    binary.delete()
+    try:
+        yield binary
+    finally:
+        binary.delete()
