@@ -9,6 +9,7 @@ PACKAGE = 'github.com/thecoderstudio/apollo-agent'
 class SupportedOS(Enum):
     DARWIN = 'darwin'
     LINUX = 'linux'
+    FREEBSD = 'freebsd'
 
 
 class SupportedArch(Enum):
