@@ -4,6 +4,8 @@ import subprocess
 import uuid
 from enum import Enum
 
+from apollo.lib.settings import settings
+
 PACKAGE = 'github.com/thecoderstudio/apollo-agent'
 
 
@@ -22,6 +24,7 @@ class SupportedArch(Enum):
 
 class AgentBinary:
     def __init__(self, target_os: SupportedOS, target_arch: SupportedArch):
+        self.go = settings['agent']['go_path']
         self.path = f"/tmp/{uuid.uuid4()}"
         self.target_os = target_os
         self.target_arch = target_arch
@@ -31,15 +34,14 @@ class AgentBinary:
 
         self._compile()
 
-    @staticmethod
-    def _download_source():
-        subprocess.run(['go', 'get', '-d', '-u', PACKAGE])
+    def _download_source(self):
+        subprocess.run([self.go, 'get', '-d', '-u', PACKAGE])
 
     def _compile(self):
         env = os.environ.copy()
         env['GOOS'] = self.target_os.value
         env['GOARCH'] = self.target_arch.value
-        subprocess.run(['go', 'build', '-o', self.path, PACKAGE], env=env)
+        subprocess.run([self.go, 'build', '-o', self.path, PACKAGE], env=env)
 
     def delete(self):
         try:

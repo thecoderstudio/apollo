@@ -5,6 +5,10 @@ password =
 [session]
 secret =
 
+[agent]
+# Location in Docker container
+go_path = /usr/local/go/bin/go
+
 [alembic]
 script_location = alembic
 sqlalchemy.url = postgres://<username>:<password>@<host>:5432/apollo
