@@ -24,6 +24,7 @@ class InterestTypeFunctionHandler:
     def _list_all_agents(session):
         from apollo.models.agent import list_all_agents
         from apollo.lib.schemas.agent import BaseAgentSchema
+
         return [json.loads(BaseAgentSchema.from_orm(agent).json()) for
                 agent in list_all_agents(session)]
 
