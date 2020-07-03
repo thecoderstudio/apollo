@@ -18,7 +18,7 @@ class UserConnectionManager(ConnectionManager):
 
         connection_id = await self.websocket_manager.connect_user(websocket)
         await self._inform_agent_of_new_connection(
-            connection_id, target_agent_id, websocket)
+            connection_id, target_agent_id)
         await self._listen_and_forward(connection_id, target_agent_id,
                                        websocket)
         await self.close_connection(connection_id)
@@ -35,8 +35,7 @@ class UserConnectionManager(ConnectionManager):
         return True
 
     async def _inform_agent_of_new_connection(
-        self, connection_id: uuid.UUID, target_agent_id: uuid.UUID,
-        connection: WebSocket
+        self, connection_id: uuid.UUID, target_agent_id: uuid.UUID
     ):
         await self._message_agent(target_agent_id, CommandSchema(
             connection_id=connection_id,

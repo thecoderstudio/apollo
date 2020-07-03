@@ -14,8 +14,7 @@ class WebSocketManager(metaclass=Singleton):
     def __init__(self):
         self.open_agent_connections: Dict[uuid.UUID, WebSocket] = {}
         self.open_user_connections: Dict[uuid.UUID, WebSocket] = {}
-        self.open_app_connections: Dict[
-            WebSocketObserverInterestType, Dict[uuid.UUID, WebSocket]] = {}
+        self.open_app_connections: Dict[uuid.UUID, WebSocket] = {}
 
     @notify_websockets(
         observer_interest_type=WebSocketObserverInterestType.AGENT_LISTING)
@@ -59,34 +58,19 @@ class WebSocketManager(metaclass=Singleton):
     def get_user_connection(self, connection_id: uuid.UUID):
         return self.open_user_connections[connection_id]
 
-    async def connect_app(
-        self, websocket: WebSocket,
-        observer_interest_type: WebSocketObserverInterestType
-    ):
+    async def connect_app(self, websocket: WebSocket):
         await websocket.accept()
         connection_id = uuid.uuid4()
-        current_connections_for_type = self.open_app_connections.get(
-            observer_interest_type, {})
-        current_connections_for_type[connection_id] = websocket
-        self.open_app_connections[observer_interest_type] = (
-            current_connections_for_type
-        )
-
+        self.open_app_connections[connection_id] = websocket
         return connection_id
 
-    def get_app_connection(
-        self, observer_interest_type: WebSocketObserverInterestType,
-        connection_id: uuid.UUID
-    ):
-        return self.open_app_connections[observer_interest_type][connection_id]
+    def get_app_connection(self, connection_id: uuid.UUID):
+        return self.open_app_connections[connection_id]
 
-    async def close_app_connection(
-        self, observer_interest_type: WebSocketObserverInterestType,
-        connection_id: uuid.UUID
-    ):
-        connection = self.get_app_connection(observer_interest_type, connection_id)
+    async def close_app_connection(self, connection_id: uuid.UUID):
+        connection = self.get_app_connection(connection_id)
         await self._close_connection(connection)
-        self.open_app_connections[observer_interest_type].pop(connection_id)
+        self.open_app_connections.pop(connection_id)
 
     async def message_agent(
         self,
