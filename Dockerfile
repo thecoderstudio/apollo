@@ -1,6 +1,9 @@
 FROM python:3.8
 
+ARG go_version=1.14.4
+
 ENV PATH="${PATH}:/usr/local/go/bin"
+ENV GO_VERSION=$go_version
 
 RUN addgroup apollo
 RUN useradd -g apollo apollo
@@ -11,9 +14,9 @@ WORKDIR /home/apollo
 RUN pip install -e apollo[dev,tests]
 
 # Install Go to allow Apollo to compile the agent
-RUN wget https://golang.org/dl/go1.14.4.linux-amd64.tar.gz
-RUN tar -C /usr/local -xzf go1.14.4.linux-amd64.tar.gz
-RUN rm go1.14.4.linux-amd64.tar.gz
+RUN wget https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz
+RUN tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
+RUN rm go${GO_VERSION}.linux-amd64.tar.gz
 
 # Download wait-for-it to allow waiting for dependency containers
 RUN mkdir util
