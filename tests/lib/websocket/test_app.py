@@ -80,18 +80,17 @@ async def test_close_connection(mocker, app_connection_manager,
 async def test_close_connect_unexpected_runtime_error(
     mocker, app_connection_manager, closed_connection
 ):
-    manager = app_connection_manager
-
     websocket_mock = mocker.create_autospec(WebSocket)
-    connection_id = await manager.websocket_manager.connect_app(
+    connection_id = await app_connection_manager.websocket_manager.connect_app(
         websocket_mock)
 
     websocket_mock.send_json.side_effect = RuntimeError('Test unexpected')
 
     with pytest.raises(RuntimeError, match='Test unexpected'):
-        await manager.close_connection(connection_id)
+        await app_connection_manager.close_connection(connection_id)
 
-    assert manager.get_connection(connection_id) is websocket_mock
+    assert app_connection_manager.get_connection(
+        connection_id) is websocket_mock
 
 
 @pytest.mark.asyncio
@@ -103,6 +102,17 @@ async def test_get_connection(mocker, app_connection_manager):
 
     assert (app_connection_manager.get_connection(connection_id) is
             websocket_mock)
+
+
+async def test_remove_connection_value_error(app_connection_manager):
+    app_connection_manager.interested_connections[
+        WebSocketObserverInterestType.AGENT_LISTING
+    ] = [uuid.uuid4()]
+
+    try:
+        app_connection_manager._close_and_remove_connection(uuid.uuid4())
+    except ValueError:
+        pytest.fail("Method did raise ValueError")
 
 
 def test_get_connection_not_found(app_connection_manager):
