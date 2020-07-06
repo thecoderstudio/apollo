@@ -32,11 +32,8 @@ async def test_send_message_to_connections(mocker, app_connection_manager,
     interest_type = WebSocketObserverInterestType.AGENT_LISTING
 
     app_websocket_mock = mocker.create_autospec(WebSocket)
-    app_connection_manager.websocket_manager.open_app_connections = {
-        interest_type: {
-            uuid.uuid4(): app_websocket_mock
-        }
-    }
+    app_connection_manager._add_interested_connection(interest_type,
+                                                      uuid.uuid4())
 
     await app_connection_manager.send_message_to_connections(interest_type)
 
@@ -112,8 +109,8 @@ async def test_remove_connection_value_error(app_connection_manager):
         try:
             await app_connection_manager._close_and_remove_connection(
                 uuid.uuid4())
-        except ValueError:
-            pytest.fail("Method did raise ValueError")
+        except KeyError:
+            pytest.fail("Method did raise KeyError")
 
 
 def test_get_connection_not_found(app_connection_manager):

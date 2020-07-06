@@ -35,8 +35,16 @@ class AppConnectionManager(ConnectionManager):
         for connection_list in self.interested_connections.values():
             try:
                 connection_list.remove(connection_id)
-            except ValueError:
+            except KeyError:
                 pass
+
+    async def _send_message(
+        self, websocket_id: uuid.UUID,
+        observer_interest_type: WebSocketObserverInterestType
+    ):
+        await self.get_connection(websocket_id).send_text(json.dumps(
+            observer_interest_type.run_corresponding_function(),
+            default=pydantic_encoder))
 
     async def connect_and_send(
         self, websocket: WebSocket,
@@ -45,7 +53,7 @@ class AppConnectionManager(ConnectionManager):
         connection_id = await self.websocket_manager.connect_app(
             websocket)
         self._add_interested_connection(observer_interest_type, connection_id)
-        await websocket.send_text(json.dumps(data, default=pydantic_encoder))
+        await self._send_message(connection_id, observer_interest_type)
         await self._listen(websocket)
         await self._close_and_remove_connection(connection_id)
 
@@ -53,9 +61,8 @@ class AppConnectionManager(ConnectionManager):
         self, observer_interest_type: WebSocketObserverInterestType
     ):
         for websocket_id in (self.interested_connections.get(
-                observer_interest_type, {}).values()):
-            self.get_connection(websocket_id).send_text(
-                observer_interest_type.run_corresponding_function())
+                observer_interest_type, [])):
+            await self._send_message(websocket_id, observer_interest_type)
 
     def get_connection(self, connection_id: uuid.UUID):
         return self.websocket_manager.get_app_connection(connection_id)
