@@ -2,6 +2,7 @@ import uuid
 
 import pytest
 from fastapi import WebSocket
+from unittest.mock import patch
 from starlette.websockets import WebSocketDisconnect
 
 from apollo.lib.websocket.interest_type import (
@@ -49,6 +50,7 @@ async def test_send_message_to_connections(mocker, app_connection_manager,
         )
     )
 
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("closed_connection", [True, False])
 async def test_close_connection(mocker, app_connection_manager,
@@ -78,7 +80,7 @@ async def test_close_connection(mocker, app_connection_manager,
 @pytest.mark.asyncio
 @pytest.mark.parametrize("closed_connection", [True, False])
 async def test_close_connect_unexpected_runtime_error(
-    mocker, app_connection_manager, closed_connection
+        mocker, app_connection_manager, closed_connection
 ):
     websocket_mock = mocker.create_autospec(WebSocket)
     connection_id = await app_connection_manager.websocket_manager.connect_app(
@@ -104,15 +106,20 @@ async def test_get_connection(mocker, app_connection_manager):
             websocket_mock)
 
 
+@pytest.mark.asyncio
 async def test_remove_connection_value_error(app_connection_manager):
-    app_connection_manager.interested_connections[
-        WebSocketObserverInterestType.AGENT_LISTING
-    ] = [uuid.uuid4()]
+    with patch(
+        'apollo.lib.websocket.app.AppConnectionManager.close_connection'
+    ):
+        app_connection_manager.interested_connections[
+            WebSocketObserverInterestType.AGENT_LISTING
+        ] = [uuid.uuid4()]
 
-    try:
-        app_connection_manager._close_and_remove_connection(uuid.uuid4())
-    except ValueError:
-        pytest.fail("Method did raise ValueError")
+        try:
+            await app_connection_manager._close_and_remove_connection(
+                uuid.uuid4())
+        except ValueError:
+            pytest.fail("Method did raise ValueError")
 
 
 def test_get_connection_not_found(app_connection_manager):
