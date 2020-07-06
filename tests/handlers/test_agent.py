@@ -46,6 +46,15 @@ def test_post_agent_unauthenticated(test_client, db_session):
     assert response.json()['detail'] == "Permission denied."
 
 
+def test_download_agent(test_client):
+    response = test_client.get(
+        '/agent/download?target_os=darwin&target_arch=amd64')
+    assert response.status_code == 200
+    assert response.headers['Content-Disposition'] == (
+        'attachment; filename="apollo-agent"')
+    assert response.text is not None
+
+
 @pytest.mark.asyncio
 async def test_shell(mocker, test_client, session_cookie, websocket_manager):
     connection_id = uuid.uuid4()
