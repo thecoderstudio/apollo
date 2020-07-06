@@ -85,16 +85,15 @@ async def test_secure_router_http_methods_oauth_permissions(
     })
 
     if permitted:
-        await call_async_http_method_decorated_mock(
-            http_method, router_acl, permission, request_mock)
+        await call_http_method_decorated_mock(http_method, router_acl,
+                                              permission, request_mock)
     else:
         with raisesHTTPForbidden:
-            await call_async_http_method_decorated_mock(
-                http_method, router_acl, permission, request_mock)
+            await call_http_method_decorated_mock(http_method, router_acl,
+                                                  permission, request_mock)
 
-
-def call_http_method_decorated_mock(http_method, router_acl, permission,
-                                    request_mock):
+async def call_http_method_decorated_mock(http_method, router_acl, permission,
+                                          request_mock):
     router = SecureRouter(router_acl)
     route_decorator = getattr(router, http_method)
 
@@ -102,19 +101,12 @@ def call_http_method_decorated_mock(http_method, router_acl, permission,
     def endpoint_mock():
         pass
 
-    endpoint_mock(request=request_mock)
-
-
-async def call_async_http_method_decorated_mock(http_method, router_acl,
-                                                permission, request_mock):
-    router = SecureRouter(router_acl)
-    route_decorator = getattr(router, http_method)
-
-    @route_decorator('/test', permission=permission)
-    async def endpoint_mock():
+    @route_decorator('/test_async', permission=permission)
+    async def async_endpoint_mock():
         pass
 
     await endpoint_mock(request=request_mock)
+    await async_endpoint_mock(request=request_mock)
 
 
 @pytest.mark.parametrize("permission,authenticated,role,permitted",
@@ -129,12 +121,12 @@ async def test_secure_router_http_methods_cookie_permissions(
         db_session, user, authenticated, session_cookie, role)
 
     if permitted:
-        await call_async_http_method_decorated_mock(
-            http_method, router_acl, permission, request_mock)
+        await call_http_method_decorated_mock(http_method, router_acl,
+                                              permission, request_mock)
     else:
         with raisesHTTPForbidden:
-            await call_async_http_method_decorated_mock(
-                http_method, router_acl, permission, request_mock)
+            await call_http_method_decorated_mock(http_method, router_acl,
+                                                  permission, request_mock)
 
 
 def generate_http_test_parameters(db_session, user, authenticated,
@@ -155,7 +147,7 @@ def generate_http_test_parameters(db_session, user, authenticated,
     ]
     connection_mock = create_http_connection_mock(cookies=session_cookie)
 
-    return (router_acl, connection_mock)
+    return router_acl, connection_mock
 
 
 @pytest.mark.parametrize("permission,auth_header,permitted",

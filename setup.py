@@ -7,6 +7,7 @@ with open(os.path.join(here, 'VERSION')) as f:
     version = f.read().strip()
 
 requires = [
+    'aiofiles',
     'bcrypt',
     'click',
     'fastapi',
