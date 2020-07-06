@@ -92,6 +92,7 @@ async def test_secure_router_http_methods_oauth_permissions(
             await call_http_method_decorated_mock(http_method, router_acl,
                                                   permission, request_mock)
 
+
 async def call_http_method_decorated_mock(http_method, router_acl, permission,
                                           request_mock):
     router = SecureRouter(router_acl)

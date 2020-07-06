@@ -64,5 +64,3 @@ venv.bak/
 !*.ini.dist
 !settings.ini
 !test.ini
-
-eslint.json

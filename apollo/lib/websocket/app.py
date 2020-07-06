@@ -1,5 +1,5 @@
 import uuid
-from typing import Dict, List
+from typing import Dict, Set
 
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
@@ -10,7 +10,7 @@ from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 class AppConnectionManager(ConnectionManager):
     interested_connections: Dict[WebSocketObserverInterestType,
-                                 List[uuid.UUID]] = {}
+                                 Set[uuid.UUID]] = {}
 
     @staticmethod
     async def _listen(connection: WebSocket):
@@ -45,19 +45,16 @@ class AppConnectionManager(ConnectionManager):
         connection_id = await self.websocket_manager.connect_app(
             websocket)
         self._add_interested_connection(observer_interest_type, connection_id)
-        await websocket.send_json(
-            observer_interest_type.run_corresponding_function())
+        await websocket.send_text(json.dumps(data, default=pydantic_encoder))
         await self._listen(websocket)
         await self._close_and_remove_connection(connection_id)
 
     async def send_message_to_connections(
         self, observer_interest_type: WebSocketObserverInterestType
     ):
-        for websocket in (
-            self.websocket_manager.open_app_connections.get(
-                observer_interest_type, {}).values()
-        ):
-            await websocket.send_json(
+        for websocket_id in (self.interested_connections.get(
+                observer_interest_type, {}).values()):
+            self.get_connection(websocket_id).send_text(
                 observer_interest_type.run_corresponding_function())
 
     def get_connection(self, connection_id: uuid.UUID):
@@ -65,4 +62,3 @@ class AppConnectionManager(ConnectionManager):
 
     async def close_connection(self, connection_id: uuid.UUID):
         await self.websocket_manager.close_app_connection(connection_id)
-

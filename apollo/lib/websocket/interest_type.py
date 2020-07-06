@@ -25,7 +25,7 @@ class InterestTypeFunctionHandler:
         from apollo.models.agent import list_all_agents
         from apollo.lib.schemas.agent import BaseAgentSchema
 
-        return [json.loads(BaseAgentSchema.from_orm(agent).json()) for
+        return [BaseAgentSchema.from_orm(agent).dict() for
                 agent in list_all_agents(session)]
 
     def run_corresponding_function(

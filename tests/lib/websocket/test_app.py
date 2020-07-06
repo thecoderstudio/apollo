@@ -2,8 +2,8 @@ import uuid
 
 import pytest
 from fastapi import WebSocket
-from unittest.mock import patch
 from starlette.websockets import WebSocketDisconnect
+from unittest.mock import patch
 
 from apollo.lib.websocket.interest_type import (
     WebSocketObserverInterestType,
@@ -22,9 +22,7 @@ async def test_connect_and_send(mocker, app_connection_manager, db_session):
     )
 
     app_websocket_mock.receive_text.assert_called_once()
-    app_websocket_mock.send_json.assert_any_call(
-        []
-    )
+    app_websocket_mock.send_json.assert_any_call([])
     app_websocket_mock.close.assert_called_once()
 
 
@@ -40,14 +38,10 @@ async def test_send_message_to_connections(mocker, app_connection_manager,
         }
     }
 
-    await app_connection_manager.send_message_to_connections(
-        interest_type
-    )
+    await app_connection_manager.send_message_to_connections(interest_type)
 
     app_websocket_mock.send_json.assert_called_with(
-        InterestTypeFunctionHandler().run_corresponding_function(
-            interest_type
-        )
+        InterestTypeFunctionHandler().run_corresponding_function(interest_type)
     )
 
 

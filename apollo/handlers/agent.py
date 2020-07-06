@@ -5,8 +5,8 @@ from fastapi import Depends, WebSocket
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from apollo.lib.decorators import notify_websockets
 from apollo.lib.agent import AgentBinary, create_agent_binary
+from apollo.lib.decorators import notify_websockets
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.agent import (
     AgentSchema, BaseAgentSchema, CreateAgentSchema)
