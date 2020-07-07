@@ -21,10 +21,11 @@ async def test_connect_agent(mocker, websocket_manager):
         assert (websocket_manager.open_agent_connections[mock_agent_id] is
                 websocket_mock)
 
-        websocket_mock.accept.assert_awaited_once()
         patched_function.assert_called_with(
             WebSocketObserverInterestType.AGENT_LISTING
         )
+
+    websocket_mock.accept.assert_awaited_once()
 
 
 @pytest.mark.asyncio
