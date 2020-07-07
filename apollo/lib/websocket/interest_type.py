@@ -13,11 +13,6 @@ class WebSocketObserverInterestType(enum.Enum):
 
 
 class InterestTypeFunctionHandler:
-    def __init__(self):
-        self.type_function_mapping = {
-            WebSocketObserverInterestType.AGENT_LISTING: self._list_all_agents
-        }
-
     @staticmethod
     @with_db_session
     def _list_all_agents(session):
@@ -26,6 +21,10 @@ class InterestTypeFunctionHandler:
 
         return [BaseAgentSchema.from_orm(agent).dict() for
                 agent in list_all_agents(session)]
+
+    type_function_mapping = {
+        WebSocketObserverInterestType.AGENT_LISTING: _list_all_agents
+    }
 
     def run_corresponding_function(
         self, observer_interest_type: WebSocketObserverInterestType

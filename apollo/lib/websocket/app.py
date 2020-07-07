@@ -1,5 +1,5 @@
-import uuid
 import json
+import uuid
 from typing import Dict, Set
 
 from fastapi import WebSocket
@@ -35,11 +35,8 @@ class AppConnectionManager(ConnectionManager, metaclass=Singleton):
 
     async def _close_and_remove_connection(self, connection_id: uuid.UUID):
         await self.close_connection(connection_id)
-        for connection_list in self.interested_connections.values():
-            try:
-                connection_list.remove(connection_id)
-            except ValueError:
-                pass
+        for connection_set in self.interested_connections.values():
+            connection_set.discard(connection_id)
 
     async def _send_message(
         self, websocket_id: uuid.UUID,
@@ -53,8 +50,7 @@ class AppConnectionManager(ConnectionManager, metaclass=Singleton):
         self, websocket: WebSocket,
         observer_interest_type: WebSocketObserverInterestType
     ):
-        connection_id = await self.websocket_manager.connect_app(
-            websocket)
+        connection_id = await self.websocket_manager.connect_app(websocket)
         self._add_interested_connection(observer_interest_type, connection_id)
         await self._send_message(connection_id, observer_interest_type)
         await self._listen(websocket)

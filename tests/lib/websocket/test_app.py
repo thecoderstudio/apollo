@@ -107,19 +107,14 @@ async def test_get_connection(mocker, app_connection_manager):
 
 
 @pytest.mark.asyncio
-async def test_remove_connection_value_error(app_connection_manager):
+async def test_remove_non_existent_connection(app_connection_manager):
     with patch(
         'apollo.lib.websocket.app.AppConnectionManager.close_connection'
     ):
-        app_connection_manager.interested_connections[
-            WebSocketObserverInterestType.AGENT_LISTING
-        ] = [uuid.uuid4()]
+        app_connection_manager._add_interested_connection(
+            WebSocketObserverInterestType.AGENT_LISTING, uuid.uuid4())
 
-        try:
-            await app_connection_manager._close_and_remove_connection(
-                uuid.uuid4())
-        except ValueError:
-            pytest.fail("Method did raise ValueError")
+        await app_connection_manager._close_and_remove_connection(uuid.uuid4())
 
 
 def test_get_connection_not_found(app_connection_manager):
