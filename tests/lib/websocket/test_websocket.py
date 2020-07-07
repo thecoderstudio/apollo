@@ -1,4 +1,5 @@
 import uuid
+from unittest.mock import patch
 
 import pytest
 from fastapi import WebSocket
@@ -6,6 +7,7 @@ from websockets.exceptions import ConnectionClosed
 
 from apollo.lib.schemas.message import ShellIOSchema
 from apollo.lib.websocket import ConnectionManager
+from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 
 @pytest.mark.asyncio
@@ -13,10 +15,16 @@ async def test_connect_agent(mocker, websocket_manager):
     websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
     mock_agent_id = uuid.uuid4()
 
-    await websocket_manager.connect_agent(mock_agent_id, websocket_mock)
+    with patch('apollo.lib.websocket.app.AppConnectionManager.'
+               + 'send_message_to_connections') as patched_function:
+        await websocket_manager.connect_agent(mock_agent_id, websocket_mock)
+        assert (websocket_manager.open_agent_connections[mock_agent_id] is
+                websocket_mock)
 
-    assert (websocket_manager.open_agent_connections[mock_agent_id] is
-            websocket_mock)
+        patched_function.assert_called_with(
+            WebSocketObserverInterestType.AGENT_LISTING
+        )
+
     websocket_mock.accept.assert_awaited_once()
 
 
@@ -37,16 +45,21 @@ async def test_close_agent_connection(mocker, websocket_manager,
     if side_effect:
         agent_websocket_mock.send_json.side_effect = side_effect
 
-    await manager.close_agent_connection(mock_agent_id)
+    with patch('apollo.lib.websocket.app.AppConnectionManager.'
+               + 'send_message_to_connections') as patched_function:
+        await manager.close_agent_connection(mock_agent_id)
 
-    agent_websocket_mock.send_json.assert_awaited_once_with(
-        "Closing connection")
+        agent_websocket_mock.send_json.assert_awaited_once_with(
+            "Closing connection")
 
-    if not side_effect:
-        agent_websocket_mock.close.assert_awaited_once()
+        if not side_effect:
+            agent_websocket_mock.close.assert_awaited_once()
+            patched_function.assert_called_with(
+                WebSocketObserverInterestType.AGENT_LISTING
+            )
 
-    with pytest.raises(KeyError):
-        assert manager.get_agent_connection(mock_agent_id)
+        with pytest.raises(KeyError):
+            assert manager.get_agent_connection(mock_agent_id)
 
 
 @pytest.mark.asyncio
@@ -115,7 +128,53 @@ async def test_close_user_connection_unexpected_runtime_error(
 
 
 @pytest.mark.asyncio
-async def test_connect_user(mocker, websocket_manager):
+@pytest.mark.parametrize("side_effect", [
+    None,
+    RuntimeError('Cannot call "send" once a close message has been sent'),
+    ConnectionClosed(code=1000, reason="connection closed")
+])
+async def test_close_app_connection(mocker, websocket_manager,
+                                    side_effect, db_session):
+    manager = websocket_manager
+
+    app_websocket_mock = mocker.create_autospec(WebSocket)
+    connection_id = await manager.connect_app(
+        app_websocket_mock,
+    )
+
+    if side_effect:
+        app_websocket_mock.send_json.side_effect = side_effect
+
+    await manager.close_app_connection(
+        connection_id
+    )
+
+    app_websocket_mock.send_json.assert_awaited_once_with(
+        "Closing connection")
+
+    if not side_effect:
+        app_websocket_mock.close.assert_awaited_once()
+
+    with pytest.raises(KeyError):
+        assert manager.get_app_connection(
+            connection_id
+        )
+
+
+@pytest.mark.asyncio
+async def test_connect_app(mocker, websocket_manager, db_session):
+    websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
+
+    connection_id = await websocket_manager.connect_app(websocket_mock)
+
+    assert (websocket_manager.open_app_connections[
+            connection_id] is websocket_mock)
+
+    websocket_mock.accept.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_connect_user(mocker, websocket_manager, db_session):
     websocket_mock = mocker.patch('fastapi.WebSocket', autospec=True)
 
     connection_id = await websocket_manager.connect_user(websocket_mock)

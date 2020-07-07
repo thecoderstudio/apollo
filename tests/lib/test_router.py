@@ -148,7 +148,7 @@ def generate_http_test_parameters(db_session, user, authenticated,
     ]
     connection_mock = create_http_connection_mock(cookies=session_cookie)
 
-    return (router_acl, connection_mock)
+    return router_acl, connection_mock
 
 
 @pytest.mark.parametrize("permission,auth_header,permitted",

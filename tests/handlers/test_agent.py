@@ -8,24 +8,30 @@ from starlette.websockets import WebSocketDisconnect
 from apollo.lib.exceptions import HTTPException
 from apollo.lib.schemas.message import (Command, CommandSchema,
                                         ShellIOSchema)
+from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
 
 
 def test_post_agent_success(test_client, session_cookie):
-    response = test_client.post(
-        '/agent',
-        json={'name': 'test'},
-        cookies=session_cookie
-    )
-    agent = response.json()
-    oauth_client = agent['oauth_client']
+    with patch('apollo.lib.websocket.app.AppConnectionManager.'
+               + 'send_message_to_connections') as patched_function:
+        response = test_client.post(
+            '/agent',
+            json={'name': 'test'},
+            cookies=session_cookie
+        )
+        agent = response.json()
+        oauth_client = agent['oauth_client']
 
-    assert response.status_code == 201
-    assert agent['id'] is not None
-    assert oauth_client['agent_id'] is not None
-    assert oauth_client['secret'] is not None
-    assert oauth_client['type'] == 'confidential'
+        assert response.status_code == 201
+        assert agent['id'] is not None
+        assert oauth_client['agent_id'] is not None
+        assert oauth_client['secret'] is not None
+        assert oauth_client['type'] == 'confidential'
+        patched_function.assert_called_with(
+            WebSocketObserverInterestType.AGENT_LISTING
+        )
 
 
 def test_post_agent_name_exists(test_client, session_cookie):
@@ -93,6 +99,28 @@ def test_shell_unauthenticated(test_client):
         test_client.websocket_connect(f"/agent/{uuid.uuid4()}/shell")
 
 
+@pytest.mark.asyncio
+async def test_websocket_list_agent_success(db_session, test_client,
+                                            session_cookie):
+    agent_id_1, agent_id_2 = add_multiple_agents(db_session)
+    with test_client.websocket_connect(
+            '/agent', cookies=session_cookie) as websocket:
+        assert_list_agent_response_data(
+            websocket.receive_json(), agent_id_1, agent_id_2)
+
+
+def test_list_agent_unauthenticated(test_client):
+    response = test_client.get('/agent')
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
+
+
+def test_websocket_list_agent_unauthenticated(test_client):
+    with pytest.raises(HTTPException, match="Permission denied."):
+        test_client.websocket_connect("/agent")
+
+
 def test_list_agent_empty_list(db_session, test_client, session_cookie):
     response = test_client.get('/agent', cookies=session_cookie)
 
@@ -100,6 +128,25 @@ def test_list_agent_empty_list(db_session, test_client, session_cookie):
 
 
 def test_list_agent_success(db_session, test_client, session_cookie):
+    agent_id_1, agent_id_2 = add_multiple_agents(db_session)
+
+    response = test_client.get('/agent', cookies=session_cookie)
+    response_body = response.json()
+
+    assert response.status_code == 200
+    assert_list_agent_response_data(response_body, agent_id_1, agent_id_2)
+
+
+def assert_list_agent_response_data(data, agent_id_1, agent_id_2):
+    assert len(data) == 2
+
+    agent_data = data[0]
+    assert agent_data['name'] in ['test', 'test2']
+    assert agent_data['id'] in [str(agent_id_1), str(agent_id_2)]
+    assert agent_data['connection_state'] == 'disconnected'
+
+
+def add_multiple_agents(db_session):
     agent_id_1 = uuid.uuid4()
     agent_id_2 = uuid.uuid4()
     agent = Agent(id=agent_id_1, name='test',
@@ -110,20 +157,4 @@ def test_list_agent_success(db_session, test_client, session_cookie):
     db_session.add(agent_2)
     db_session.commit()
 
-    response = test_client.get('/agent', cookies=session_cookie)
-    response_body = response.json()
-
-    assert response.status_code == 200
-    assert len(response_body) == 2
-
-    agent_data = response_body[0]
-    assert agent_data['name'] in ['test', 'test2']
-    assert agent_data['id'] in [str(agent_id_1), str(agent_id_2)]
-    assert agent_data['connection_state'] == 'disconnected'
-
-
-def test_list_agent_unauthenticated(test_client):
-    response = test_client.get('/agent')
-
-    assert response.status_code == 403
-    assert response.json()['detail'] == "Permission denied."
+    return agent_id_1, agent_id_2

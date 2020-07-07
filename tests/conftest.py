@@ -10,6 +10,7 @@ from apollo.lib.hash import hash_plaintext
 from apollo.lib.security import create_session_cookie
 from apollo.lib.websocket import WebSocketManager
 from apollo.lib.websocket.agent import AgentConnectionManager
+from apollo.lib.websocket.app import AppConnectionManager
 from apollo.lib.websocket.user import UserConnectionManager
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
@@ -130,6 +131,7 @@ def _wipe_websocket_manager():
     manager = WebSocketManager()
     manager.open_agent_connections = {}
     manager.open_user_connections = {}
+    manager.open_app_connections = {}
 
 
 @fixture
@@ -144,3 +146,14 @@ def user_connection_manager(websocket_manager):
     manager = UserConnectionManager()
     manager.websocket_manager = websocket_manager
     return manager
+
+
+# autouse set to true so that the interested agents get wiped so that the
+# test doesn't need to know when the app_connection_manager is getting called.
+@fixture(autouse=True)
+def app_connection_manager(websocket_manager):
+    manager = AppConnectionManager()
+    manager.interested_connections = {}
+    manager.websocket_manager = websocket_manager
+    yield manager
+    manager.interested_connections = {}
