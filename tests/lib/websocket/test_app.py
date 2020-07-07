@@ -1,7 +1,9 @@
+import json
 import uuid
 
 import pytest
 from fastapi import WebSocket
+from pydantic.json import pydantic_encoder
 from starlette.websockets import WebSocketDisconnect
 from unittest.mock import patch
 
@@ -22,7 +24,7 @@ async def test_connect_and_send(mocker, app_connection_manager, db_session):
     )
 
     app_websocket_mock.receive_text.assert_called_once()
-    app_websocket_mock.send_json.assert_any_call([])
+    app_websocket_mock.send_text.assert_any_call('[]')
     app_websocket_mock.close.assert_called_once()
 
 
@@ -32,13 +34,20 @@ async def test_send_message_to_connections(mocker, app_connection_manager,
     interest_type = WebSocketObserverInterestType.AGENT_LISTING
 
     app_websocket_mock = mocker.create_autospec(WebSocket)
+
+    connection_id = await app_connection_manager.websocket_manager.connect_app(
+        app_websocket_mock)
     app_connection_manager._add_interested_connection(interest_type,
-                                                      uuid.uuid4())
+                                                      connection_id)
 
     await app_connection_manager.send_message_to_connections(interest_type)
 
-    app_websocket_mock.send_json.assert_called_with(
-        InterestTypeFunctionHandler().run_corresponding_function(interest_type)
+    app_websocket_mock.send_text.assert_called_with(
+        json.dumps(
+            InterestTypeFunctionHandler().run_corresponding_function(
+                interest_type),
+            default=pydantic_encoder
+        )
     )
 
 
@@ -109,8 +118,8 @@ async def test_remove_connection_value_error(app_connection_manager):
         try:
             await app_connection_manager._close_and_remove_connection(
                 uuid.uuid4())
-        except KeyError:
-            pytest.fail("Method did raise KeyError")
+        except ValueError:
+            pytest.fail("Method did raise ValueError")
 
 
 def test_get_connection_not_found(app_connection_manager):

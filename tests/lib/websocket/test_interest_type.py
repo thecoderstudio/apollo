@@ -8,7 +8,7 @@ from apollo.models.agent import Agent
 
 def test_interest_type_function_handler_run_agent_listing_function(db_session):
     agent_id = uuid.uuid4()
-    agent = Agent(name='test')
+    agent = Agent(id=agent_id, name='test')
     db_session.add(agent)
     db_session.commit()
 

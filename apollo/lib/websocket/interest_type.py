@@ -1,5 +1,4 @@
 import enum
-import json
 
 from apollo.lib.decorators import with_db_session
 

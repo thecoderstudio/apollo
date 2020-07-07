@@ -1,14 +1,17 @@
 import uuid
+import json
 from typing import Dict, Set
 
 from fastapi import WebSocket
+from pydantic.json import pydantic_encoder
 from starlette.websockets import WebSocketDisconnect
 
+from apollo.lib.singleton import Singleton
 from apollo.lib.websocket import ConnectionManager
 from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 
-class AppConnectionManager(ConnectionManager):
+class AppConnectionManager(ConnectionManager, metaclass=Singleton):
     interested_connections: Dict[WebSocketObserverInterestType,
                                  Set[uuid.UUID]] = {}
 
@@ -26,8 +29,8 @@ class AppConnectionManager(ConnectionManager):
         connection_id: uuid.UUID
     ):
         connections = self.interested_connections.get(observer_interest_type,
-                                                      [])
-        connections.append(connection_id)
+                                                      set())
+        connections.add(connection_id)
         self.interested_connections[observer_interest_type] = connections
 
     async def _close_and_remove_connection(self, connection_id: uuid.UUID):
@@ -35,7 +38,7 @@ class AppConnectionManager(ConnectionManager):
         for connection_list in self.interested_connections.values():
             try:
                 connection_list.remove(connection_id)
-            except KeyError:
+            except ValueError:
                 pass
 
     async def _send_message(
@@ -61,7 +64,7 @@ class AppConnectionManager(ConnectionManager):
         self, observer_interest_type: WebSocketObserverInterestType
     ):
         for websocket_id in (self.interested_connections.get(
-                observer_interest_type, [])):
+                observer_interest_type, set())):
             await self._send_message(websocket_id, observer_interest_type)
 
     def get_connection(self, connection_id: uuid.UUID):

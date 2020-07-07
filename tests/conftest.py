@@ -131,6 +131,7 @@ def _wipe_websocket_manager():
     manager = WebSocketManager()
     manager.open_agent_connections = {}
     manager.open_user_connections = {}
+    manager.open_app_connections = {}
 
 
 @fixture
@@ -147,8 +148,12 @@ def user_connection_manager(websocket_manager):
     return manager
 
 
-@fixture
+# autouse set to true so that the interested agents get wiped even when the
+# test doesn't know that the app_connection_manager is getting called.
+@fixture(autouse=True)
 def app_connection_manager(websocket_manager):
     manager = AppConnectionManager()
+    manager.interested_connections = {}
     manager.websocket_manager = websocket_manager
-    return manager
+    yield manager
+    manager.interested_connections = {}
