@@ -148,8 +148,8 @@ def user_connection_manager(websocket_manager):
     return manager
 
 
-# autouse set to true so that the interested agents get wiped even when the
-# test doesn't know that the app_connection_manager is getting called.
+# autouse set to true so that the interested agents get wiped so that the
+# test doesn't need to know when the app_connection_manager is getting called.
 @fixture(autouse=True)
 def app_connection_manager(websocket_manager):
     manager = AppConnectionManager()
