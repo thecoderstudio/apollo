@@ -3,6 +3,7 @@ from typing import Dict
 
 from fastapi import WebSocket
 from starlette.types import Message
+from starlette.websockets import WebSocketDisconnect
 from websockets.exceptions import ConnectionClosed
 
 from apollo.lib.decorators import notify_websockets
@@ -55,13 +56,6 @@ class WebSocketManager(metaclass=Singleton):
         await self._close_connection(connection)
         self.open_user_connections.pop(user_id)
 
-    async def connect_user(self, connection: 'UserConnection'):
-        await connection.accept()
-        self.open_user_connections[connection.id] = connection
-
-    def get_user_connection(self, connection_id: uuid.UUID):
-        return self.open_user_connections[connection_id]
-
     async def connect_app(self, websocket: WebSocket):
         await websocket.accept()
         connection_id = uuid.uuid4()
@@ -96,16 +90,6 @@ class WebSocketManager(metaclass=Singleton):
         raise error
 
 
-class ConnectionManager:
-    websocket_manager = WebSocketManager()
-
-    def get_connection(self, connection_id: uuid.UUID):
-        raise NotImplementedError
-
-    async def close_connection(self, connection_id: uuid.UUID):
-        raise NotImplementedError
-
-
 class Connection(WebSocket):
     def __init__(self, websocket: WebSocket, id_: uuid.UUID):
         self.connect(websocket)
@@ -128,3 +112,35 @@ class Connection(WebSocket):
         super().__init__(websocket.scope, websocket._receive, websocket._send)
         self.client_state = websocket.client_state
         self.application_state = websocket.application_state
+
+    async def listen(self):
+        try:
+            while True:
+                yield await self._receive_message()
+        except WebSocketDisconnect:
+            return
+
+    async def _receive_message(self):
+        return await self.receive_text()
+
+
+class ConnectionManager:
+    websocket_manager = WebSocketManager()
+    connections = websocket_manager.open_user_connections
+
+    @classmethod
+    async def connect(cls, connection: Connection):
+        await connection.accept()
+        cls._add_connection(connection)
+
+    @classmethod
+    def _add_connection(cls, connection: 'Connection'):
+        cls.connections[connection.id] = connection
+
+    @classmethod
+    def _remove_connection(cls, connection: 'Connection'):
+        cls.connections.pop(connection.id, None)
+
+    @classmethod
+    def get_connection(cls, connection_id: uuid.UUID):
+        return cls.connections[connection_id]

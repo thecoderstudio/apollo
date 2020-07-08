@@ -1,7 +1,7 @@
 import asyncio
 
 import click
-from starlette.websockets import WebSocketDisconnect, WebSocketState
+from starlette.websockets import WebSocketState
 
 from apollo.lib.exceptions.websocket import SendAfterConnectionClosure
 from apollo.lib.schemas.message import Command, CommandSchema, ShellIOSchema
@@ -23,12 +23,8 @@ class ShellConnection:
         ))
 
     async def listen_and_forward(self):
-        try:
-            while True:
-                stdin = await self.origin.receive_text()
-                await self._message_target(stdin)
-        except WebSocketDisconnect:
-            return
+        async for stdin in self.origin.listen():
+            await self._message_target(stdin)
 
     async def _message_target(self, message):
         try:
