@@ -2,12 +2,16 @@ import uuid
 
 from fastapi import WebSocket
 
+from apollo.lib.decorators import notify_websockets
+from apollo.lib.exceptions.websocket import SendAfterConnectionClosure
 from apollo.lib.schemas.message import BaseMessageSchema, ShellIOSchema
 from apollo.lib.websocket import ConnectionManager, Connection
-from apollo.lib.websocket.user import UserConnectionManager
+from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 
 class AgentConnectionManager(ConnectionManager):
+    @notify_websockets(
+        observer_interest_type=WebSocketObserverInterestType.AGENT_LISTING)
     async def connect(self, agent_id: uuid.UUID, websocket: WebSocket):
         try:
             connection = self.get_connection(agent_id)
@@ -15,14 +19,20 @@ class AgentConnectionManager(ConnectionManager):
         except KeyError:
             connection = AgentConnection(websocket, agent_id)
 
-        await self.websocket_manager.connect_agent(connection)
+        await super().connect(connection)
         await connection.listen_and_forward()
 
     async def close_connection(self, connection_id: uuid.UUID):
-        await self.websocket_manager.close_agent_connection(connection_id)
+        connection = self.get_connection(connection_id)
+        await connection.close()
+
+        try:
+            await connection.close()
+        except SendAfterConnectionClosure:
+            pass
 
     async def close_all_connections(self):
-        for agent_id in list(self.websocket_manager.open_agent_connections):
+        for agent_id in list(self.connections):
             await self.close_connection(agent_id)
 
 
@@ -42,4 +52,10 @@ class AgentConnection(Connection):
         await user_connection.send_text(message.message)
 
     def _get_user_connection(self, connection_id: uuid.UUID):
+        from apollo.lib.websocket.user import UserConnectionManager
         return UserConnectionManager.get_connection(connection_id)
+
+    @notify_websockets(
+        observer_interest_type=WebSocketObserverInterestType.AGENT_LISTING)
+    async def close():
+        super().close()

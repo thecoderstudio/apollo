@@ -48,8 +48,6 @@ class ShellConnection:
             time_elapsed += 1
 
     async def _attempt_recovery(self):
-        print(self.target.client_state)
-        print(self.target.application_state)
         if self.target.client_state is not WebSocketState.CONNECTED:
             return False
 

@@ -4,57 +4,22 @@ from typing import Dict
 from fastapi import WebSocket
 from starlette.types import Message
 from starlette.websockets import WebSocketDisconnect
-from websockets.exceptions import ConnectionClosed
 
-from apollo.lib.decorators import notify_websockets
 from apollo.lib.exceptions.websocket import SendAfterConnectionClosure
 from apollo.lib.schemas.message import BaseMessageSchema
 from apollo.lib.singleton import Singleton
-from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 SEND_AFTER_CLOSE = (
     "Unexpected ASGI message 'websocket.send', "
     "after sending 'websocket.close'."
 )
+SEND_AFTER_CLOSE_ALTERNATIVE = 'Cannot call "send" once a close message'
 
 
 class WebSocketManager(metaclass=Singleton):
     open_agent_connections: Dict[uuid.UUID, WebSocket] = {}
     open_user_connections: Dict[uuid.UUID, WebSocket] = {}
     open_app_connections: Dict[uuid.UUID, WebSocket] = {}
-
-    @notify_websockets(
-        observer_interest_type=WebSocketObserverInterestType.AGENT_LISTING)
-    async def connect_agent(self, connection: 'AgentConnection'):
-        await connection.accept()
-        self.open_agent_connections[connection.id] = connection
-
-    def get_agent_connection(self, agent_id: uuid.UUID):
-        return self.open_agent_connections[agent_id]
-
-    @notify_websockets(
-        observer_interest_type=WebSocketObserverInterestType.AGENT_LISTING)
-    async def close_agent_connection(self, agent_id: uuid.UUID):
-        connection = self.get_agent_connection(agent_id)
-        await self._close_connection(connection)
-        self.open_agent_connections.pop(agent_id)
-
-    async def _close_connection(self, connection: WebSocket):
-        try:
-            await connection.send_json("Closing connection")
-            await connection.close()
-        except RuntimeError as e:
-            self._raise_if_unexpected_exception(
-                error=e,
-                message='Cannot call "send" once a close message'
-            )
-        except ConnectionClosed:
-            pass
-
-    async def close_user_connection(self, user_id: uuid.UUID):
-        connection = self.get_user_connection(user_id)
-        await self._close_connection(connection)
-        self.open_user_connections.pop(user_id)
 
     async def connect_app(self, websocket: WebSocket):
         await websocket.accept()
@@ -70,25 +35,6 @@ class WebSocketManager(metaclass=Singleton):
         await self._close_connection(connection)
         self.open_app_connections.pop(connection_id)
 
-    async def message_agent(
-        self,
-        agent_id: uuid.UUID,
-        message: BaseMessageSchema
-    ):
-        recipient_connection = self.get_agent_connection(agent_id)
-        await recipient_connection.send_text(message.json())
-
-    async def message_user(self, user_connection_id, message):
-        user_connection = self.get_user_connection(user_connection_id)
-        await user_connection.send_text(message)
-
-    @staticmethod
-    def _raise_if_unexpected_exception(error, message):
-        if message in str(error):
-            return
-
-        raise error
-
 
 class Connection(WebSocket):
     def __init__(self, websocket: WebSocket, id_: uuid.UUID):
@@ -103,7 +49,9 @@ class Connection(WebSocket):
 
     @staticmethod
     def _convert_runtime_error(error: RuntimeError):
-        if SEND_AFTER_CLOSE in str(error):
+        str_error = str(error)
+        if (SEND_AFTER_CLOSE in str_error or SEND_AFTER_CLOSE_ALTERNATIVE in
+                str_error):
             return SendAfterConnectionClosure()
 
         return error
@@ -122,6 +70,12 @@ class Connection(WebSocket):
 
     async def _receive_message(self):
         return await self.receive_text()
+
+    async def close(self):
+        try:
+            super().close()
+        except RuntimeError as e:
+            raise self._convert_runtime_error(e)
 
 
 class ConnectionManager:

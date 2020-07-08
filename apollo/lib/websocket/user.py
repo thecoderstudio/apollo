@@ -3,6 +3,7 @@ import uuid
 from fastapi import WebSocket
 
 from apollo.lib.websocket import Connection, ConnectionManager
+from apollo.lib.websocket.agent import AgentConnectionManager
 from apollo.lib.websocket.shell import ShellConnection
 
 TRY_AGAIN_LATER = 1013
@@ -11,7 +12,7 @@ TRY_AGAIN_LATER = 1013
 class UserConnectionManager(ConnectionManager):
     async def connect(self, websocket: WebSocket, target_agent_id: uuid.UUID):
         try:
-            agent_connection = self.websocket_manager.get_agent_connection(
+            agent_connection = AgentConnectionManager.get_connection(
                 target_agent_id)
         except KeyError:
             await websocket.close(code=TRY_AGAIN_LATER)
