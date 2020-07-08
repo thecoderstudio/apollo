@@ -8,32 +8,32 @@ from starlette.websockets import WebSocketDisconnect
 from apollo.lib.schemas.message import (
     BaseMessageSchema, Command, CommandSchema, ShellIOSchema)
 from apollo.lib.websocket import Connection, ConnectionManager
+from apollo.lib.websocket.agent import AgentConnection
+from apollo.lib.websocket.shell import ShellConnection
 
 TRY_AGAIN_LATER = 1013
 
 
 class UserConnectionManager(ConnectionManager):
     async def connect(self, websocket: WebSocket, target_agent_id: uuid.UUID):
-        if not await self._verify_agent_connection(websocket, target_agent_id):
-            return
-
-        connection_id = await self.websocket_manager.connect_user(websocket)
-        await self._inform_agent_of_new_connection(
-            connection_id, target_agent_id)
-        await self._listen_and_forward(connection_id, target_agent_id,
-                                       websocket)
-        await self.close_connection(connection_id)
-        return connection_id
-
-    async def _verify_agent_connection(self, websocket: WebSocket,
-                                       target_agent_id: uuid.UUID):
         try:
-            self.websocket_manager.get_agent_connection(target_agent_id)
+            agent_connection = self.websocket_manager.get_agent_connection(
+                target_agent_id)
         except KeyError:
             await websocket.close(code=TRY_AGAIN_LATER)
-            return False
+            return
 
-        return True
+        user_connection = UserConnection(websocket)
+        connection_id = await self.websocket_manager.connect_user(
+            user_connection)
+
+        shell_connection = await ShellConnection.start(
+            user_connection,
+            AgentConnection(agent_connection, target_agent_id)
+        )
+        await shell_connection.listen_and_forward()
+        await self.close_connection(user_connection.id)
+        return connection_id
 
     async def _inform_agent_of_new_connection(
         self, connection_id: uuid.UUID, target_agent_id: uuid.UUID
@@ -123,4 +123,5 @@ class UserConnectionManager(ConnectionManager):
 
 
 class UserConnection(Connection):
-    pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, id_=uuid.uuid4(), **kwargs)

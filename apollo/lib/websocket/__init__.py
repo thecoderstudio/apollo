@@ -48,11 +48,9 @@ class WebSocketManager(metaclass=Singleton):
         await self._close_connection(connection)
         self.open_user_connections.pop(user_id)
 
-    async def connect_user(self, websocket: WebSocket):
-        await websocket.accept()
-        connection_id = uuid.uuid4()
-        self.open_user_connections[connection_id] = websocket
-        return connection_id
+    async def connect_user(self, connection: 'UserConnection'):
+        await connection.accept()
+        self.open_user_connections[connection.id] = connection
 
     def get_user_connection(self, connection_id: uuid.UUID):
         return self.open_user_connections[connection_id]
@@ -102,7 +100,8 @@ class ConnectionManager:
 
 
 class Connection(WebSocket):
-    def __init__(self, websocket: WebSocket):
+    def __init__(self, websocket: WebSocket, id_: uuid.UUID):
         super().__init__(websocket.scope, websocket._receive, websocket._send)
         self.client_state = websocket.client_state
         self.application_state = websocket.application_state
+        self.id = id_

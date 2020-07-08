@@ -3,6 +3,7 @@ import uuid
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
+from apollo.lib.schemas.message import BaseMessageSchema
 from apollo.lib.websocket import ConnectionManager, Connection
 
 
@@ -36,4 +37,5 @@ class AgentConnectionManager(ConnectionManager):
 
 
 class AgentConnection(Connection):
-    pass
+    async def message(self, message: BaseMessageSchema):
+        await self.send_text(message.json())

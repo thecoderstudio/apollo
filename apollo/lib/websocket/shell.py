@@ -4,17 +4,19 @@ import click
 from starlette.websockets import WebSocketDisconnect, WebSocketState
 
 from apollo.lib.schemas.message import Command, CommandSchema, ShellIOSchema
-from apollo.lib.websocket.agent import AgentConnection
-from apollo.lib.websocket.user import UserConnection
 
 
 class ShellConnection:
-    def __init__(self, origin: UserConnection, target: AgentConnection):
+    @classmethod
+    async def start(cls, origin: 'UserConnection', target: 'AgentConnection'):
+        self = ShellConnection()
         self.origin = origin
         self.target = target
+        await self.alert_target_of_new_connection()
+        return self
 
     async def alert_target_of_new_connection(self):
-        await self.target.command(CommandSchema(
+        await self.target.message(CommandSchema(
             connection_id=self.origin.id,
             command=Command.NEW_CONNECTION
         ))
@@ -23,7 +25,7 @@ class ShellConnection:
         try:
             while True:
                 stdin = await self.origin.receive_text()
-                self._message_target(stdin)
+                await self._message_target(stdin)
         except WebSocketDisconnect:
             return
 
