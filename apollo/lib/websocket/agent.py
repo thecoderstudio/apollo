@@ -3,7 +3,7 @@ import uuid
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
-from apollo.lib.websocket import ConnectionManager
+from apollo.lib.websocket import ConnectionManager, Connection
 
 
 class AgentConnectionManager(ConnectionManager):
@@ -33,3 +33,7 @@ class AgentConnectionManager(ConnectionManager):
 
     def get_connection(self, connection_id: uuid.UUID):
         return self.websocket_manager.get_agent_connection(connection_id)
+
+
+class AgentConnection(Connection):
+    pass

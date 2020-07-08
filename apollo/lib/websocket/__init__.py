@@ -99,3 +99,10 @@ class ConnectionManager:
 
     async def close_connection(self, connection_id: uuid.UUID):
         raise NotImplementedError
+
+
+class Connection(WebSocket):
+    def __init__(self, websocket: WebSocket):
+        super().__init__(websocket.scope, websocket._receive, websocket._send)
+        self.client_state = websocket.client_state
+        self.application_state = websocket.application_state

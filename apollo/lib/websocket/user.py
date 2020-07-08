@@ -7,7 +7,7 @@ from starlette.websockets import WebSocketDisconnect
 
 from apollo.lib.schemas.message import (
     BaseMessageSchema, Command, CommandSchema, ShellIOSchema)
-from apollo.lib.websocket import ConnectionManager
+from apollo.lib.websocket import Connection, ConnectionManager
 
 TRY_AGAIN_LATER = 1013
 
@@ -120,3 +120,7 @@ class UserConnectionManager(ConnectionManager):
 
     def get_connection(self, connection_id: uuid.UUID):
         return self.websocket_manager.get_user_connection(connection_id)
+
+
+class UserConnection(Connection):
+    pass
