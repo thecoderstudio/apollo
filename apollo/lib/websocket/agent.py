@@ -9,10 +9,14 @@ from apollo.lib.websocket import ConnectionManager, Connection
 
 class AgentConnectionManager(ConnectionManager):
     async def connect(self, agent_id: uuid.UUID, websocket: WebSocket):
-        await self.websocket_manager.connect_agent(agent_id, websocket)
-        await websocket.send_json("Connection accepted")
-        await self._listen_and_forward(websocket)
-        await self.close_connection(agent_id)
+        try:
+            connection = self.get_connection(agent_id)
+            connection.connect(websocket)
+        except KeyError:
+            connection = AgentConnection(websocket, agent_id)
+
+        await self.websocket_manager.connect_agent(connection)
+        await self._listen_and_forward(connection)
 
     async def _listen_and_forward(self, connection: WebSocket):
         try:

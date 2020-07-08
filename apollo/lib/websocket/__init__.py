@@ -2,12 +2,19 @@ import uuid
 from typing import Dict
 
 from fastapi import WebSocket
+from starlette.types import Message
 from websockets.exceptions import ConnectionClosed
 
 from apollo.lib.decorators import notify_websockets
+from apollo.lib.exceptions.websocket import SendAfterConnectionClosure
 from apollo.lib.schemas.message import BaseMessageSchema
 from apollo.lib.singleton import Singleton
 from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
+
+SEND_AFTER_CLOSE = (
+    "Unexpected ASGI message 'websocket.send', "
+    "after sending 'websocket.close'."
+)
 
 
 class WebSocketManager(metaclass=Singleton):
@@ -17,9 +24,9 @@ class WebSocketManager(metaclass=Singleton):
 
     @notify_websockets(
         observer_interest_type=WebSocketObserverInterestType.AGENT_LISTING)
-    async def connect_agent(self, agent_id: uuid.UUID, websocket: WebSocket):
-        await websocket.accept()
-        self.open_agent_connections[agent_id] = websocket
+    async def connect_agent(self, connection: 'AgentConnection'):
+        await connection.accept()
+        self.open_agent_connections[connection.id] = connection
 
     def get_agent_connection(self, agent_id: uuid.UUID):
         return self.open_agent_connections[agent_id]
@@ -101,7 +108,23 @@ class ConnectionManager:
 
 class Connection(WebSocket):
     def __init__(self, websocket: WebSocket, id_: uuid.UUID):
+        self.connect(websocket)
+        self.id = id_
+
+    async def send(self, message: Message):
+        try:
+            await super().send(message)
+        except RuntimeError as e:
+            raise self._convert_runtime_error(e)
+
+    @staticmethod
+    def _convert_runtime_error(error: RuntimeError):
+        if SEND_AFTER_CLOSE in str(error):
+            return SendAfterConnectionClosure()
+
+        return error
+
+    def connect(self, websocket: WebSocket):
         super().__init__(websocket.scope, websocket._receive, websocket._send)
         self.client_state = websocket.client_state
         self.application_state = websocket.application_state
-        self.id = id_
