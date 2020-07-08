@@ -1,6 +1,7 @@
 import asyncio
 import uuid
 
+import click
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
@@ -68,8 +69,9 @@ class UserConnectionManager(ConnectionManager):
                                   target_agent_id: uuid.UUID):
         time_elapsed = 0
         while True:
-            if await self._attempt_connection_recovery(connection_id,
-                                                       target_agent_id):
+            if await self._attempt_connection_recovery(
+                connection_id, target_agent_id
+            ):
                 return
 
             await self._send_connection_lost(connection_id, time_elapsed)
@@ -82,7 +84,11 @@ class UserConnectionManager(ConnectionManager):
             self.websocket_manager.get_agent_connection(target_agent_id)
             await self._message_user(
                 connection_id,
-                "\n\r\nConnection recovered\n\r\n"
+                click.style(
+                    "\n\r\nConnection recovered\n\r\n",
+                    fg='green',
+                    bold=True
+                )
             )
             await self._inform_agent_of_new_connection(
                 connection_id, target_agent_id)
@@ -94,7 +100,12 @@ class UserConnectionManager(ConnectionManager):
                                     time_elapsed: int):
         await self._message_user(
             connection_id,
-            f"\n\r\nConnection to agent lost. Reconnecting.. {time_elapsed}s"
+            click.style(
+                "\n\r\nConnection to agent lost. "
+                f"Reconnecting.. {time_elapsed}s",
+                fg='red',
+                bold=True
+            )
         )
 
     async def _message_user(self, connection_id: uuid.UUID, message: str):
