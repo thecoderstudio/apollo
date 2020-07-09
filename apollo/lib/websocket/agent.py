@@ -5,7 +5,7 @@ from fastapi import WebSocket
 from apollo.lib.decorators import notify_websockets
 from apollo.lib.exceptions.websocket import SendAfterConnectionClosure
 from apollo.lib.schemas.message import BaseMessageSchema, ShellIOSchema
-from apollo.lib.websocket import ConnectionManager, Connection
+from apollo.lib.websocket.connection import ConnectionManager, Connection
 from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 

@@ -6,7 +6,7 @@ from fastapi import WebSocket
 from pydantic.json import pydantic_encoder
 
 from apollo.lib.singleton import Singleton
-from apollo.lib.websocket import Connection, ConnectionManager
+from apollo.lib.websocket.connection import Connection, ConnectionManager
 from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 

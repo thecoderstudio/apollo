@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import WebSocket
 
-from apollo.lib.websocket import Connection, ConnectionManager
+from apollo.lib.websocket.connection import Connection, ConnectionManager
 from apollo.lib.websocket.agent import AgentConnectionManager
 from apollo.lib.websocket.shell import ShellConnection
 
