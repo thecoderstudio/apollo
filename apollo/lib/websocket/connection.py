@@ -74,10 +74,10 @@ class ConnectionManager:
     @classmethod
     async def accept_connection(cls, connection: Connection):
         await connection.accept()
-        cls._add_connection(connection)
+        cls.__add_connection(connection)
 
     @classmethod
-    def _add_connection(cls, connection: 'Connection'):
+    def __add_connection(cls, connection: 'Connection'):
         cls.connections[connection.id_] = connection
 
     @classmethod
