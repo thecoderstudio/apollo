@@ -1,7 +1,6 @@
 import asyncio
 
 import click
-from starlette.websockets import WebSocketState
 
 from apollo.lib.exceptions.websocket import SendAfterConnectionClosure
 from apollo.lib.schemas.message import Command, CommandSchema, ShellIOSchema
@@ -48,7 +47,7 @@ class ShellConnection:
             time_elapsed += 1
 
     async def _attempt_recovery(self):
-        if self.target.client_state is not WebSocketState.CONNECTED:
+        if not self.target.connected:
             return False
 
         await self.origin.send_text(click.style(

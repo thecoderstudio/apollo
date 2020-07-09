@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import WebSocket
 from starlette.types import Message
-from starlette.websockets import WebSocketDisconnect
+from starlette.websockets import WebSocketDisconnect, WebSocketState
 
 from apollo.lib.exceptions.websocket import SendAfterConnectionClosure
 from apollo.lib.websocket import WebSocketManager
@@ -19,6 +19,22 @@ class Connection(WebSocket):
         self.connect(websocket)
         self.id = id_
 
+    @property
+    def connected(self):
+        return self.client_state is WebSocketState.CONNECTED
+
+    def connect(self, websocket: WebSocket):
+        super().__init__(websocket.scope, websocket._receive, websocket._send)
+        self.client_state = websocket.client_state
+        self.application_state = websocket.application_state
+
+    async def listen(self):
+        try:
+            while True:
+                yield await self._receive_message()
+        except WebSocketDisconnect:
+            return
+
     async def send(self, message: Message):
         try:
             await super().send(message)
@@ -33,18 +49,6 @@ class Connection(WebSocket):
             return SendAfterConnectionClosure()
 
         return error
-
-    def connect(self, websocket: WebSocket):
-        super().__init__(websocket.scope, websocket._receive, websocket._send)
-        self.client_state = websocket.client_state
-        self.application_state = websocket.application_state
-
-    async def listen(self):
-        try:
-            while True:
-                yield await self._receive_message()
-        except WebSocketDisconnect:
-            return
 
     async def _receive_message(self):
         return await self.receive_text()

@@ -12,7 +12,7 @@ TRY_AGAIN_LATER = 1013
 class UserConnectionManager(ConnectionManager):
     async def connect(self, websocket: WebSocket, target_agent_id: uuid.UUID):
         try:
-            agent_connection = AgentConnectionManager.get_connection(
+            agent_connection = self._get_active_agent_connection(
                 target_agent_id)
         except KeyError:
             await websocket.close(code=TRY_AGAIN_LATER)
@@ -28,6 +28,14 @@ class UserConnectionManager(ConnectionManager):
         await shell_connection.listen_and_forward()
         self._remove_connection(user_connection.id)
         return user_connection
+
+    def _get_active_agent_connection(self, agent_connection_id: uuid.UUID):
+        agent_connection = AgentConnectionManager.get_connection(
+                agent_connection_id)
+        if agent_connection.connected:
+            return agent_connection
+
+        raise KeyError
 
 
 class UserConnection(Connection):
