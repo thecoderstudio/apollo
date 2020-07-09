@@ -6,7 +6,6 @@ from starlette.types import Message
 from starlette.websockets import WebSocketDisconnect
 
 from apollo.lib.exceptions.websocket import SendAfterConnectionClosure
-from apollo.lib.schemas.message import BaseMessageSchema
 from apollo.lib.singleton import Singleton
 
 SEND_AFTER_CLOSE = (
@@ -17,23 +16,9 @@ SEND_AFTER_CLOSE_ALTERNATIVE = 'Cannot call "send" once a close message'
 
 
 class WebSocketManager(metaclass=Singleton):
-    open_agent_connections: Dict[uuid.UUID, WebSocket] = {}
-    open_user_connections: Dict[uuid.UUID, WebSocket] = {}
-    open_app_connections: Dict[uuid.UUID, WebSocket] = {}
-
-    async def connect_app(self, websocket: WebSocket):
-        await websocket.accept()
-        connection_id = uuid.uuid4()
-        self.open_app_connections[connection_id] = websocket
-        return connection_id
-
-    def get_app_connection(self, connection_id: uuid.UUID):
-        return self.open_app_connections[connection_id]
-
-    async def close_app_connection(self, connection_id: uuid.UUID):
-        connection = self.get_app_connection(connection_id)
-        await self._close_connection(connection)
-        self.open_app_connections.pop(connection_id)
+    open_agent_connections: Dict[uuid.UUID, 'Connection'] = {}
+    open_user_connections: Dict[uuid.UUID, 'Connection'] = {}
+    open_app_connections: Dict[uuid.UUID, 'Connection'] = {}
 
 
 class Connection(WebSocket):
