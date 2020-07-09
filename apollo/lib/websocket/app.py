@@ -11,6 +11,7 @@ from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 
 class AppConnectionManager(ConnectionManager, metaclass=Singleton):
+    connections = ConnectionManager.websocket_manager.open_app_connections
     interested_connections: Dict[WebSocketObserverInterestType,
                                  Set[uuid.UUID]] = {}
 
@@ -19,7 +20,7 @@ class AppConnectionManager(ConnectionManager, metaclass=Singleton):
         observer_interest_type: WebSocketObserverInterestType
     ):
         connection = AppConnection(websocket)
-        await super().connect(connection)
+        await self.accept_connection(connection)
         self._add_interested_connection(observer_interest_type, connection.id)
         await self._send_message(connection.id, observer_interest_type)
         await connection.listen()

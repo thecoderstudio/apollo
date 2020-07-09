@@ -2,12 +2,12 @@ import uuid
 from unittest.mock import call, patch
 
 import pytest
-from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
 from apollo.lib.exceptions import HTTPException
 from apollo.lib.schemas.message import (Command, CommandSchema,
                                         ShellIOSchema)
+from apollo.lib.websocket.agent import AgentConnection
 from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
@@ -15,7 +15,7 @@ from apollo.models.oauth import OAuthClient
 
 def test_post_agent_success(test_client, session_cookie):
     with patch('apollo.lib.websocket.app.AppConnectionManager.'
-               + 'send_message_to_connections') as patched_function:
+               + 'message_interested_connections') as patched_function:
         response = test_client.post(
             '/agent',
             json={'name': 'test'},
@@ -62,30 +62,32 @@ def test_download_agent(test_client):
 
 
 @pytest.mark.asyncio
-async def test_shell(mocker, test_client, session_cookie, websocket_manager):
+async def test_shell(websocket_mock, test_client, session_cookie,
+                     agent_connection_manager):
     connection_id = uuid.uuid4()
-    mock_agent_id = uuid.uuid4()
-    agent_websocket_mock = mocker.create_autospec(WebSocket)
-    await websocket_manager.connect_agent(mock_agent_id, agent_websocket_mock)
+    agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
+    await agent_connection_manager.accept_connection(agent_connection)
 
-    with patch('uuid.uuid4', return_value=connection_id):
-        with test_client.websocket_connect(
-            f"/agent/{mock_agent_id}/shell",
-            cookies=session_cookie
-        ) as websocket:
-            websocket.send_text("test command")
-            websocket.close(code=1000)
+    with patch("apollo.lib.websocket.agent.AgentConnection.send_text",
+               wraps=agent_connection.send_text) as send_text:
+        with patch('uuid.uuid4', return_value=connection_id):
+            with test_client.websocket_connect(
+                f"/agent/{agent_connection.id_}/shell",
+                cookies=session_cookie
+            ) as websocket:
+                websocket.send_text("test command")
+                websocket.close(code=1000)
 
-    agent_websocket_mock.send_text.assert_has_awaits([
-        call(CommandSchema(
-            connection_id=connection_id,
-            command=Command.NEW_CONNECTION
-        ).json()),
-        call(ShellIOSchema(
-            connection_id=connection_id,
-            message="test command"
-        ).json())
-    ])
+        send_text.assert_has_awaits([
+            call(CommandSchema(
+                connection_id=connection_id,
+                command=Command.NEW_CONNECTION
+            ).json()),
+            call(ShellIOSchema(
+                connection_id=connection_id,
+                message="test command"
+            ).json())
+        ])
 
 
 def test_shell_agent_not_found(test_client, session_cookie):

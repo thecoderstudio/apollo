@@ -17,7 +17,7 @@ class ShellConnection:
 
     async def _alert_target_of_new_connection(self):
         await self.target.message(CommandSchema(
-            connection_id=self.origin.id,
+            connection_id=self.origin.id_,
             command=Command.NEW_CONNECTION
         ))
 
@@ -29,7 +29,7 @@ class ShellConnection:
         try:
             await self.target.message(
                 ShellIOSchema(
-                    connection_id=self.origin.id,
+                    connection_id=self.origin.id_,
                     message=message
                 )
             )

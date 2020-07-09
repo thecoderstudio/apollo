@@ -10,6 +10,8 @@ TRY_AGAIN_LATER = 1013
 
 
 class UserConnectionManager(ConnectionManager):
+    connections = ConnectionManager.websocket_manager.open_user_connections
+
     async def connect(self, websocket: WebSocket, target_agent_id: uuid.UUID):
         try:
             agent_connection = self._get_active_agent_connection(
@@ -19,7 +21,7 @@ class UserConnectionManager(ConnectionManager):
             return
 
         user_connection = UserConnection(websocket)
-        await super().connect(user_connection)
+        await self.accept_connection(user_connection)
 
         shell_connection = await ShellConnection.start(
             user_connection,

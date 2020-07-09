@@ -10,6 +10,8 @@ from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
 
 class AgentConnectionManager(ConnectionManager):
+    connections = ConnectionManager.websocket_manager.agent_connections
+
     async def connect(self, agent_id: uuid.UUID, websocket: WebSocket):
         try:
             connection = self.get_connection(agent_id)
@@ -17,7 +19,7 @@ class AgentConnectionManager(ConnectionManager):
         except KeyError:
             connection = AgentConnection(websocket, agent_id)
 
-        await super().connect(connection)
+        await self.accept_connection(connection)
         await connection.listen_and_forward()
 
     async def close_connection(self, connection_id: uuid.UUID):

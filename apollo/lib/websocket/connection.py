@@ -1,4 +1,5 @@
 import uuid
+from typing import Dict
 
 from fastapi import WebSocket
 from starlette.types import Message
@@ -17,7 +18,7 @@ SEND_AFTER_CLOSE_ALTERNATIVE = 'Cannot call "send" once a close message'
 class Connection(WebSocket):
     def __init__(self, websocket: WebSocket, id_: uuid.UUID):
         self.connect(websocket)
-        self.id = id_
+        self.id_ = id_
 
     @property
     def connected(self):
@@ -62,20 +63,20 @@ class Connection(WebSocket):
 
 class ConnectionManager:
     websocket_manager = WebSocketManager()
-    connections = websocket_manager.open_user_connections
+    connections: Dict[uuid.UUID, Connection]
 
     @classmethod
-    async def connect(cls, connection: Connection):
+    async def accept_connection(cls, connection: Connection):
         await connection.accept()
         cls._add_connection(connection)
 
     @classmethod
     def _add_connection(cls, connection: 'Connection'):
-        cls.connections[connection.id] = connection
+        cls.connections[connection.id_] = connection
 
     @classmethod
     def _remove_connection(cls, connection: 'Connection'):
-        cls.connections.pop(connection.id, None)
+        cls.connections.pop(connection.id_, None)
 
     @classmethod
     def get_connection(cls, connection_id: uuid.UUID):
