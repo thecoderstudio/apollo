@@ -24,6 +24,12 @@ class Connection(WebSocket):
     def connected(self):
         return self.client_state is WebSocketState.CONNECTED
 
+    def __hash__(self):
+        return hash(self.id_)
+
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
+
     def connect(self, websocket: WebSocket):
         super().__init__(websocket.scope, websocket._receive, websocket._send)
         self.client_state = websocket.client_state
@@ -56,7 +62,7 @@ class Connection(WebSocket):
 
     async def close(self):
         try:
-            super().close()
+            await super().close()
         except RuntimeError as e:
             raise self._convert_runtime_error(e)
 

@@ -23,7 +23,7 @@ class Agent(Base):
         try:
             return AgentConnectionManager().get_connection(
                 self.id
-            ).client_state
+            ).application_state
         except KeyError:
             return WebSocketState.DISCONNECTED
 

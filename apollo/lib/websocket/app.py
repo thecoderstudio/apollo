@@ -21,9 +21,10 @@ class AppConnectionManager(ConnectionManager, metaclass=Singleton):
     ):
         connection = AppConnection(websocket)
         await self.accept_connection(connection)
-        self._add_interested_connection(observer_interest_type, connection.id)
-        await self._send_message(connection.id, observer_interest_type)
-        await connection.listen()
+        self._add_interested_connection(observer_interest_type, connection.id_)
+        await self._send_message(connection.id_, observer_interest_type)
+        async for _ in connection.listen():
+            pass
         self._remove_connection(connection)
 
     def _add_interested_connection(
