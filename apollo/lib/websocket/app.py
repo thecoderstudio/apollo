@@ -23,7 +23,7 @@ class AppConnectionManager(ConnectionManager, metaclass=Singleton):
         self._add_interested_connection(observer_interest_type, connection.id)
         await self._send_message(connection.id, observer_interest_type)
         await connection.listen()
-        self._remove_connection(connection.id)
+        self._remove_connection(connection)
 
     def _add_interested_connection(
         self,

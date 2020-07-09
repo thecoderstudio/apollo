@@ -26,7 +26,7 @@ class UserConnectionManager(ConnectionManager):
             agent_connection
         )
         await shell_connection.listen_and_forward()
-        self._remove_connection(user_connection.id)
+        self._remove_connection(user_connection)
         return user_connection
 
     def _get_active_agent_connection(self, agent_connection_id: uuid.UUID):
