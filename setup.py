@@ -19,6 +19,7 @@ requires = [
 ]
 
 test_requires = [
+    'async-asgi-testclient',
     'coverage',
     'pytest',
     'pytest-asyncio',

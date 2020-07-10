@@ -2,6 +2,7 @@ import contextlib
 from configparser import ConfigParser
 from unittest.mock import AsyncMock
 
+from async_asgi_testclient import TestClient as AsyncTestClient
 from fastapi import WebSocket
 from fastapi.testclient import TestClient
 from pytest import fixture
@@ -26,6 +27,12 @@ from tests import create_http_connection_mock
 @fixture
 def test_client():
     return TestClient(app)
+
+
+@fixture
+async def async_test_client():
+    async with AsyncTestClient(app) as test_client:
+        yield test_client
 
 
 @fixture

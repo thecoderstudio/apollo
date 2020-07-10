@@ -11,27 +11,27 @@ from apollo.lib.websocket.agent import AgentConnection
 from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthClient
+from tests.lib.websocket import assert_interested_connections_messaged
 
 
-def test_post_agent_success(test_client, session_cookie):
-    with patch('apollo.lib.websocket.app.AppConnectionManager.'
-               + 'message_interested_connections') as patched_function:
-        response = test_client.post(
-            '/agent',
-            json={'name': 'test'},
-            cookies=session_cookie
-        )
-        agent = response.json()
-        oauth_client = agent['oauth_client']
+@pytest.mark.asyncio
+@assert_interested_connections_messaged(
+    WebSocketObserverInterestType.AGENT_LISTING
+)
+async def test_post_agent_success(async_test_client, session_cookie):
+    response = await async_test_client.post(
+        '/agent',
+        json={'name': 'test'},
+        cookies=session_cookie
+    )
+    agent = response.json()
+    oauth_client = agent['oauth_client']
 
-        assert response.status_code == 201
-        assert agent['id'] is not None
-        assert oauth_client['agent_id'] is not None
-        assert oauth_client['secret'] is not None
-        assert oauth_client['type'] == 'confidential'
-        patched_function.assert_called_with(
-            WebSocketObserverInterestType.AGENT_LISTING
-        )
+    assert response.status_code == 201
+    assert agent['id'] is not None
+    assert oauth_client['agent_id'] is not None
+    assert oauth_client['secret'] is not None
+    assert oauth_client['type'] == 'confidential'
 
 
 def test_post_agent_name_exists(test_client, session_cookie):

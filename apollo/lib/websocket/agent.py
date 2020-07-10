@@ -24,7 +24,6 @@ class AgentConnectionManager(ConnectionManager):
 
     async def close_connection(self, connection_id: uuid.UUID):
         connection = self.get_connection(connection_id)
-        await connection.close()
 
         try:
             await connection.close()
