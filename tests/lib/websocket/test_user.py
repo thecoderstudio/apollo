@@ -17,6 +17,19 @@ def test_user_connection_random_id_on_construction(websocket_mock):
 
 
 @pytest.mark.asyncio
+async def test_user_connection_manager_get_connection(
+    user_connection_manager,
+    websocket_mock
+):
+    user_connection = UserConnection(websocket_mock)
+    await user_connection_manager.accept_connection(user_connection)
+    fetched_connection = user_connection_manager.get_connection(
+        user_connection.id_)
+
+    assert user_connection is fetched_connection
+
+
+@pytest.mark.asyncio
 async def test_user_connection_manager_connect(
     agent_connection_manager,
     user_connection_manager,

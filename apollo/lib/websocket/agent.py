@@ -42,12 +42,12 @@ class AgentConnection(Connection):
 
     async def listen_and_forward(self):
         async for response in self.listen():
-            await self.message_over_user_connection(ShellIOSchema(**response))
+            await self._message_over_user_connection(ShellIOSchema(**response))
 
     async def _receive_message(self):
         return await self.receive_json()
 
-    async def message_over_user_connection(self, message: ShellIOSchema):
+    async def _message_over_user_connection(self, message: ShellIOSchema):
         user_connection = self._get_user_connection(message.connection_id)
         await user_connection.send_text(message.message)
 
