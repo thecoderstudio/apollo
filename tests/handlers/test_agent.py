@@ -66,7 +66,7 @@ async def test_shell(websocket_mock, test_client, session_cookie,
                      agent_connection_manager):
     connection_id = uuid.uuid4()
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
-    await agent_connection_manager.accept_connection(agent_connection)
+    await agent_connection_manager._accept_connection(agent_connection)
 
     with patch("apollo.lib.websocket.agent.AgentConnection.send_text",
                wraps=agent_connection.send_text) as send_text:

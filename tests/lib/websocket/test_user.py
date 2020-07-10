@@ -22,7 +22,7 @@ async def test_user_connection_manager_get_connection(
     websocket_mock
 ):
     user_connection = UserConnection(websocket_mock)
-    await user_connection_manager.accept_connection(user_connection)
+    await user_connection_manager._accept_connection(user_connection)
     fetched_connection = user_connection_manager.get_connection(
         user_connection.id_)
 
@@ -36,7 +36,7 @@ async def test_user_connection_manager_connect(
     websocket_mock
 ):
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
-    await agent_connection_manager.accept_connection(agent_connection)
+    await agent_connection_manager._accept_connection(agent_connection)
 
     with patch(
         'apollo.lib.websocket.agent.AgentConnection.send_text',
@@ -79,7 +79,7 @@ async def test_user_connection_manager_connect_active_agent_not_found(
     websocket_mock
 ):
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
-    await agent_connection_manager.accept_connection(agent_connection)
+    await agent_connection_manager._accept_connection(agent_connection)
     agent_connection.client_state = WebSocketState.DISCONNECTED
 
     user_connection = await user_connection_manager.connect(

@@ -19,7 +19,7 @@ class AgentConnectionManager(ConnectionManager):
         except KeyError:
             connection = AgentConnection(websocket, agent_id)
 
-        await self.accept_connection(connection)
+        await self._accept_connection(connection)
         await connection.listen_and_forward()
 
     async def close_connection(self, connection_id: uuid.UUID):

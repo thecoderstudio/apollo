@@ -67,7 +67,7 @@ async def test_agent_connection_status(
     db_session.commit()
 
     agent_connection = AgentConnection(websocket_mock, agent_id)
-    await agent_connection_manager.accept_connection(agent_connection)
+    await agent_connection_manager._accept_connection(agent_connection)
 
     agent = get_agent_by_name(db_session, 'test')
     assert agent.connection_state == WebSocketState.CONNECTED

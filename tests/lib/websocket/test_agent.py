@@ -18,7 +18,7 @@ async def test_agent_connection_manager_get_connection(
 ):
     agent_id = uuid.uuid4()
     agent_connection = AgentConnection(websocket_mock, agent_id)
-    await agent_connection_manager.accept_connection(agent_connection)
+    await agent_connection_manager._accept_connection(agent_connection)
     fetched_connection = agent_connection_manager.get_connection(agent_id)
 
     assert agent_connection is fetched_connection
@@ -35,11 +35,11 @@ async def test_agent_connection_manager_connect(
     agent_id = uuid.uuid4()
 
     if existing_agent:
-        await agent_connection_manager.accept_connection(AgentConnection(
+        await agent_connection_manager._accept_connection(AgentConnection(
             websocket_mock, agent_id))
 
     user_connection = UserConnection(websocket_mock)
-    await user_connection_manager.accept_connection(user_connection)
+    await user_connection_manager._accept_connection(user_connection)
 
     with patch(
         'apollo.lib.websocket.agent.AgentConnection.receive_json',
@@ -74,7 +74,7 @@ async def test_agent_connection_manager_close_connection(
     websocket_mock
 ):
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
-    await agent_connection_manager.accept_connection(agent_connection)
+    await agent_connection_manager._accept_connection(agent_connection)
 
     await agent_connection_manager.close_connection(agent_connection.id_)
 
@@ -89,7 +89,7 @@ async def test_agent_connection_manager_close_all_connections(
     agent_ids = [uuid.uuid4() for _ in range(0, 3)]
     for agent_id in agent_ids:
         agent_connection = AgentConnection(websocket_mock, agent_id)
-        await agent_connection_manager.accept_connection(agent_connection)
+        await agent_connection_manager._accept_connection(agent_connection)
 
     await agent_connection_manager.close_all_connections()
 
@@ -118,7 +118,7 @@ async def test_agent_connection_listen_and_forward(
     websocket_mock
 ):
     user_connection = UserConnection(websocket_mock)
-    await user_connection_manager.accept_connection(user_connection)
+    await user_connection_manager._accept_connection(user_connection)
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
 
     with patch(

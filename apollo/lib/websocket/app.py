@@ -20,7 +20,7 @@ class AppConnectionManager(ConnectionManager, metaclass=Singleton):
         observer_interest_type: WebSocketObserverInterestType
     ):
         connection = AppConnection(websocket)
-        await self.accept_connection(connection)
+        await self._accept_connection(connection)
         self._add_interested_connection(observer_interest_type, connection.id_)
         await self._send_message(connection.id_, observer_interest_type)
         async for _ in connection.listen():

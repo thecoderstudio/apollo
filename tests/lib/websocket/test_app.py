@@ -24,7 +24,7 @@ async def test_app_connection_manager_get_connection(
     websocket_mock
 ):
     app_connection = AppConnection(websocket_mock)
-    await app_connection_manager.accept_connection(app_connection)
+    await app_connection_manager._accept_connection(app_connection)
     fetched_connection = app_connection_manager.get_connection(
         app_connection.id_)
 
@@ -65,7 +65,7 @@ async def test_app_connection_manager_message_interested_connections(
 ):
     interest_type = WebSocketObserverInterestType.AGENT_LISTING
     connection = AppConnection(websocket_mock)
-    await app_connection_manager.accept_connection(connection)
+    await app_connection_manager._accept_connection(connection)
     app_connection_manager._add_interested_connection(interest_type,
                                                       connection.id_)
     send_text = mocker.patch(

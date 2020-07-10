@@ -21,7 +21,7 @@ class UserConnectionManager(ConnectionManager):
             return
 
         user_connection = UserConnection(websocket)
-        await self.accept_connection(user_connection)
+        await self._accept_connection(user_connection)
 
         shell_connection = await ShellConnection.start(
             user_connection,

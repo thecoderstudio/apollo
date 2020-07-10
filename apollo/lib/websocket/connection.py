@@ -72,7 +72,7 @@ class ConnectionManager:
     connections: Dict[uuid.UUID, Connection]
 
     @classmethod
-    async def accept_connection(cls, connection: Connection):
+    async def _accept_connection(cls, connection: Connection):
         await connection.accept()
         cls.__add_connection(connection)
 
