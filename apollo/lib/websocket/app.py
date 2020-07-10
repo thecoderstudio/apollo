@@ -26,6 +26,7 @@ class AppConnectionManager(ConnectionManager, metaclass=Singleton):
         async for _ in connection.listen():
             pass
         self._remove_connection(connection)
+        return connection
 
     def _add_interested_connection(
         self,
