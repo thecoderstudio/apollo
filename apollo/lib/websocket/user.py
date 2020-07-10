@@ -31,7 +31,8 @@ class UserConnectionManager(ConnectionManager):
         self._remove_connection(user_connection)
         return user_connection
 
-    def _get_active_agent_connection(self, agent_connection_id: uuid.UUID):
+    @staticmethod
+    def _get_active_agent_connection(agent_connection_id: uuid.UUID):
         agent_connection = AgentConnectionManager.get_connection(
                 agent_connection_id)
         if agent_connection.connected:

@@ -47,10 +47,10 @@ class AppConnectionManager(ConnectionManager, metaclass=Singleton):
             default=pydantic_encoder
         ))
 
-    def _remove_connection(self, connection_id: uuid.UUID):
+    def _remove_connection(self, connection: Connection):
         for connection_set in self.interested_connections.values():
-            connection_set.discard(connection_id)
-        super()._remove_connection(connection_id)
+            connection_set.discard(connection.id_)
+        super()._remove_connection(connection)
 
     async def message_interested_connections(
         self, observer_interest_type: WebSocketObserverInterestType

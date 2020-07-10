@@ -50,7 +50,8 @@ class AgentConnection(Connection):
         user_connection = self._get_user_connection(message.connection_id)
         await user_connection.send_text(message.message)
 
-    def _get_user_connection(self, connection_id: uuid.UUID):
+    @staticmethod
+    def _get_user_connection(connection_id: uuid.UUID):
         from apollo.lib.websocket.user import UserConnectionManager
         return UserConnectionManager.get_connection(connection_id)
 
