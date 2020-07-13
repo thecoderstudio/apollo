@@ -72,10 +72,8 @@ async def test_agent_connection_status(
     agent = get_agent_by_name(db_session, 'test')
     assert agent.connection_state == WebSocketState.CONNECTED
 
-    # Temporary change state to test connection state.
-    agent_connection.application_state = WebSocketState.CONNECTING
+    agent_connection.client_state = WebSocketState.CONNECTING
     assert agent.connection_state == WebSocketState.CONNECTING
-    agent_connection.application_state = WebSocketState.CONNECTED
 
-    await agent_connection.close()
-    assert agent.connection_state == WebSocketState.DISCONNECTED
+    agent_connection.client_state = WebSocketState.DISCONNECTED
+    assert agent_connection.client_state == WebSocketState.DISCONNECTED
