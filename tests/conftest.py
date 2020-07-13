@@ -1,8 +1,12 @@
 import contextlib
 from configparser import ConfigParser
+from unittest.mock import AsyncMock
 
+from async_asgi_testclient import TestClient as AsyncTestClient
+from fastapi import WebSocket
 from fastapi.testclient import TestClient
 from pytest import fixture
+from starlette.websockets import WebSocketState, WebSocketDisconnect
 
 import apollo.lib.settings
 from apollo import app
@@ -11,7 +15,7 @@ from apollo.lib.security import create_session_cookie
 from apollo.lib.websocket import WebSocketManager
 from apollo.lib.websocket.agent import AgentConnectionManager
 from apollo.lib.websocket.app import AppConnectionManager
-from apollo.lib.websocket.user import UserConnectionManager
+from apollo.lib.websocket.user import UserConnectionManager, UserConnection
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
@@ -23,6 +27,12 @@ from tests import create_http_connection_mock
 @fixture
 def test_client():
     return TestClient(app)
+
+
+@fixture
+async def async_test_client():
+    async with AsyncTestClient(app) as test_client:
+        yield test_client
 
 
 @fixture
@@ -118,6 +128,25 @@ def mock_http_connection():
 @fixture
 def http_connection_mock(mock_http_connection):
     return mock_http_connection()
+
+
+@fixture
+def websocket_mock(mocker):
+    mock = mocker.create_autospec(WebSocket)
+
+    mock._receive = AsyncMock(
+        side_effect=WebSocketDisconnect
+    )
+    mock._send = AsyncMock()
+    mock.scope = {'type': 'websocket'}
+    mock.client_state = WebSocketState.CONNECTED
+    mock.application_state = WebSocketState.CONNECTING
+    return mock
+
+
+@fixture
+def user_connection_mock(mocker):
+    return mocker.create_autospec(UserConnection)
 
 
 @fixture

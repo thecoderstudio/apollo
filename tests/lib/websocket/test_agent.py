@@ -1,114 +1,167 @@
 import uuid
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
-from fastapi import WebSocket
-from starlette.websockets import WebSocketDisconnect
+from starlette.websockets import WebSocketDisconnect, WebSocketState
+
+from apollo.lib.schemas.message import BaseMessageSchema, ShellIOSchema
+from apollo.lib.websocket.agent import AgentConnection
+from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
+from apollo.lib.websocket.user import UserConnection
+from tests.lib.websocket import assert_interested_connections_messaged
 
 
 @pytest.mark.asyncio
-async def test_connect(mocker, agent_connection_manager):
-    manager = agent_connection_manager
-    mock_agent_id = uuid.uuid4()
-    agent_websocket_mock = mocker.create_autospec(WebSocket)
+async def test_agent_connection_manager_get_connection(
+    agent_connection_manager,
+    websocket_mock
+):
+    agent_id = uuid.uuid4()
+    agent_connection = AgentConnection(websocket_mock, agent_id)
+    await agent_connection_manager._accept_connection(agent_connection)
+    fetched_connection = agent_connection_manager.get_connection(agent_id)
 
-    mock_user_id = uuid.uuid4()
-    agent_websocket_mock.receive_json.side_effect = [
-        {
-            'connection_id': str(mock_user_id),
-            'message': 'test'
-        },
-        WebSocketDisconnect
-    ]
+    assert agent_connection is fetched_connection
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('existing_agent', [True, False])
+async def test_agent_connection_manager_connect(
+    agent_connection_manager,
+    user_connection_manager,
+    websocket_mock,
+    existing_agent
+):
+    agent_id = uuid.uuid4()
+
+    if existing_agent:
+        await agent_connection_manager._accept_connection(AgentConnection(
+            websocket_mock, agent_id))
+
+    user_connection = UserConnection(websocket_mock)
+    await user_connection_manager._accept_connection(user_connection)
 
     with patch(
-        'apollo.lib.websocket.WebSocketManager.message_user'
-    ) as message_user_mock:
-        await manager.connect(mock_agent_id, agent_websocket_mock)
+        'apollo.lib.websocket.agent.AgentConnection.receive_json',
+        side_effect=[
+            ShellIOSchema(
+                connection_id=user_connection.id_,
+                message='a'
+            ).dict(),
+            ShellIOSchema(
+                connection_id=user_connection.id_,
+                message='b'
+            ).dict(),
+            WebSocketDisconnect
+        ]
+    ):
+        with patch(
+            'apollo.lib.websocket.user.UserConnection.send_text',
+            wraps=user_connection.send_text
+        ) as send_text:
+            await agent_connection_manager.connect(agent_id, websocket_mock)
 
-        message_user_mock.assert_awaited_once_with(mock_user_id, 'test')
-        with pytest.raises(KeyError):
-            assert manager.get_connection(mock_agent_id)
+            send_text.assert_has_awaits([call('a'), call('b')])
 
-
-@pytest.mark.asyncio
-async def test_close_connection(mocker, agent_connection_manager):
-    manager = agent_connection_manager
-
-    mock_agent_id = uuid.uuid4()
-    agent_websocket_mock = mocker.create_autospec(WebSocket)
-    await manager.websocket_manager.connect_agent(mock_agent_id,
-                                                  agent_websocket_mock)
-
-    await manager.close_connection(mock_agent_id)
-
-    agent_websocket_mock.send_json.assert_awaited_once_with(
-        "Closing connection")
-    agent_websocket_mock.close.assert_awaited_once()
-
-    with pytest.raises(KeyError):
-        assert manager.get_connection(mock_agent_id)
+    assert agent_connection_manager.get_connection(
+        agent_id
+    )is not None
 
 
 @pytest.mark.asyncio
-async def test_close_closed_connection(mocker, agent_connection_manager):
-    manager = agent_connection_manager
-
-    mock_agent_id = uuid.uuid4()
-    agent_websocket_mock = mocker.create_autospec(WebSocket)
-    await manager.websocket_manager.connect_agent(mock_agent_id,
-                                                  agent_websocket_mock)
-
-    agent_websocket_mock.send_json.side_effect = RuntimeError(
-        'Cannot call "send" once a close message has been sent.'
-    )
-
-    await manager.close_connection(mock_agent_id)
-
-    agent_websocket_mock.send_json.assert_awaited_once_with(
-        "Closing connection")
-
-    with pytest.raises(KeyError):
-        assert manager.get_connection(mock_agent_id)
-
-
-@pytest.mark.asyncio
-async def test_close_connect_unexpected_runtime_error(
-    mocker, agent_connection_manager
+async def test_agent_connection_manager_close_connection(
+    agent_connection_manager,
+    websocket_mock
 ):
-    manager = agent_connection_manager
+    agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
+    await agent_connection_manager._accept_connection(agent_connection)
 
-    mock_agent_id = uuid.uuid4()
-    agent_websocket_mock = mocker.create_autospec(WebSocket)
-    await manager.websocket_manager.connect_agent(mock_agent_id,
-                                                  agent_websocket_mock)
+    await agent_connection_manager.close_connection(agent_connection.id_)
 
-    agent_websocket_mock.send_json.side_effect = RuntimeError(
-        'Test unexpected'
-    )
-
-    with pytest.raises(RuntimeError, match='Test unexpected'):
-        await manager.close_connection(mock_agent_id)
-
-    assert manager.get_connection(mock_agent_id) is agent_websocket_mock
+    assert agent_connection.application_state is WebSocketState.DISCONNECTED
 
 
 @pytest.mark.asyncio
-async def test_close_all_connections(mocker, agent_connection_manager):
-    manager = agent_connection_manager
+async def test_agent_connection_manager_close_all_connections(
+    agent_connection_manager,
+    websocket_mock
+):
+    agent_ids = [uuid.uuid4() for _ in range(0, 3)]
+    for agent_id in agent_ids:
+        agent_connection = AgentConnection(websocket_mock, agent_id)
+        await agent_connection_manager._accept_connection(agent_connection)
 
-    agent_websocket_mock_1 = mocker.create_autospec(WebSocket)
-    agent_websocket_mock_2 = mocker.create_autospec(WebSocket)
+    await agent_connection_manager.close_all_connections()
 
-    agent_websocket_mock_2.send_json.side_effect = RuntimeError(
-        'Cannot call "send" once a close message has been sent.'
-    )
+    for agent_id in agent_ids:
+        agent_connection = agent_connection_manager.get_connection(agent_id)
+        assert (agent_connection.application_state is
+                WebSocketState.DISCONNECTED)
 
-    await manager.websocket_manager.connect_agent(uuid.uuid4(),
-                                                  agent_websocket_mock_1)
-    await manager.websocket_manager.connect_agent(uuid.uuid4(),
-                                                  agent_websocket_mock_2)
 
-    await manager.close_all_connections()
+@pytest.mark.asyncio
+async def test_agent_connection_message(websocket_mock):
+    message = BaseMessageSchema(connection_id=uuid.uuid4())
+    connection = AgentConnection(websocket_mock, uuid.uuid4())
+    await connection.accept()
 
-    assert len(manager.websocket_manager.open_agent_connections) == 0
+    with patch('apollo.lib.websocket.agent.AgentConnection.send_text',
+               wraps=connection.send_text) as send_text:
+        await connection.message(message)
+
+        send_text.assert_awaited_once_with(message.json())
+
+
+@pytest.mark.asyncio
+async def test_agent_connection_listen_and_forward(
+    user_connection_manager,
+    websocket_mock
+):
+    user_connection = UserConnection(websocket_mock)
+    await user_connection_manager._accept_connection(user_connection)
+    agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
+
+    with patch(
+        'apollo.lib.websocket.agent.AgentConnection.receive_json',
+        side_effect=[
+            ShellIOSchema(
+                connection_id=user_connection.id_,
+                message='a'
+            ).dict(),
+            ShellIOSchema(
+                connection_id=user_connection.id_,
+                message='b'
+            ).dict(),
+            WebSocketDisconnect
+        ]
+    ):
+        with patch(
+            'apollo.lib.websocket.user.UserConnection.send_text',
+            wraps=user_connection.send_text
+        ) as send_text:
+            await agent_connection.listen_and_forward()
+
+            send_text.assert_has_awaits([call('a'), call('b')])
+
+
+@pytest.mark.asyncio
+@assert_interested_connections_messaged(
+    WebSocketObserverInterestType.AGENT_LISTING
+)
+async def test_agent_connection_accept(websocket_mock):
+    connection = AgentConnection(websocket_mock, uuid.uuid4())
+    await connection.accept()
+
+    assert connection.application_state is WebSocketState.CONNECTED
+
+
+@pytest.mark.asyncio
+@assert_interested_connections_messaged(
+    WebSocketObserverInterestType.AGENT_LISTING
+)
+async def test_agent_connection_close(websocket_mock):
+    connection = AgentConnection(websocket_mock, uuid.uuid4())
+    await connection.accept()
+    await connection.close()
+
+    assert connection.application_state is WebSocketState.DISCONNECTED

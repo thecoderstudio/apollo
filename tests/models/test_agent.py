@@ -1,7 +1,7 @@
 import pytest
-from fastapi import WebSocket
 from starlette.websockets import WebSocketState
 
+from apollo.lib.websocket.agent import AgentConnection
 from apollo.models.agent import Agent, get_agent_by_name, list_all_agents
 from apollo.models.oauth import OAuthClient
 
@@ -57,22 +57,23 @@ def test_list_all_agents_size(db_session):
 
 
 @pytest.mark.asyncio
-async def test_agent_connection_status(db_session, mocker, websocket_manager):
+async def test_agent_connection_status(
+    db_session, mocker, websocket_mock, agent_connection_manager
+):
     agent = Agent(name='test')
     db_session.add(agent)
     db_session.flush()
     agent_id = agent.id
     db_session.commit()
 
-    websocket_mock = mocker.create_autospec(WebSocket)
-    await websocket_manager.connect_agent(agent_id, websocket_mock)
+    agent_connection = AgentConnection(websocket_mock, agent_id)
+    await agent_connection_manager._accept_connection(agent_connection)
 
-    websocket_mock.client_state = WebSocketState.CONNECTED
     agent = get_agent_by_name(db_session, 'test')
     assert agent.connection_state == WebSocketState.CONNECTED
 
-    websocket_mock.client_state = WebSocketState.CONNECTING
+    agent_connection.client_state = WebSocketState.CONNECTING
     assert agent.connection_state == WebSocketState.CONNECTING
 
-    await websocket_manager.close_agent_connection(agent_id)
-    assert agent.connection_state == WebSocketState.DISCONNECTED
+    agent_connection.client_state = WebSocketState.DISCONNECTED
+    assert agent_connection.client_state == WebSocketState.DISCONNECTED

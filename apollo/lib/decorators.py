@@ -26,7 +26,7 @@ def notify_websockets(observer_interest_type):
             if inspect.iscoroutine(output):
                 output = await output
 
-            await AppConnectionManager().send_message_to_connections(
+            await AppConnectionManager().message_interested_connections(
                 observer_interest_type
             )
             return output
