@@ -48,12 +48,13 @@ def test_connection_connect(websocket_mock):
 
 @pytest.mark.asyncio
 async def test_connection_listen(websocket_mock):
+    connection = Connection(websocket_mock, uuid.uuid4())
     with patch('apollo.lib.websocket.connection.Connection._receive_message',
                side_effect=['a', 'b', WebSocketDisconnect]):
-        connection = Connection(websocket_mock, uuid.uuid4())
         result = [message async for message in connection.listen()]
 
     assert result == ['a', 'b']
+    assert connection.application_state is WebSocketState.DISCONNECTED
 
 
 @pytest.mark.asyncio
@@ -111,8 +112,7 @@ async def test_connection_close_after_closure(websocket_mock):
     await connection.accept()
     await connection.close()
 
-    with pytest.raises(SendAfterConnectionClosure):
-        await connection.close()
+    await connection.close()
 
 
 @pytest.mark.asyncio

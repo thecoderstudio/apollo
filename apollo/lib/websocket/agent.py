@@ -3,7 +3,6 @@ import uuid
 from fastapi import WebSocket
 
 from apollo.lib.decorators import notify_websockets
-from apollo.lib.exceptions.websocket import SendAfterConnectionClosure
 from apollo.lib.schemas.message import BaseMessageSchema, ShellIOSchema
 from apollo.lib.websocket.connection import ConnectionManager, Connection
 from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
@@ -24,11 +23,7 @@ class AgentConnectionManager(ConnectionManager):
 
     async def close_connection(self, connection_id: uuid.UUID):
         connection = self.get_connection(connection_id)
-
-        try:
-            await connection.close()
-        except SendAfterConnectionClosure:
-            pass
+        await connection.close()
 
     async def close_all_connections(self):
         for agent_id in list(self.connections):

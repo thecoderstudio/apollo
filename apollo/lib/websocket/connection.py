@@ -40,7 +40,7 @@ class Connection(WebSocket):
             while True:
                 yield await self._receive_message()
         except WebSocketDisconnect:
-            return
+            await self.close()
 
     async def send(self, message: Message):
         try:
@@ -63,8 +63,8 @@ class Connection(WebSocket):
     async def close(self):
         try:
             await super().close()
-        except RuntimeError as e:
-            raise self._convert_runtime_error(e)
+        except SendAfterConnectionClosure:
+            return
 
 
 class ConnectionManager:
