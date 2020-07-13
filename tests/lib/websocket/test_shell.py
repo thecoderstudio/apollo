@@ -95,7 +95,7 @@ async def test_shell_connection_agent_connection_recovery(
     )
 
     with patch(
-        'apollo.lib.websocket.agent.AgentConnection.connected',
+        'apollo.lib.websocket.agent.AgentConnection.client_connected',
         new_callable=mocker.PropertyMock
     ) as connected_mock:
         connected_mock.side_effect = [False, False, True]

@@ -13,10 +13,10 @@ from apollo.lib.websocket.connection import Connection
     (WebSocketState.CONNECTING, False),
     (WebSocketState.CONNECTED, True)
 ])
-def test_connection_connected(websocket_mock, state, expect_connected):
+def test_connection_client_connected(websocket_mock, state, expect_connected):
     connection = Connection(websocket_mock, uuid.uuid4())
     connection.client_state = state
-    assert connection.connected is expect_connected
+    assert connection.client_connected is expect_connected
 
 
 def test_connection_hash(websocket_mock):
@@ -38,12 +38,12 @@ def test_connection_eq(websocket_mock):
 def test_connection_connect(websocket_mock):
     websocket_mock.client_state = WebSocketState.DISCONNECTED
     connection = Connection(websocket_mock, uuid.uuid4())
-    assert not connection.connected
+    assert not connection.client_connected
 
     websocket_mock.client_state = WebSocketState.CONNECTED
     connection.connect(websocket_mock)
 
-    assert connection.connected
+    assert connection.client_connected
 
 
 @pytest.mark.asyncio

@@ -35,7 +35,7 @@ class UserConnectionManager(ConnectionManager):
     def _get_active_agent_connection(agent_connection_id: uuid.UUID):
         agent_connection = AgentConnectionManager.get_connection(
                 agent_connection_id)
-        if agent_connection.connected:
+        if agent_connection.client_connected:
             return agent_connection
 
         raise KeyError

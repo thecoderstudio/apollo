@@ -21,7 +21,7 @@ class Connection(WebSocket):
         self.id_ = id_
 
     @property
-    def connected(self):
+    def client_connected(self):
         return self.client_state is WebSocketState.CONNECTED
 
     def __hash__(self):

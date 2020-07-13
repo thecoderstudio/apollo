@@ -25,6 +25,7 @@ class AppConnectionManager(ConnectionManager, metaclass=Singleton):
         await self._send_message(connection.id_, observer_interest_type)
         async for _ in connection.listen():
             pass
+
         self._remove_connection(connection)
         return connection
 

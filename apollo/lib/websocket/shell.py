@@ -47,7 +47,7 @@ class ShellConnection:
             time_elapsed += 1
 
     async def _attempt_recovery(self):
-        if not self.target.connected:
+        if not self.target.client_connected:
             return False
 
         await self.origin.send_text(click.style(
