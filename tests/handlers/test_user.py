@@ -2,7 +2,6 @@ from apollo.models.user import User
 
 
 def test_post_user_successful(test_client, db_session, session_cookie):
-
     response = test_client.post(
         '/user',
         json={'username': 'doejohn', 'password': 'testing123'},
