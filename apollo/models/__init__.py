@@ -43,6 +43,11 @@ def persist(session, obj):
     return obj
 
 
+def _delete(session, obj):
+    log.debug(f"deleting object {obj}")
+    session.delete(obj)
+
+
 def rollback(session):
     log.debug("Rolling back session: %r", session.dirty)
     return session.rollback()
@@ -74,3 +79,18 @@ def save(session, obj):
         commit(session)
 
     return obj_copy, id_
+
+
+def delete(session, obj):
+    try:
+        _delete(session, obj)
+    except Exception as e:
+        log.critical(
+            "Something went wrong deleting the {}".format(
+                obj.__class__.__name__),
+            exc_info=True
+        )
+        rollback(session)
+        raise e
+    finally:
+        commit(session)
