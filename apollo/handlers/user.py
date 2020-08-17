@@ -35,4 +35,7 @@ def delete_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
     user = get_user_by_id(session, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    elif user.role.name == 'admin':
+        raise HTTPException(status_code=400,
+                            detail="Can't delete other admins")
     delete(session, user)
