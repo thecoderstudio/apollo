@@ -1,4 +1,5 @@
 import uuid
+from typing import List
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
@@ -7,13 +8,14 @@ from apollo.lib.exceptions import HTTPException
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.user import CreateUserSchema, UserSchema
-from apollo.lib.security import Allow
+from apollo.lib.security import Allow, ADMIN_PRINCIPAL
 from apollo.models import get_session, save, delete
-from apollo.models.user import User, get_user_by_id
+from apollo.models.user import User, get_user_by_id, list_users as query_users
 
 router = SecureRouter([
-    (Allow, 'role:admin', 'user.post'),
-    (Allow, 'role:admin', 'user.delete')
+    (Allow, ADMIN_PRINCIPAL, 'user.post'),
+    (Allow, ADMIN_PRINCIPAL, 'user.delete'),
+    (Allow, ADMIN_PRINCIPAL, 'user.list')
 ])
 
 
@@ -39,3 +41,8 @@ def delete_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
         raise HTTPException(status_code=400,
                             detail="Can't delete other admins")
     delete(session, user)
+
+@router.get('/user', status_code=200, response_model=List[UserSchema],
+            permission='user.list')
+def list_users(session: Session = Depends(get_session)):
+    return query_users(session)
