@@ -1,4 +1,8 @@
+from apollo.models.user import User
+
+
 def test_post_user_successful(test_client, db_session, session_cookie):
+
     response = test_client.post(
         '/user',
         json={'username': 'doejohn', 'password': 'testing123'},
@@ -105,3 +109,37 @@ def test_post_user_as_regular_user(test_client, db_session, user,
 
     assert response.status_code == 403
     assert response.json()['detail'] == "Permission denied."
+
+
+def test_list_users_successful(test_client, db_session, session_cookie):
+    user_1_id, user_2_id = add_multiple_users(db_session)
+
+    response = test_client.get('/user', cookies=session_cookie)
+
+    users = response.json()
+    assert {'id': str(user_1_id), 'username': 'johndoe'} in users
+    assert {'id': str(user_2_id), 'username': 'jeffjefferson'} in users
+    assert response.status_code == 200
+
+
+def add_multiple_users(db_session):
+    user_1 = User(
+        username='johndoe',
+        password_hash=(
+            '$2b$12$FdTnxaL.NlRdEHREzbU3k.Nt1Gpii9vrKU.1h/MnZYdlMHPUW8/k.'),
+        password_salt='$2b$12$FdTnxaL.NlRdEHREzbU3k.'
+    )
+    user_2 = User(
+        username='jeffjefferson',
+        password_hash=(
+            '$2b$12$FdTnxaL.NlRdEHREzbU3k.Nt1Gpii9vrKU.1h/MnZYdlMHPUW8/k.'),
+        password_salt='$2b$12$FdTnxaL.NlRdEHREzbU3k.'
+    )
+    db_session.add(user_1)
+    db_session.add(user_2)
+    db_session.flush()
+    user_1_id = user_1.id
+    user_2_id = user_2.id
+    db_session.commit()
+
+    return user_1_id, user_2_id
