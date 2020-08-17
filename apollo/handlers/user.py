@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
@@ -6,9 +8,12 @@ from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.user import CreateUserSchema, UserSchema
 from apollo.lib.security import Allow
 from apollo.models import get_session, save
-from apollo.models.user import User
+from apollo.models.user import User, list_users as query_users
 
-router = SecureRouter([(Allow, 'role:admin', 'user.post')])
+router = SecureRouter([
+    (Allow, 'role:admin', 'user.post'),
+    (Allow, 'role:admin', 'user.list')
+])
 
 
 @router.post('/user', status_code=201, response_model=UserSchema,
@@ -22,3 +27,9 @@ def post_user(user_data: CreateUserSchema,
 
     user, _ = save(session, User(**data))
     return user
+
+
+@router.get('/user', status_code=200, response_model=List[UserSchema],
+            permission='user.list')
+def list_users(session: Session = Depends(get_session)):
+    return query_users(session)

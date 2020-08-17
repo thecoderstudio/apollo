@@ -29,3 +29,7 @@ def get_user_by_username(session, username: str):
 
 def count_users(session):
     return session.query(User).count()
+
+
+def list_users(session):
+    return session.query(User).all()
