@@ -3,6 +3,7 @@ import uuid
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
+from apollo.lib.exceptions import HTTPException
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.user import CreateUserSchema, UserSchema
@@ -32,4 +33,6 @@ def post_user(user_data: CreateUserSchema,
 @router.delete('/user/{user_id}', status_code=204, permission='user.delete')
 def delete_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
     user = get_user_by_id(session, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     delete(session, user)

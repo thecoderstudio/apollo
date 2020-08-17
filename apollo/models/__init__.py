@@ -1,5 +1,6 @@
 import copy
 import logging
+from functools import wraps
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -58,39 +59,40 @@ def commit(session):
     session.commit()
 
 
+def rollback_on_failure(action):
+    def decorate(func):
+        @wraps(func)
+        def wrapped(session, obj, *args, **kwargs):
+            try:
+                return func(session, obj, *args, **kwargs)
+            except Exception as e:
+                log.critical(
+                    "Something went wrong {} the {}".format(
+                        action, obj.__class__.__name__),
+                    exc_info=True
+                )
+                rollback(session)
+                raise e
+            finally:
+                commit(session)
+        return wrapped
+    return decorate
+
+
+@rollback_on_failure('saving')
 def save(session, obj):
+    obj = persist(session, obj)
     try:
-        obj = persist(session, obj)
-        try:
-            id_ = obj.id
-        except AttributeError:
-            id_ = None
-        # Shallow copy to be able to return generated data without having
-        # to request the object again to get it in session.
-        obj_copy = copy.copy(obj)
-    except Exception as e:
-        log.critical(
-            'Something went wrong saving the {}'.format(
-                obj.__class__.__name__),
-            exc_info=True)
-        rollback(session)
-        raise e
-    finally:
-        commit(session)
+        id_ = obj.id
+    except AttributeError:
+        id_ = None
+    # Shallow copy to be able to return generated data without having
+    # to request the object again to get it in session.
+    obj_copy = copy.copy(obj)
 
     return obj_copy, id_
 
 
+@rollback_on_failure('deleting')
 def delete(session, obj):
-    try:
-        _delete(session, obj)
-    except Exception as e:
-        log.critical(
-            "Something went wrong deleting the {}".format(
-                obj.__class__.__name__),
-            exc_info=True
-        )
-        rollback(session)
-        raise e
-    finally:
-        commit(session)
+    _delete(session, obj)
