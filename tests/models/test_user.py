@@ -2,7 +2,8 @@ import pytest
 from sqlalchemy.exc import DataError
 
 from apollo.models.role import Role
-from apollo.models.user import User, get_user_by_username, count_users
+from apollo.models.user import (User, get_user_by_username, count_users,
+                                list_users)
 
 
 def test_get_user_by_name(db_session):
@@ -81,3 +82,27 @@ def test_user_cascades(db_session):
     db_session.commit()
 
     assert db_session.query(Role).get(role_id) is not None
+
+
+def test_list_users(db_session):
+    user_1 = User(
+        username='johndoe',
+        password_hash=(
+            '$2b$12$FdTnxaL.NlRdEHREzbU3k.Nt1Gpii9vrKU.1h/MnZYdlMHPUW8/k.'),
+        password_salt='$2b$12$FdTnxaL.NlRdEHREzbU3k.'
+    )
+    user_2 = User(
+        username='jeffjefferson',
+        password_hash=(
+            '$2b$12$FdTnxaL.NlRdEHREzbU3k.Nt1Gpii9vrKU.1h/MnZYdlMHPUW8/k.'),
+        password_salt='$2b$12$FdTnxaL.NlRdEHREzbU3k.'
+    )
+    db_session.add(user_1)
+    db_session.add(user_2)
+    db_session.commit()
+
+    users = list_users(db_session)
+
+    assert user_1 in users
+    assert user_2 in users
+    assert len(users) == 2
