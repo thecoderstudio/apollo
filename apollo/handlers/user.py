@@ -10,7 +10,10 @@ from apollo.lib.security import Allow
 from apollo.models import get_session, save
 from apollo.models.user import User, list_users as query_users
 
-router = SecureRouter([(Allow, 'role:admin', 'user.post')])
+router = SecureRouter([
+    (Allow, 'role:admin', 'user.post'),
+    (Allow, 'role:admin', 'user.list')
+])
 
 
 @router.post('/user', status_code=201, response_model=UserSchema,
