@@ -13,14 +13,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: |
-          python3.8.5 -m pip install --upgrade pip
-          pip3 install setuptools
-          pip3 install -e .[tests]
 
       - name: Test with pytest
         run: docker-compose -f test-compose.yml up --exit-code-from apollo-test apollo-test
