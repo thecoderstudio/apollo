@@ -111,6 +111,24 @@ def test_post_user_as_regular_user(test_client, db_session, user,
     assert response.json()['detail'] == "Permission denied."
 
 
+def test_list_users_unauthenticated(test_client):
+    response = test_client.get('/user')
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
+
+
+def test_list_users_as_regular_user(test_client, db_session, user,
+                                    session_cookie):
+    user.role = None
+    db_session.commit()
+
+    response = test_client.get('/user', cookies=session_cookie)
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
+
+
 def test_list_users_successful(test_client, db_session, session_cookie):
     user_1_id, user_2_id = add_multiple_users(db_session)
 
