@@ -1,3 +1,4 @@
+from apollo.models.role import get_role_by_name
 from apollo.models.user import User
 
 
@@ -160,3 +161,57 @@ def add_multiple_users(db_session):
     db_session.commit()
 
     return user_1_id, user_2_id
+
+
+def test_delete_unauthenticated(test_client):
+    response = test_client.delete('/user/e670cce4-b36d-4c26-aaae-369d4eba31d3')
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
+
+
+def test_delete_as_regular_user(test_client, db_session, user, session_cookie):
+    user.role = None
+    db_session.commit()
+
+    response = test_client.delete('/user/e670cce4-b36d-4c26-aaae-369d4eba31d3',
+                                  cookies=session_cookie)
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
+
+
+def test_delete_user_not_found(test_client, session_cookie):
+    response = test_client.delete('/user/e670cce4-b36d-4c26-aaae-369d4eba31d3',
+                                  cookies=session_cookie)
+
+    assert response.status_code == 404
+    assert response.json()['detail'] == "User not found"
+
+
+def test_delete_admin_user(test_client, db_session, session_cookie):
+    user = User(
+        username='johndoe',
+        password_hash=(
+            '$2b$12$FdTnxaL.NlRdEHREzbU3k.Nt1Gpii9vrKU.1h/MnZYdlMHPUW8/k.'),
+        password_salt='$2b$12$FdTnxaL.NlRdEHREzbU3k.',
+        role=get_role_by_name(db_session, 'admin')
+    )
+    db_session.add(user)
+    db_session.flush()
+    user_id = user.id
+    db_session.commit()
+
+    response = test_client.delete(f"/user/{user_id}", cookies=session_cookie)
+
+    assert response.status_code == 400
+    assert response.json()['detail'] == "Can't delete other admins"
+
+
+def test_delete_successful(test_client, db_session, session_cookie):
+    user_id, _ = add_multiple_users(db_session)
+
+    response = test_client.delete(f"/user/{user_id}", cookies=session_cookie)
+
+    assert response.status_code == 204
+    assert db_session.query(User).get(user_id) is None
