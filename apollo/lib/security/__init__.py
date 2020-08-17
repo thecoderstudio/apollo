@@ -21,6 +21,7 @@ Everyone = 'Everyone'
 Human = 'Human'
 
 JWT_ALGORITHM = 'HS256'
+ADMIN_PRINCIPAL = 'role:admin'
 
 
 class AuthorizationPolicy:
