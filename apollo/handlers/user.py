@@ -52,4 +52,4 @@ def list_users(session: Session = Depends(get_session)):
 @router.get('/user/me', permission='user.get_current')
 def get_current_user(request: Request,
                      session: Session = Depends(get_session)):
-    print(request)
+    print(request.current_user)

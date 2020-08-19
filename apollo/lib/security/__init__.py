@@ -29,17 +29,25 @@ class AuthorizationPolicy:
         self.acl_provider = acl_provider
 
     @with_db_session
-    def get_principals(self, http_connection, session):
-        principals = [Everyone]
+    def add_http_connection_metadata(self, http_connection, session):
+        http_connection.oauth_client = None
+        http_connection.current_user = self._get_current_user(
+            http_connection.cookies, session)
 
         access_token = self._get_authenticated_access_token(
             http_connection.headers, session)
         if access_token:
-            principals += [Authenticated, Agent,
-                           f"agent:{access_token.client.agent_id}"]
+            http_connection.oauth_client = access_token.client
 
-        authenticated_user = self._get_current_user(http_connection.cookies,
-                                                    session)
+    @with_db_session
+    def get_principals(self, http_connection, session):
+        principals = [Everyone]
+
+        if http_connection.oauth_client:
+            principals += [Authenticated, Agent,
+                           f"agent:{http_connection.oauth_client.agent_id}"]
+
+        authenticated_user = http_connection.current_user
         if authenticated_user:
             principals += [Authenticated, Human,
                            f"user:{authenticated_user.id}"]

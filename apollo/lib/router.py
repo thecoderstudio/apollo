@@ -22,6 +22,7 @@ class SecureRouter(APIRouter):
             @wraps(func)
             @websocket_route(*outer_args, **outer_kwargs)
             async def wrapped(websocket: WebSocket, *args, **kwargs):
+                self.acl_policy.add_http_connection_metadata(websocket)
                 self.acl_policy.validate_permission(permission, websocket)
                 await func(websocket, *args, **kwargs)
             return wrapped
@@ -66,6 +67,7 @@ class SecureRouter(APIRouter):
 
         @route(*outer_args, **outer_kwargs)
         async def wrapped(request: Request, *args, **kwargs):
+            self.acl_policy.add_http_connection_metadata(request)
             self.acl_policy.validate_permission(permission, request)
             if func_signature.parameters.get('request'):
                 kwargs['request'] = request
