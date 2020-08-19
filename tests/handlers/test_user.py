@@ -135,8 +135,18 @@ def test_list_users_successful(test_client, db_session, session_cookie):
     response = test_client.get('/user', cookies=session_cookie)
 
     users = response.json()
-    assert {'id': str(user_1_id), 'username': 'johndoe'} in users
-    assert {'id': str(user_2_id), 'username': 'jeffjefferson'} in users
+    assert {
+        'id': str(user_1_id),
+        'username': 'johndoe',
+        'role': None
+    } in users
+    assert {
+        'id': str(user_2_id),
+        'username': 'jeffjefferson',
+        'role': {
+            'name': 'admin'
+        }
+    } in users
     assert response.status_code == 200
 
 
@@ -151,7 +161,8 @@ def add_multiple_users(db_session):
         username='jeffjefferson',
         password_hash=(
             '$2b$12$FdTnxaL.NlRdEHREzbU3k.Nt1Gpii9vrKU.1h/MnZYdlMHPUW8/k.'),
-        password_salt='$2b$12$FdTnxaL.NlRdEHREzbU3k.'
+        password_salt='$2b$12$FdTnxaL.NlRdEHREzbU3k.',
+        role=get_role_by_name(db_session, 'admin')
     )
     db_session.add(user_1)
     db_session.add(user_2)
@@ -190,17 +201,7 @@ def test_delete_user_not_found(test_client, session_cookie):
 
 
 def test_delete_admin_user(test_client, db_session, session_cookie):
-    user = User(
-        username='johndoe',
-        password_hash=(
-            '$2b$12$FdTnxaL.NlRdEHREzbU3k.Nt1Gpii9vrKU.1h/MnZYdlMHPUW8/k.'),
-        password_salt='$2b$12$FdTnxaL.NlRdEHREzbU3k.',
-        role=get_role_by_name(db_session, 'admin')
-    )
-    db_session.add(user)
-    db_session.flush()
-    user_id = user.id
-    db_session.commit()
+    _, user_id = add_multiple_users(db_session)
 
     response = test_client.delete(f"/user/{user_id}", cookies=session_cookie)
 

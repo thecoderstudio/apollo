@@ -29,7 +29,7 @@ def post_user(user_data: CreateUserSchema,
     data.pop('password')
 
     user, _ = save(session, User(**data))
-    return user
+    return get_user_by_id(session, user.id)
 
 
 @router.delete('/user/{user_id}', status_code=204, permission='user.delete')
