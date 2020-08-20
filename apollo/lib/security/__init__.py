@@ -13,6 +13,7 @@ from apollo.lib.settings import settings
 from apollo.models.oauth import get_access_token_by_token
 from apollo.models.user import get_user_by_id
 
+Admin = 'role:admin'
 Authenticated = 'Authenticated'
 Allow = 'Allow'
 Agent = 'Agent'
@@ -21,14 +22,12 @@ Everyone = 'Everyone'
 Human = 'Human'
 
 JWT_ALGORITHM = 'HS256'
-ADMIN_PRINCIPAL = 'role:admin'
 
 
 class AuthorizationPolicy:
     def __init__(self, acl_provider):
         self.acl_provider = acl_provider
 
-    @with_db_session
     def add_http_connection_metadata(self, http_connection, session):
         http_connection.oauth_client = None
         http_connection.current_user = self._get_current_user(
