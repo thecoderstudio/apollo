@@ -216,3 +216,16 @@ def test_delete_successful(test_client, db_session, session_cookie):
 
     assert response.status_code == 204
     assert db_session.query(User).get(user_id) is None
+
+
+def test_get_current_user_successful(test_client, user, session_cookie):
+    response = test_client.get('/user/me', cookies=session_cookie)
+
+    assert response.status_code == 200
+    assert response.json() == {
+        'id': str(user.id),
+        'username': user.username,
+        'role': {
+            'name': user.role.name
+        }
+    }
