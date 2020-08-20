@@ -26,7 +26,7 @@ def source_method(d, e, f=2):
     [
         (signature(method_with_default_params), [], ['a', 'b', 'c']),
         (signature(method_with_default_params), ['d', 'e', 'f'],
-         ['e', 'd', 'a', 'b', 'c', 'f']),
+         ['e', 'd', 'a', 'b', 'f', 'c']),
         (signature(method_with_no_default_params), ['f'], ['a', 'b', 'f']),
         (signature(method_with_no_params), ['d'], ['d'])
     ]

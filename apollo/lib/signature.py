@@ -27,14 +27,18 @@ def _create_new_parameters(existing_parameters, new_parameter):
     if not existing_parameters:
         return [new_parameter]
 
+    print(existing_parameters)
+    print(new_parameter)
     if check_parameter_has_default(new_parameter):
         new_parameters = copy.copy(existing_parameters)
         for i, parameter in enumerate(new_parameters):
+            print(parameter)
+            print(parameter.default)
             if check_parameter_has_default(parameter):
                 new_parameters.insert(i, new_parameter)
                 return new_parameters
 
-            return existing_parameters + [new_parameter]
+        return existing_parameters + [new_parameter]
     else:
         return [new_parameter] + existing_parameters
 
