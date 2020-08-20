@@ -39,6 +39,8 @@ class AuthorizationPolicy:
         if access_token:
             enhanced_http_connection.oauth_client = access_token.client
 
+        return enhanced_http_connection
+
     @with_db_session
     def get_principals(self, enhanced_http_connection, session):
         principals = [Everyone]

@@ -74,11 +74,11 @@ class SecureRouter(APIRouter):
                           *args, **kwargs):
             self.acl_policy.add_http_connection_metadata(request, session)
             self.acl_policy.validate_permission(permission, request)
-            if func_signature.parameters.get('request'):
-                kwargs['request'] = request
-            if func_signature.parameters.get('session'):
-                kwargs['session'] = session
-            output = func(*args, **kwargs)
+            new_kwargs = self._propagate_kwargs_if_requested(func, kwargs, {
+                'session': session,
+                'request': request
+            })
+            output = func(*args, **new_kwargs)
             if inspect.iscoroutine(output):
                 output = await output
 
@@ -99,6 +99,16 @@ class SecureRouter(APIRouter):
 
         wrapped.__signature__ = new_signature
         return wrapped
+
+    def _propagate_kwargs_if_requested(self, func, kwargs,
+                                       kwargs_for_propagation):
+        new_kwargs = copy.copy(kwargs)
+        func_signature = inspect.signature(func)
+        for kwarg, kwarg_value in kwargs_for_propagation:
+            if func_signature.parameters.get(kwarg):
+                new_kwargs[kwarg] = kwarg_value
+
+        return new_kwargs
 
     def bulk_create_new_parameters(self, existing_parameters, new_parameters):
         parameters = existing_parameters
