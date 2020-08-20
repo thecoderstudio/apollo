@@ -16,4 +16,6 @@ def create_http_connection_mock(cookies={}, headers={}):
     connection_mock = patch('starlette.requests.HTTPConnection')
     connection_mock.cookies = cookies
     connection_mock.headers = headers
+    connection_mock.oauth_client = None
+    connection_mock.current_user = None
     return connection_mock

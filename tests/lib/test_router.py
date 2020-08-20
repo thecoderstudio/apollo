@@ -86,15 +86,17 @@ async def test_secure_router_http_methods_oauth_permissions(
 
     if permitted:
         await call_http_method_decorated_mock(http_method, router_acl,
-                                              permission, request_mock)
+                                              permission, request_mock,
+                                              db_session)
     else:
         with raisesHTTPForbidden:
             await call_http_method_decorated_mock(http_method, router_acl,
-                                                  permission, request_mock)
+                                                  permission, request_mock,
+                                                  db_session)
 
 
 async def call_http_method_decorated_mock(http_method, router_acl, permission,
-                                          request_mock):
+                                          request_mock, db_session):
     router = SecureRouter(router_acl)
     route_decorator = getattr(router, http_method)
 
@@ -106,8 +108,8 @@ async def call_http_method_decorated_mock(http_method, router_acl, permission,
     async def async_endpoint_mock():
         pass
 
-    await endpoint_mock(request=request_mock)
-    await async_endpoint_mock(request=request_mock)
+    await endpoint_mock(request=request_mock, session=db_session)
+    await async_endpoint_mock(request=request_mock, session=db_session)
 
 
 @pytest.mark.parametrize("permission,authenticated,role,permitted",
@@ -123,11 +125,13 @@ async def test_secure_router_http_methods_cookie_permissions(
 
     if permitted:
         await call_http_method_decorated_mock(http_method, router_acl,
-                                              permission, request_mock)
+                                              permission, request_mock,
+                                              db_session)
     else:
         with raisesHTTPForbidden:
             await call_http_method_decorated_mock(http_method, router_acl,
-                                                  permission, request_mock)
+                                                  permission, request_mock,
+                                                  db_session)
 
 
 def generate_http_test_parameters(db_session, user, authenticated,
@@ -172,22 +176,22 @@ async def test_websocket_oauth_permissions(db_session, access_token,
 
     if permitted:
         await call_websocket_decorated_mock(router_acl, permission,
-                                            websocket_mock)
+                                            websocket_mock, db_session)
     else:
         with raisesHTTPForbidden:
             await call_websocket_decorated_mock(router_acl, permission,
-                                                websocket_mock)
+                                                websocket_mock, db_session)
 
 
 async def call_websocket_decorated_mock(router_acl, permission,
-                                        websocket_mock):
+                                        websocket_mock, db_session):
     router = SecureRouter(router_acl)
 
     @router.websocket('/test', permission=permission)
     async def mock(websocket):
         pass
 
-    await mock(websocket_mock)
+    await mock(websocket_mock, db_session)
 
 
 @pytest.mark.parametrize("permission,authenticated,role,permitted",
@@ -202,11 +206,11 @@ async def test_websocket_cookie_permissions(
 
     if permitted:
         await call_websocket_decorated_mock(router_acl, permission,
-                                            websocket_mock)
+                                            websocket_mock, db_session)
     else:
         with raisesHTTPForbidden:
             await call_websocket_decorated_mock(router_acl, permission,
-                                                websocket_mock)
+                                                websocket_mock, db_session)
 
 
 @pytest.mark.asyncio
@@ -223,7 +227,8 @@ async def test_websocket_oauth_inactive_client(db_session, access_token,
         await call_websocket_decorated_mock(
             [(Allow, Agent, 'test')],
             'test',
-            http_connection_mock
+            http_connection_mock,
+            db_session
         )
 
 
@@ -241,5 +246,6 @@ async def test_websocket_oauth_expired_token(db_session, access_token,
         await call_websocket_decorated_mock(
             [(Allow, Agent, 'test')],
             'test',
-            http_connection_mock
+            http_connection_mock,
+            db_session
         )

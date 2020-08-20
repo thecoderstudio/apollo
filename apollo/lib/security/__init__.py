@@ -1,4 +1,5 @@
 import base64
+import copy
 
 import jwt
 from sqlalchemy.orm.exc import NoResultFound
@@ -29,7 +30,7 @@ class AuthorizationPolicy:
         self.acl_provider = acl_provider
 
     def enhance_http_connection(self, http_connection, session):
-        enhanced_http_connection = http_connection
+        enhanced_http_connection = copy.copy(http_connection)
         enhanced_http_connection.oauth_client = None
         enhanced_http_connection.current_user = self._get_current_user(
             enhanced_http_connection.cookies, session)

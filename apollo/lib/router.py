@@ -1,11 +1,12 @@
 import copy
 import inspect
-from functools import wraps
 
 from fastapi import APIRouter, Depends, Request, WebSocket
+from starlette.requests import HTTPConnection
 from sqlalchemy.orm import Session
 
 from apollo.lib.security import Allow, AuthorizationPolicy, Everyone
+from apollo.lib.signature import copy_parameters
 from apollo.models import get_session
 
 
@@ -22,14 +23,54 @@ class SecureRouter(APIRouter):
         def decorate(func):
             websocket_route = super(SecureRouter, self).websocket
 
-            @wraps(func)
             @websocket_route(*outer_args, **outer_kwargs)
-            async def wrapped(websocket: WebSocket, *args, **kwargs):
-                self.acl_policy.add_http_connection_metadata(websocket)
-                self.acl_policy.validate_permission(permission, websocket)
-                await func(websocket, *args, **kwargs)
+            async def wrapped(websocket: WebSocket,
+                              session: Session = Depends(get_session),
+                              *args, **kwargs):
+                return await self._call_handler_with_authentication(
+                    func, permission, websocket, 'websocket', session, *args,
+                    **kwargs
+                )
+
+            wrapped_signature = inspect.signature(wrapped)
+            func_signature = inspect.signature(func)
+            wrapped.__signature__ = copy_parameters(wrapped_signature,
+                                                    func_signature,
+                                                    ['websocket', 'session'])
             return wrapped
         return decorate
+
+    async def _call_handler_with_authentication(
+        self, handler, permission,
+        http_connection: HTTPConnection,
+        http_connection_type: str,
+        session: Session,
+        *args, **kwargs
+    ):
+        enhanced_http_connection = self.acl_policy.enhance_http_connection(
+            http_connection, session)
+        self.acl_policy.validate_permission(permission,
+                                            enhanced_http_connection)
+        new_kwargs = self._propagate_kwargs_if_requested(handler, kwargs, {
+            'session': session,
+            http_connection_type: enhanced_http_connection
+        })
+
+        output = handler(*args, **new_kwargs)
+        if inspect.iscoroutine(output):
+            output = await output
+
+        return output
+
+    def _propagate_kwargs_if_requested(self, func, kwargs,
+                                       kwargs_for_propagation):
+        new_kwargs = copy.copy(kwargs)
+        func_signature = inspect.signature(func)
+        for kwarg, kwarg_value in kwargs_for_propagation.items():
+            if func_signature.parameters.get(kwarg):
+                new_kwargs[kwarg] = kwarg_value
+
+        return new_kwargs
 
     def post(self, *outer_args, **outer_kwargs):
         return lambda func: self._http_method(
@@ -66,70 +107,17 @@ class SecureRouter(APIRouter):
     def _http_method(self, func, http_method, *outer_args, permission='public',
                      **outer_kwargs):
         route = getattr(super(SecureRouter, self), http_method)
-        func_signature = inspect.signature(func)
 
         @route(*outer_args, **outer_kwargs)
         async def wrapped(request: Request,
                           session: Session = Depends(get_session),
                           *args, **kwargs):
-            self.acl_policy.add_http_connection_metadata(request, session)
-            self.acl_policy.validate_permission(permission, request)
-            new_kwargs = self._propagate_kwargs_if_requested(func, kwargs, {
-                'session': session,
-                'request': request
-            })
-            output = func(*args, **new_kwargs)
-            if inspect.iscoroutine(output):
-                output = await output
-
-            return output
+            return await self._call_handler_with_authentication(
+                func, permission, request, 'request', session, *args, **kwargs)
 
         wrapped_signature = inspect.signature(wrapped)
-        func_parameters = [
-            func_signature.parameters[key] for key in
-            func_signature.parameters if key not in ['request', 'session']]
-
-        new_parameters = self.bulk_create_new_parameters(
-            func_parameters, [
-                wrapped_signature.parameters['session'],
-                wrapped_signature.parameters['request']
-            ]
-        )
-        new_signature = func_signature.replace(parameters=new_parameters)
-
-        wrapped.__signature__ = new_signature
-        return wrapped
-
-    def _propagate_kwargs_if_requested(self, func, kwargs,
-                                       kwargs_for_propagation):
-        new_kwargs = copy.copy(kwargs)
         func_signature = inspect.signature(func)
-        for kwarg, kwarg_value in kwargs_for_propagation:
-            if func_signature.parameters.get(kwarg):
-                new_kwargs[kwarg] = kwarg_value
-
-        return new_kwargs
-
-    def bulk_create_new_parameters(self, existing_parameters, new_parameters):
-        parameters = existing_parameters
-        for new_parameter in new_parameters:
-            parameters = self.create_new_parameters(parameters, new_parameter)
-        return parameters
-
-    def create_new_parameters(self, existing_parameters, new_parameter):
-        if not existing_parameters:
-            return [new_parameter]
-
-        if self.check_parameter_has_default(new_parameter):
-            new_parameters = copy.copy(existing_parameters)
-            for i, parameter in enumerate(new_parameters):
-                if self.check_parameter_has_default(parameter):
-                    new_parameters.insert(i, new_parameter)
-                    return new_parameters
-
-                return existing_parameters + [new_parameter]
-        else:
-            return [new_parameter] + existing_parameters
-
-    def check_parameter_has_default(self, parameter):
-        return parameter.default != inspect.Parameter.empty
+        wrapped.__signature__ = copy_parameters(wrapped_signature,
+                                                func_signature,
+                                                ['request', 'session'])
+        return wrapped
