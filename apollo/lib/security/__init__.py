@@ -28,25 +28,29 @@ class AuthorizationPolicy:
     def __init__(self, acl_provider):
         self.acl_provider = acl_provider
 
-    def add_http_connection_metadata(self, http_connection, session):
-        http_connection.oauth_client = None
-        http_connection.current_user = self._get_current_user(
-            http_connection.cookies, session)
+    def enhance_http_connection(self, http_connection, session):
+        enhanced_http_connection = http_connection
+        enhanced_http_connection.oauth_client = None
+        enhanced_http_connection.current_user = self._get_current_user(
+            enhanced_http_connection.cookies, session)
 
         access_token = self._get_authenticated_access_token(
-            http_connection.headers, session)
+            enhanced_http_connection.headers, session)
         if access_token:
-            http_connection.oauth_client = access_token.client
+            enhanced_http_connection.oauth_client = access_token.client
 
     @with_db_session
-    def get_principals(self, http_connection, session):
+    def get_principals(self, enhanced_http_connection, session):
         principals = [Everyone]
 
-        if http_connection.oauth_client:
-            principals += [Authenticated, Agent,
-                           f"agent:{http_connection.oauth_client.agent_id}"]
+        if enhanced_http_connection.oauth_client:
+            principals += [
+                Authenticated,
+                Agent,
+                f"agent:{enhanced_http_connection.oauth_client.agent_id}"
+            ]
 
-        authenticated_user = http_connection.current_user
+        authenticated_user = enhanced_http_connection.current_user
         if authenticated_user:
             principals += [Authenticated, Human,
                            f"user:{authenticated_user.id}"]
@@ -107,8 +111,8 @@ class AuthorizationPolicy:
         return complete_acl
 
     def check_permission(self, requested_permission,
-                         http_connection, context_acl_provider=None):
-        principals = self.get_principals(http_connection)
+                         enhanced_http_connection, context_acl_provider=None):
+        principals = self.get_principals(enhanced_http_connection)
 
         for action, principal, permission in self.get_complete_acl(
             context_acl_provider
@@ -129,10 +133,12 @@ class AuthorizationPolicy:
         return False
 
     def validate_permission(self, requested_permission,
-                            http_connection, context_acl_provider=None):
+                            enhanced_http_connection,
+                            context_acl_provider=None):
         try:
             allowed = self.check_permission(
-                requested_permission, http_connection, context_acl_provider)
+                requested_permission, enhanced_http_connection,
+                context_acl_provider)
         except ValueError as e:
             log.exception(e)
             allowed = False
