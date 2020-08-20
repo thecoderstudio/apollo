@@ -8,7 +8,7 @@ def copy_parameters(from_signature, to_signature, parameter_keys):
         to_signature.parameters if key not in parameter_keys
     ]
 
-    new_parameters = bulk_create_new_parameters(
+    new_parameters = _bulk_create_new_parameters(
         filtered_parameters,
         [from_signature.parameters[key] for key in parameter_keys]
     )
@@ -16,14 +16,14 @@ def copy_parameters(from_signature, to_signature, parameter_keys):
     return new_signature
 
 
-def bulk_create_new_parameters(existing_parameters, new_parameters):
+def _bulk_create_new_parameters(existing_parameters, new_parameters):
     parameters = existing_parameters
     for new_parameter in new_parameters:
-        parameters = create_new_parameters(parameters, new_parameter)
+        parameters = _create_new_parameters(parameters, new_parameter)
     return parameters
 
 
-def create_new_parameters(existing_parameters, new_parameter):
+def _create_new_parameters(existing_parameters, new_parameter):
     if not existing_parameters:
         return [new_parameter]
 
