@@ -36,6 +36,35 @@ acl_permission_expectations = [
 ]
 
 
+def test_enhance_http_connection(mock_policy, http_connection_mock,
+                                 db_session):
+    enhanced_http_connection = mock_policy().enhance_http_connection(
+        http_connection_mock, db_session)
+
+    assert enhanced_http_connection.current_user is None
+    assert enhanced_http_connection.oauth_client is None
+
+
+def test_enhance_http_connection_authenticated(
+    mock_policy,
+    mock_http_connection,
+    db_session,
+    user,
+    access_token,
+    session_cookie
+):
+    http_connection = mock_http_connection(
+        cookies=session_cookie,
+        headers={'authorization': f"Bearer {access_token.access_token}"}
+    )
+
+    enhanced_http_connection = mock_policy().enhance_http_connection(
+        http_connection, db_session)
+
+    assert enhanced_http_connection.current_user == user
+    assert enhanced_http_connection.oauth_client == access_token.client
+
+
 def test_parse_valid_authorization_header():
     authorization = build_credentials_str(
         'Basic',
