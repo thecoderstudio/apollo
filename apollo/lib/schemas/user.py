@@ -1,9 +1,11 @@
 import uuid
 
 from pydantic import validator, constr, BaseModel
+from typing import Optional
 
 from apollo.lib.decorators import with_db_session
 from apollo.lib.schemas import ORMBase
+from apollo.lib.schemas.role import RoleSchema
 from apollo.models.user import get_user_by_username
 
 
@@ -32,3 +34,4 @@ class CreateUserSchema(BaseModel):
 class UserSchema(ORMBase):
     id: uuid.UUID
     username: str
+    role: Optional[RoleSchema]

@@ -1,21 +1,22 @@
 import uuid
 from typing import List
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from sqlalchemy.orm import Session
 
 from apollo.lib.exceptions import HTTPException
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.user import CreateUserSchema, UserSchema
-from apollo.lib.security import Allow, ADMIN_PRINCIPAL
+from apollo.lib.security import Allow, Admin, Human
 from apollo.models import get_session, save, delete
 from apollo.models.user import User, get_user_by_id, list_users as query_users
 
 router = SecureRouter([
-    (Allow, ADMIN_PRINCIPAL, 'user.post'),
-    (Allow, ADMIN_PRINCIPAL, 'user.delete'),
-    (Allow, ADMIN_PRINCIPAL, 'user.list')
+    (Allow, Admin, 'user.post'),
+    (Allow, Admin, 'user.delete'),
+    (Allow, Admin, 'user.list'),
+    (Allow, Human, 'user.get_current')
 ])
 
 
@@ -29,7 +30,7 @@ def post_user(user_data: CreateUserSchema,
     data.pop('password')
 
     user, _ = save(session, User(**data))
-    return user
+    return get_user_by_id(session, user.id)
 
 
 @router.delete('/user/{user_id}', status_code=204, permission='user.delete')
@@ -46,3 +47,9 @@ def delete_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
             permission='user.list')
 def list_users(session: Session = Depends(get_session)):
     return query_users(session)
+
+
+@router.get('/user/me', permission='user.get_current',
+            response_model=UserSchema)
+def get_current_user(request: Request):
+    return request.current_user

@@ -1,4 +1,5 @@
 import base64
+import copy
 
 import jwt
 from sqlalchemy.orm.exc import NoResultFound
@@ -13,6 +14,7 @@ from apollo.lib.settings import settings
 from apollo.models.oauth import get_access_token_by_token
 from apollo.models.user import get_user_by_id
 
+Admin = 'role:admin'
 Authenticated = 'Authenticated'
 Allow = 'Allow'
 Agent = 'Agent'
@@ -21,25 +23,38 @@ Everyone = 'Everyone'
 Human = 'Human'
 
 JWT_ALGORITHM = 'HS256'
-ADMIN_PRINCIPAL = 'role:admin'
 
 
 class AuthorizationPolicy:
     def __init__(self, acl_provider):
         self.acl_provider = acl_provider
 
-    @with_db_session
-    def get_principals(self, http_connection, session):
-        principals = [Everyone]
+    def enhance_http_connection(self, http_connection, session):
+        enhanced_http_connection = copy.copy(http_connection)
+        enhanced_http_connection.oauth_client = None
+        enhanced_http_connection.current_user = self._get_current_user(
+            enhanced_http_connection.cookies, session)
 
         access_token = self._get_authenticated_access_token(
-            http_connection.headers, session)
+            enhanced_http_connection.headers, session)
         if access_token:
-            principals += [Authenticated, Agent,
-                           f"agent:{access_token.client.agent_id}"]
+            enhanced_http_connection.oauth_client = access_token.client
 
-        authenticated_user = self._get_current_user(http_connection.cookies,
-                                                    session)
+        return enhanced_http_connection
+
+    @staticmethod
+    @with_db_session
+    def get_principals(enhanced_http_connection, session):
+        principals = [Everyone]
+
+        if enhanced_http_connection.oauth_client:
+            principals += [
+                Authenticated,
+                Agent,
+                f"agent:{enhanced_http_connection.oauth_client.agent_id}"
+            ]
+
+        authenticated_user = enhanced_http_connection.current_user
         if authenticated_user:
             principals += [Authenticated, Human,
                            f"user:{authenticated_user.id}"]
@@ -100,8 +115,8 @@ class AuthorizationPolicy:
         return complete_acl
 
     def check_permission(self, requested_permission,
-                         http_connection, context_acl_provider=None):
-        principals = self.get_principals(http_connection)
+                         enhanced_http_connection, context_acl_provider=None):
+        principals = self.get_principals(enhanced_http_connection)
 
         for action, principal, permission in self.get_complete_acl(
             context_acl_provider
@@ -122,10 +137,12 @@ class AuthorizationPolicy:
         return False
 
     def validate_permission(self, requested_permission,
-                            http_connection, context_acl_provider=None):
+                            enhanced_http_connection,
+                            context_acl_provider=None):
         try:
             allowed = self.check_permission(
-                requested_permission, http_connection, context_acl_provider)
+                requested_permission, enhanced_http_connection,
+                context_acl_provider)
         except ValueError as e:
             log.exception(e)
             allowed = False

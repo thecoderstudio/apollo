@@ -36,6 +36,35 @@ acl_permission_expectations = [
 ]
 
 
+def test_enhance_http_connection(mock_policy, http_connection_mock,
+                                 db_session):
+    enhanced_http_connection = mock_policy().enhance_http_connection(
+        http_connection_mock, db_session)
+
+    assert enhanced_http_connection.current_user is None
+    assert enhanced_http_connection.oauth_client is None
+
+
+def test_enhance_http_connection_authenticated(
+    mock_policy,
+    mock_http_connection,
+    db_session,
+    user,
+    access_token,
+    session_cookie
+):
+    http_connection = mock_http_connection(
+        cookies=session_cookie,
+        headers={'authorization': f"Bearer {access_token.access_token}"}
+    )
+
+    enhanced_http_connection = mock_policy().enhance_http_connection(
+        http_connection, db_session)
+
+    assert enhanced_http_connection.current_user == user
+    assert enhanced_http_connection.oauth_client == access_token.client
+
+
 def test_parse_valid_authorization_header():
     authorization = build_credentials_str(
         'Basic',
@@ -82,20 +111,26 @@ def test_auth_policy_minimal_principals(mock_policy, http_connection_mock):
 
 
 def test_auth_policy_agent_principals(mock_policy, access_token,
-                                      mock_http_connection):
-    principals = mock_policy().get_principals(mock_http_connection(headers={
-        'authorization': f"Bearer {access_token.access_token}"
-    }))
+                                      mock_http_connection, db_session):
+    policy = mock_policy()
+    principals = policy.get_principals(
+        policy.enhance_http_connection(mock_http_connection(headers={
+            'authorization': f"Bearer {access_token.access_token}"
+        }), db_session)
+    )
 
     assert principals == [Everyone, Authenticated, AgentPrincipal,
                           f"agent:{access_token.client_id}"]
 
 
 def test_auth_policy_admin_user_principals(mock_policy, mock_http_connection,
-                                           user, session_cookie):
-    principals = mock_policy().get_principals(mock_http_connection(
-        cookies=session_cookie
-    ))
+                                           user, session_cookie, db_session):
+    policy = mock_policy()
+    principals = policy.get_principals(
+        policy.enhance_http_connection(mock_http_connection(
+            cookies=session_cookie
+        ), db_session)
+    )
 
     assert principals == [Everyone, Authenticated, Human, f"user:{user.id}",
                           'role:admin']
@@ -105,9 +140,12 @@ def test_auth_policy_default_user_principals(mock_policy, mock_http_connection,
                                              user, session_cookie, db_session):
     user.role = None
     db_session.commit()
-    principals = mock_policy().get_principals(mock_http_connection(
-        cookies=session_cookie
-    ))
+    policy = mock_policy()
+    principals = policy.get_principals(
+        policy.enhance_http_connection(mock_http_connection(
+            cookies=session_cookie
+        ), db_session)
+    )
 
     assert principals == [Everyone, Authenticated, Human, f"user:{user.id}"]
 
