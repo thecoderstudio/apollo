@@ -42,8 +42,8 @@ class AuthorizationPolicy:
 
         return enhanced_http_connection
 
-    @with_db_session
     @staticmethod
+    @with_db_session
     def get_principals(enhanced_http_connection, session):
         principals = [Everyone]
 
