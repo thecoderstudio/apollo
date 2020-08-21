@@ -43,7 +43,8 @@ class AuthorizationPolicy:
         return enhanced_http_connection
 
     @with_db_session
-    def get_principals(self, enhanced_http_connection, session):
+    @staticmethod
+    def get_principals(enhanced_http_connection, session):
         principals = [Everyone]
 
         if enhanced_http_connection.oauth_client:

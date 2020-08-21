@@ -62,8 +62,8 @@ class SecureRouter(APIRouter):
 
         return output
 
-    def _propagate_kwargs_if_requested(self, func, kwargs,
-                                       kwargs_for_propagation):
+    @staticmethod
+    def _propagate_kwargs_if_requested(func, kwargs, kwargs_for_propagation):
         new_kwargs = copy.copy(kwargs)
         func_signature = inspect.signature(func)
         for kwarg, kwarg_value in kwargs_for_propagation.items():
