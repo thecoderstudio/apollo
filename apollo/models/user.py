@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, ForeignKey, String
+from sqlalchemy import Column, ForeignKey, String, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -15,7 +15,7 @@ class User(Base):
     password_hash = Column(String(119), nullable=False)
     password_salt = Column(String(29), nullable=False)
     role_id = Column(UUID(as_uuid=True), ForeignKey('role.id'))
-
+    has_logged_in = Column(Boolean)
     role = relationship('Role')
 
 
