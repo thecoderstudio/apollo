@@ -28,7 +28,7 @@ def post_user(user_data: CreateUserSchema,
     data['password_hash'], data['password_salt'] = hash_plaintext(
         user_data.password)
     data.pop('password')
-
+    data['has_logged_in'] = False
     user, _ = save(session, User(**data))
     return get_user_by_id(session, user.id)
 

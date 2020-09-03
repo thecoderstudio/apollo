@@ -9,6 +9,13 @@ from apollo.lib.schemas.role import RoleSchema
 from apollo.models.user import get_user_by_username
 
 
+def check_for_whitespace(value):
+    if ' ' in value:
+        raise ValueError("password can't contain whitespaces")
+
+    return value
+
+
 class CreateUserSchema(BaseModel):
     username: constr(min_length=1, max_length=36, strip_whitespace=True)
     password: constr(min_length=8, strip_whitespace=True)
@@ -25,13 +32,28 @@ class CreateUserSchema(BaseModel):
     @validator('password')
     @classmethod
     def no_whitespace_in_password(cls, value):
-        if ' ' in value:
-            raise ValueError("password can't contain whitespaces")
-
-        return value
+        return check_for_whitespace(value)
 
 
 class UserSchema(ORMBase):
     id: uuid.UUID
     username: str
+    has_logged_in: bool
     role: Optional[RoleSchema]
+
+
+class ChangePasswordSchema(BaseModel):
+    old_password: str
+    password_confirm: constr(min_length=8, strip_whitespace=True)
+    password: constr(min_length=8, strip_whitespace=True)
+
+    @validator('password')
+    @classmethod
+    def no_whitespace_in_password(cls, value):
+        return check_for_whitespace(value)
+
+    @validator('password_confirm', 'password')
+    @classmethod
+    def password_must_match(cls, values):
+        if values[0] != values[1]:
+            raise ValueError('passwords must match')
