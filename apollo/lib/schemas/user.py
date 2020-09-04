@@ -42,7 +42,7 @@ class UserSchema(ORMBase):
     role: Optional[RoleSchema]
 
 
-class ChangePasswordSchema(BaseModel):
+class UpdateUserSchema(BaseModel):
     old_password: str
     password_confirm: constr(min_length=8, strip_whitespace=True)
     password: constr(min_length=8, strip_whitespace=True)

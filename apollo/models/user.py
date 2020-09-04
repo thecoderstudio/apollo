@@ -15,8 +15,12 @@ class User(Base):
     password_hash = Column(String(119), nullable=False)
     password_salt = Column(String(29), nullable=False)
     role_id = Column(UUID(as_uuid=True), ForeignKey('role.id'))
-    has_logged_in = Column(Boolean)
+    has_logged_in = Column(Boolean, default=False)
     role = relationship('Role')
+
+    def set_fields(self, data=None):
+        for key, value in data.items():
+            setattr(self, key, value)
 
 
 def get_user_by_id(session, id_):

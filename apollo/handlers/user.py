@@ -5,9 +5,10 @@ from fastapi import Depends, Request
 from sqlalchemy.orm import Session
 
 from apollo.lib.exceptions import HTTPException
-from apollo.lib.hash import hash_plaintext
+from apollo.lib.hash import hash_plaintext, compare_plaintext_to_hash
 from apollo.lib.router import SecureRouter
-from apollo.lib.schemas.user import CreateUserSchema, UserSchema
+from apollo.lib.schemas.user import (
+    CreateUserSchema, UserSchema, UpdateUserSchema)
 from apollo.lib.security import Allow, Admin, Human
 from apollo.models import get_session, save, delete
 from apollo.models.user import User, get_user_by_id, list_users as query_users
@@ -31,6 +32,24 @@ def post_user(user_data: CreateUserSchema,
     data['has_logged_in'] = False
     user, _ = save(session, User(**data))
     return get_user_by_id(session, user.id)
+
+
+@router.put('/user/{user_id}', status_code=200,
+             response_model=UserSchema, permisision='user.put')
+def put_user(user_id, user_data: UpdateUserSchema,
+             session: Session = Depends(get_session)):
+    user = get_user_by_id(session, user_id)
+    data = user_data.dict()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not compare_plaintext_to_hash(user_data.password, user.password_hash,
+                                     user.password_salt):
+        raise HTTPException(status_code=400,
+                            detail="Invalid password")
+    user.set_fields(data)
+    saved_user, _ save(session, user)
+    return user
+
 
 
 @router.delete('/user/{user_id}', status_code=204, permission='user.delete')
