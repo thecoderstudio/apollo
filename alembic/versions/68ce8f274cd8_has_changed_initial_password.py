@@ -18,8 +18,8 @@ depends_on = None
 
 def upgrade():
     op.add_column('user', sa.Column(
-        'has_logged_in', sa.Boolean, default=False))
+        'has_changed_initial_password', sa.Boolean, default=False))
 
 
 def downgrade():
-    op.drop_column('user', 'has_logged_in')
+    op.drop_column('user', 'has_changed_initial_password')

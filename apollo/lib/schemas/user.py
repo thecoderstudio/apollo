@@ -38,7 +38,7 @@ class CreateUserSchema(BaseModel):
 class UserSchema(ORMBase):
     id: uuid.UUID
     username: str
-    has_logged_in: bool
+    has_changed_initial_password: bool
     role: Optional[RoleSchema]
 
 

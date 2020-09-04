@@ -15,7 +15,7 @@ class User(Base):
     password_hash = Column(String(119), nullable=False)
     password_salt = Column(String(29), nullable=False)
     role_id = Column(UUID(as_uuid=True), ForeignKey('role.id'))
-    has_logged_in = Column(Boolean, default=False)
+    has_changed_initial_password = Column(Boolean, default=False)
     role = relationship('Role')
 
     def set_fields(self, data=None):

@@ -5,7 +5,7 @@ from apollo.lib.hash import compare_plaintext_to_hash
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.auth import LoginSchema
 from apollo.lib.security import Allow, Everyone, create_session_cookie
-from apollo.models import get_session, save
+from apollo.models import get_session
 from apollo.models.user import get_user_by_username
 
 router = SecureRouter([(Allow, Everyone, 'login')])
@@ -31,7 +31,4 @@ def login(response: Response, login_data: LoginSchema,
                                      password_salt):
         raise HTTPException(status_code=400,
                             detail="Username and/or password is incorrect")
-    if not user.has_logged_in:
-        user.has_logged_in = True
-        save(session, user)
     response.set_cookie(*create_session_cookie(user))
