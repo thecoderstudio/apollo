@@ -1,5 +1,5 @@
 def test_correct_version(test_client):
-    expected_version = '0.1'
+    expected_version = '1.0'
 
     response = test_client.get("/")
 
