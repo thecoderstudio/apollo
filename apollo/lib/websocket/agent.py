@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from fastapi import WebSocket
@@ -42,6 +43,7 @@ class AgentConnection(Connection):
         return await self.receive_json()
 
     async def _message_over_user_connection(self, message: ShellIOSchema):
+        logging.info(message.message)
         user_connection = self._get_user_connection(message.connection_id)
         await user_connection.send_text(message.message)
 

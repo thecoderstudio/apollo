@@ -1,12 +1,16 @@
 import asyncio
+import logging
 
 import click
 
+from apollo.lib.audit.agent import AgentSessionLogger
 from apollo.lib.exceptions.websocket import SendAfterConnectionClosure
 from apollo.lib.schemas.message import Command, CommandSchema, ShellIOSchema
 
 
 class ShellConnection:
+    session_logger = AgentSessionLogger()
+
     @classmethod
     async def start(cls, origin: 'UserConnection', target: 'AgentConnection'):
         self = ShellConnection()
@@ -26,6 +30,7 @@ class ShellConnection:
             await self._message_target(stdin)
 
     async def _message_target(self, message):
+        self.session_logger.register_input(message)
         try:
             await self.target.message(
                 ShellIOSchema(
