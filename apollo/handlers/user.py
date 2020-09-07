@@ -30,7 +30,6 @@ def post_user(user_data: CreateUserSchema,
     data['password_hash'], data['password_salt'] = hash_plaintext(
         user_data.password)
     data.pop('password')
-    data['has_logged_in'] = False
     user, _ = save(session, User(**data))
     return get_user_by_id(session, user.id)
 
@@ -40,15 +39,22 @@ def post_user(user_data: CreateUserSchema,
 def put_user(user_id, user_data: UpdateUserSchema,
              session: Session = Depends(get_session)):
     user = get_user_by_id(session, user_id)
+    print(user_data)
     data = user_data.dict()
+    print("1")
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if data.get['password'] and data.get('old_password'):
+    if data.get('password') and data.get('old_password'):
         if not compare_plaintext_to_hash(user_data.old_password, user.password_hash,
                                          user.password_salt):
             raise HTTPException(status_code=400,
                                 detail="Invalid password")
+        print("YYEEEAAH")
+        data['password_hash'], data['password_salt'] = hash_plaintext(
+            user_data.password)
+        data.pop('password')
         user.has_changed_initial_password = True
+
     user.set_fields(data)
     saved_user, _ = save(session, user)
     return user

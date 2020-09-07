@@ -59,4 +59,4 @@ class UpdateUserSchema(BaseModel):
         if v != values['password']:
             raise ValueError('passwords must match')
 
-        return values
+        return v
