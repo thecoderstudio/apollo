@@ -44,16 +44,19 @@ class UserSchema(ORMBase):
 
 class UpdateUserSchema(BaseModel):
     old_password: str
-    password_confirm: constr(min_length=8, strip_whitespace=True)
     password: constr(min_length=8, strip_whitespace=True)
+    password_confirm: constr(min_length=8, strip_whitespace=True)
+   
 
     @validator('password')
     @classmethod
     def no_whitespace_in_password(cls, value):
         return check_for_whitespace(value)
 
-    @validator('password_confirm', 'password')
+    @validator('password_confirm') 
     @classmethod
-    def password_must_match(cls, values):
-        if values[0] != values[1]:
+    def password_must_match(cls, v, values):
+        if v != values['password']:
             raise ValueError('passwords must match')
+
+        return values

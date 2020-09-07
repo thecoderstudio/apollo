@@ -17,7 +17,8 @@ router = SecureRouter([
     (Allow, Admin, 'user.post'),
     (Allow, Admin, 'user.delete'),
     (Allow, Admin, 'user.list'),
-    (Allow, Human, 'user.get_current')
+    (Allow, Human, 'user.get_current'),
+    (Allow, Human, 'user.put')
 ])
 
 
@@ -42,14 +43,15 @@ def put_user(user_id, user_data: UpdateUserSchema,
     data = user_data.dict()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if not compare_plaintext_to_hash(user_data.old_password, user.password_hash,
-                                     user.password_salt):
-        raise HTTPException(status_code=400,
-                            detail="Invalid password")
+    if data.get['password'] and data.get('old_password'):
+        if not compare_plaintext_to_hash(user_data.old_password, user.password_hash,
+                                         user.password_salt):
+            raise HTTPException(status_code=400,
+                                detail="Invalid password")
+        user.has_changed_initial_password = True
     user.set_fields(data)
     saved_user, _ = save(session, user)
     return user
-
 
 
 @router.delete('/user/{user_id}', status_code=204, permission='user.delete')
@@ -61,6 +63,7 @@ def delete_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
         raise HTTPException(status_code=400,
                             detail="Can't delete other admins")
     delete(session, user)
+
 
 @router.get('/user', status_code=200, response_model=List[UserSchema],
             permission='user.list')
