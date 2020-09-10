@@ -1,5 +1,6 @@
 import uuid
 
+from ipaddress import IPv4Address
 from pydantic import BaseModel, constr, validator
 from starlette.websockets import WebSocketState
 
@@ -27,6 +28,8 @@ class BaseAgentSchema(ORMBase):
     id: uuid.UUID
     name: str
     connection_state: WebSocketState = WebSocketState.DISCONNECTED
+    external_ip_address: IPv4Address
+    operating_system: str
 
     @validator('connection_state')
     @classmethod

@@ -14,6 +14,8 @@ class Agent(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100), unique=True, nullable=False)
+    #external_ip_address = Column(String(16), nullable=True)
+    #operating_system = Column(String(100), nullable=True)
 
     oauth_client = relationship('OAuthClient', uselist=False,
                                 cascade="all, delete-orphan")
@@ -30,6 +32,10 @@ class Agent(Base):
 
 def get_agent_by_name(session, name):
     return session.query(Agent).filter(Agent.name == name).one_or_none()
+
+
+def get_agent_by_id(session, id_):
+    return session.query(Agent).get(id_)
 
 
 def list_all_agents(session):
