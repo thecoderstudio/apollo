@@ -9,7 +9,7 @@ from apollo.lib.schemas.message import (Command, CommandSchema,
                                         ShellIOSchema)
 from apollo.lib.websocket.agent import AgentConnection
 from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
-from apollo.models.agent import Agent
+from apollo.models.agent import Agent, get_agent_by_id
 from apollo.models.oauth import OAuthClient
 from tests.lib.websocket import assert_interested_connections_messaged
 
@@ -18,7 +18,8 @@ from tests.lib.websocket import assert_interested_connections_messaged
 @assert_interested_connections_messaged(
     WebSocketObserverInterestType.AGENT_LISTING
 )
-async def test_post_agent_success(async_test_client, session_cookie):
+async def test_post_agent_success(async_test_client, session_cookie,
+                                  db_session):
     response = await async_test_client.post(
         '/agent',
         json={'name': 'test'},
@@ -32,6 +33,11 @@ async def test_post_agent_success(async_test_client, session_cookie):
     assert oauth_client['agent_id'] is not None
     assert oauth_client['secret'] is not None
     assert oauth_client['type'] == 'confidential'
+
+    persisted_agent = get_agent_by_id(db_session, agent['id'])
+    assert persisted_agent.external_ip_address is None
+    assert persisted_agent.operating_system is None
+    assert persisted_agent.architecture is None
 
 
 def test_post_agent_name_exists(test_client, session_cookie):
