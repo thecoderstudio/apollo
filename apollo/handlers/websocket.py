@@ -1,4 +1,3 @@
-import logging
 import uuid
 
 from fastapi import WebSocket, Depends
@@ -21,14 +20,24 @@ async def connect(
 ):
     agent_id = get_client_id_from_authorization_header(
         session=session, authorization=websocket.headers['authorization'])
-    update_agent_machine_info(websocket, session, agent_id)
+    _update_agent_machine_info(websocket, session, agent_id)
     await AgentConnectionManager().connect(agent_id, websocket)
 
-def update_agent_machine_info(
+
+def _update_agent_machine_info(
     websocket: WebSocket,
     session: Session,
     agent_id: uuid.UUID
 ):
     agent = get_agent_by_id(session, agent_id)
     agent.external_ip_address = websocket.client.host
-    # save(session, agent)
+    os, arch = _get_platform_info(websocket.headers['user-agent'])
+    agent.operating_system = os
+    agent.architecture = arch
+    save(session, agent)
+
+
+def _get_platform_info(user_agent):
+    # User agent should be structured like 'Package name - os/arch'
+    os, arch = user_agent.split('-')[1].strip().split('/')
+    return os, arch

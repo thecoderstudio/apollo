@@ -1,10 +1,11 @@
 import uuid
 
-from sqlalchemy import Column, String
+from sqlalchemy import Column, Enum, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from starlette.websockets import WebSocketState
 
+from apollo.lib.agent import SupportedArch, SupportedOS
 from apollo.lib.websocket.agent import AgentConnectionManager
 from apollo.models import Base
 
@@ -14,8 +15,9 @@ class Agent(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100), unique=True, nullable=False)
-    #external_ip_address = Column(String(16), nullable=True)
-    #operating_system = Column(String(100), nullable=True)
+    external_ip_address = Column(String(16), nullable=True)
+    operating_system = Column(Enum(SupportedOS), nullable=True)
+    architecture = Column(Enum(SupportedArch), nullable=True)
 
     oauth_client = relationship('OAuthClient', uselist=False,
                                 cascade="all, delete-orphan")
