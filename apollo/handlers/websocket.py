@@ -27,7 +27,6 @@ async def connect(
         _update_agent_machine_info(websocket, session, agent_id)
     except (ValueError, ValidationError) as e:
         logging.error("Unable to set machine info", exc_info=e)
-        pass
 
     await AgentConnectionManager().connect(agent_id, websocket)
 
