@@ -146,15 +146,32 @@ def assert_list_agent_response_data(data, agent_id_1, agent_id_2):
     assert agent_data['name'] in ['test', 'test2']
     assert agent_data['id'] in [str(agent_id_1), str(agent_id_2)]
     assert agent_data['connection_state'] == 'disconnected'
+    assert agent_data['external_ip_address'] == '0.0.0.0'
+    assert agent_data['operating_system'] == 'darwin'
+    assert agent_data['architecture'] == 'amd64'
 
 
 def add_multiple_agents(db_session):
     agent_id_1 = uuid.uuid4()
     agent_id_2 = uuid.uuid4()
-    agent = Agent(id=agent_id_1, name='test',
-                  oauth_client=OAuthClient(type='confidential'))
-    agent_2 = Agent(id=agent_id_2, name='test2',
-                    oauth_client=OAuthClient(type='confidential'))
+    platform_info = {
+        'external_ip_address': '0.0.0.0',
+        'operating_system': 'darwin',
+        'architecture': 'amd64'
+    }
+
+    agent = Agent(
+        id=agent_id_1,
+        name='test',
+        oauth_client=OAuthClient(type='confidential'),
+        **platform_info
+    )
+    agent_2 = Agent(
+        id=agent_id_2,
+        name='test2',
+        oauth_client=OAuthClient(type='confidential'),
+        **platform_info
+    )
     db_session.add(agent)
     db_session.add(agent_2)
     db_session.commit()
