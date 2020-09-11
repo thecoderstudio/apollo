@@ -1,9 +1,12 @@
+import logging
 import uuid
 
 from fastapi import WebSocket, Depends
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from apollo.lib.router import SecureRouter
+from apollo.lib.schemas.agent import AgentPlatformSchema
 from apollo.lib.security import (
     Allow, Agent, get_client_id_from_authorization_header)
 from apollo.lib.websocket.agent import AgentConnectionManager
@@ -20,7 +23,12 @@ async def connect(
 ):
     agent_id = get_client_id_from_authorization_header(
         session=session, authorization=websocket.headers['authorization'])
-    _update_agent_machine_info(websocket, session, agent_id)
+    try:
+        _update_agent_machine_info(websocket, session, agent_id)
+    except ValidationError as e:
+        logging.error("Unable to set machine info", exc_info=e)
+        pass
+
     await AgentConnectionManager().connect(agent_id, websocket)
 
 
@@ -30,10 +38,16 @@ def _update_agent_machine_info(
     agent_id: uuid.UUID
 ):
     agent = get_agent_by_id(session, agent_id)
-    agent.external_ip_address = websocket.client.host
     os, arch = _get_platform_info(websocket.headers['user-agent'])
-    agent.operating_system = os
-    agent.architecture = arch
+    platform_data = AgentPlatformSchema(
+        external_ip_address=websocket.client.host,
+        operating_system=os,
+        architecture=arch
+    )
+
+    agent.external_ip_address = str(platform_data.external_ip_address)
+    agent.operating_system = platform_data.operating_system.value
+    agent.architecture = platform_data.architecture.value
     save(session, agent)
 
 

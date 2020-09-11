@@ -25,13 +25,16 @@ class CreateAgentSchema(BaseModel):
         raise ValueError("An agent with the given name already exists")
 
 
-class BaseAgentSchema(ORMBase):
-    id: uuid.UUID
-    name: str
-    connection_state: WebSocketState = WebSocketState.DISCONNECTED
+class AgentPlatformSchema(BaseModel):
     external_ip_address: IPv4Address
     operating_system: SupportedOS
     architecture: SupportedArch
+
+
+class BaseAgentSchema(ORMBase, AgentPlatformSchema):
+    id: uuid.UUID
+    name: str
+    connection_state: WebSocketState = WebSocketState.DISCONNECTED
 
     @validator('connection_state')
     @classmethod

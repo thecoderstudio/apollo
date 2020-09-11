@@ -16,8 +16,10 @@ class Agent(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100), unique=True, nullable=False)
     external_ip_address = Column(String(16), nullable=True)
-    operating_system = Column(Enum(SupportedOS), nullable=True)
-    architecture = Column(Enum(SupportedArch), nullable=True)
+    operating_system = Column(Enum(*[member.value for member in SupportedOS]),
+                              nullable=True)
+    architecture = Column(Enum(*[member.value for member in SupportedArch]),
+                          nullable=True)
 
     oauth_client = relationship('OAuthClient', uselist=False,
                                 cascade="all, delete-orphan")
