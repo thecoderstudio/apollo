@@ -15,7 +15,7 @@ from apollo.lib.websocket.app import (
     AppConnectionManager, WebSocketObserverInterestType)
 from apollo.lib.websocket.user import UserConnectionManager
 from apollo.models import get_session, save
-from apollo.models.agent import Agent, list_all_agents
+from apollo.models.agent import Agent, list_all_agents, get_agent_by_id
 from apollo.models.oauth import OAuthClient
 
 router = SecureRouter([
@@ -32,11 +32,11 @@ router = SecureRouter([
     observer_interest_type=WebSocketObserverInterestType.AGENT_LISTING)
 def post_agent(agent_data: CreateAgentSchema,
                session: Session = Depends(get_session)):
-    agent, _ = save(session, Agent(
+    _, id_ = save(session, Agent(
         oauth_client=OAuthClient(type='confidential'),
         **dict(agent_data)
     ))
-    return agent
+    return get_agent_by_id(session, id_)
 
 
 @router.get('/agent', status_code=200, response_model=List[BaseAgentSchema],

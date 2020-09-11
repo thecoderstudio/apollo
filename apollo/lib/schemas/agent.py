@@ -3,6 +3,7 @@ import uuid
 from ipaddress import IPv4Address
 from pydantic import BaseModel, constr, validator
 from starlette.websockets import WebSocketState
+from typing import Optional
 
 from apollo.lib.agent import SupportedArch, SupportedOS
 from apollo.lib.decorators import with_db_session
@@ -25,16 +26,19 @@ class CreateAgentSchema(BaseModel):
         raise ValueError("An agent with the given name already exists")
 
 
-class AgentPlatformSchema(BaseModel):
+class CreateAgentPlatformSchema(ORMBase):
     external_ip_address: IPv4Address
     operating_system: SupportedOS
     architecture: SupportedArch
 
 
-class BaseAgentSchema(ORMBase, AgentPlatformSchema):
+class BaseAgentSchema(ORMBase):
     id: uuid.UUID
     name: str
     connection_state: WebSocketState = WebSocketState.DISCONNECTED
+    external_ip_address: Optional[IPv4Address]
+    operating_system: Optional[SupportedOS]
+    architecture: Optional[SupportedArch]
 
     @validator('connection_state')
     @classmethod

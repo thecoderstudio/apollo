@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from apollo.lib.router import SecureRouter
-from apollo.lib.schemas.agent import AgentPlatformSchema
+from apollo.lib.schemas.agent import CreateAgentPlatformSchema
 from apollo.lib.security import (
     Allow, Agent, get_client_id_from_authorization_header)
 from apollo.lib.websocket.agent import AgentConnectionManager
@@ -25,7 +25,7 @@ async def connect(
         session=session, authorization=websocket.headers['authorization'])
     try:
         _update_agent_machine_info(websocket, session, agent_id)
-    except ValidationError as e:
+    except (ValueError, ValidationError) as e:
         logging.error("Unable to set machine info", exc_info=e)
         pass
 
@@ -39,7 +39,7 @@ def _update_agent_machine_info(
 ):
     agent = get_agent_by_id(session, agent_id)
     os, arch = _get_platform_info(websocket.headers['user-agent'])
-    platform_data = AgentPlatformSchema(
+    platform_data = CreateAgentPlatformSchema(
         external_ip_address=websocket.client.host,
         operating_system=os,
         architecture=arch
@@ -53,5 +53,9 @@ def _update_agent_machine_info(
 
 def _get_platform_info(user_agent):
     # User agent should be structured like 'Package name - os/arch'
-    os, arch = user_agent.split('-')[1].strip().split('/')
+    try:
+        os, arch = user_agent.split('-')[1].strip().split('/')
+    except (IndexError, ValueError):
+        raise ValueError("No valid user-agent found")
+
     return os, arch
