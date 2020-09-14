@@ -116,9 +116,10 @@ def test_update_password_successful(test_client, db_session, session_cookie,
                                     user):
     response = test_client.put(
         f'/user/{user.id}',
-        json={'password': 'newpassword', 'old_password': 'testing123'}
+        json={'password': 'newpassword', 'password_confirm': 'newpassword',
+              'old_password': 'testing123'}
     )
-
+    print(response.json()) 
     assert response.status_code == 200
     user = db_session.query(User).get(user.id)
     assert user.password_hash == hash_plaintext(
@@ -132,7 +133,18 @@ def test_update_password_wrong_password(test_client, db_session,
         json={'password': 'newpassword', 'old_password': 'wrongpassword'}
     )
 
+    assert response.status_code == 400
+
+
+def test_update_user_unauthenticated(test_client, user):
+    response = test_client.put(
+        f'/user/{user.id}',
+        json={'password': 'newpassword', 'password_confirm': 'newpassword',
+              'old_password': 'testing123'}
+    )
+
     assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
 
 
 def test_list_users_unauthenticated(test_client):
