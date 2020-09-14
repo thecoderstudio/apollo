@@ -57,7 +57,9 @@ def test_create_user_username_too_long(db_session):
 
 def test_user_valid(db_session):
     id_ = uuid.uuid4()
-    user = UserSchema(id=id_, username='johndoe')
+    user = UserSchema(id=id_, username='johndoe',
+                      has_changed_initial_password=False)
 
     assert user.id == id_
     assert user.username == 'johndoe'
+    assert user.has_changed_initial_password == False

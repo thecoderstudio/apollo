@@ -138,14 +138,16 @@ def test_list_users_successful(test_client, db_session, session_cookie):
     assert {
         'id': str(user_1_id),
         'username': 'johndoe',
-        'role': None
+        'role': None,
+        'has_changed_initial_password': False 
     } in users
     assert {
         'id': str(user_2_id),
         'username': 'jeffjefferson',
         'role': {
             'name': 'admin'
-        }
+        },
+        'has_changed_initial_password': False
     } in users
     assert response.status_code == 200
 
@@ -227,5 +229,6 @@ def test_get_current_user_successful(test_client, user, session_cookie):
         'username': user.username,
         'role': {
             'name': user.role.name
-        }
+        },
+        'has_changed_initial_password': False
     }
