@@ -133,7 +133,8 @@ def test_update_password_wrong_password(test_client, db_session,
                                         session_cookie, user):
     response = test_client.put(
         f'/user/{user.id}',
-        json={'password': 'newpassword', 'old_password': 'wrongpassword'},
+        json={'password': 'newpassword', 'old_password': 'wrongpassword',
+              'password_confirm': 'newpassword'},
         cookies=session_cookie
     )
 

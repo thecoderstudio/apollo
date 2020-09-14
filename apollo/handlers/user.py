@@ -43,8 +43,6 @@ def put_user(user_id, user_data: UpdateUserSchema, request: Request,
                             detail='Permission denied.')
     user = get_user_by_id(session, user_id)
     data = user_data.dict()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
 
     if data.get('password') and data.get('old_password'):
         if not compare_plaintext_to_hash(user_data.old_password,

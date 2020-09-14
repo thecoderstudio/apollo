@@ -29,8 +29,16 @@ def test_create_user_password_too_short(db_session):
 
 def test_create_user_password_contains_whitespace(db_session):
     with pytest.raises(ValueError,
+                       match="passwords must match"):
+        CreateUserSchema(password='password', old_password='testtest',
+                         password_confirm='wrongpassword')
+
+
+def test_user_passwords_do_not_match(db_session):
+    with pytest.raises(ValueError,
                        match="password can't contain whitespaces"):
         CreateUserSchema(username='johndoe', password='pass word')
+
 
 
 def test_create_user_missing_fields(db_session):
