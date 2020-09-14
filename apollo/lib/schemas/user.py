@@ -46,7 +46,6 @@ class UpdateUserSchema(BaseModel):
     old_password: str
     password: constr(min_length=8, strip_whitespace=True)
     password_confirm: constr(min_length=8, strip_whitespace=True)
-   
 
     @validator('password')
     @classmethod

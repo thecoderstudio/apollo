@@ -42,8 +42,10 @@ def put_user(user_id, user_data: UpdateUserSchema,
     data = user_data.dict()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
     if data.get('password') and data.get('old_password'):
-        if not compare_plaintext_to_hash(user_data.old_password, user.password_hash,
+        if not compare_plaintext_to_hash(user_data.old_password,
+                                         user.password_hash,
                                          user.password_salt):
             raise HTTPException(status_code=400,
                                 detail="Invalid password")

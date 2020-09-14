@@ -1,3 +1,4 @@
+from apollo.lib.hash import hash_plaintext
 from apollo.models.role import get_role_by_name
 from apollo.models.user import User
 
@@ -111,6 +112,29 @@ def test_post_user_as_regular_user(test_client, db_session, user,
     assert response.json()['detail'] == "Permission denied."
 
 
+def test_update_password_successful(test_client, db_session, session_cookie,
+                                    user):
+    response = test_client.put(
+        f'/user/{user.id}',
+        json={'password': 'newpassword', 'old_password': 'testing123'}
+    )
+
+    assert response.status_code == 200
+    user = db_session.query(User).get(user.id)
+    assert user.password_hash == hash_plaintext(
+        'newpassword', user.password_salt)
+
+
+def test_update_password_wrong_password(test_client, db_session, 
+                                        session_cookie, user):
+    response = test_client.put(
+        f'/user/{user.id}',
+        json={'password': 'newpassword', 'old_password': 'wrongpassword'}
+    )
+
+    assert response.status_code == 403
+
+
 def test_list_users_unauthenticated(test_client):
     response = test_client.get('/user')
 
@@ -218,7 +242,6 @@ def test_delete_successful(test_client, db_session, session_cookie):
 
     assert response.status_code == 204
     assert db_session.query(User).get(user_id) is None
-
 
 def test_get_current_user_successful(test_client, user, session_cookie):
     response = test_client.get('/user/me', cookies=session_cookie)
