@@ -120,7 +120,7 @@ def test_update_password_successful(test_client, db_session, session_cookie,
         f'/user/{user.id}',
         json={'password': 'newpassword', 'password_confirm': 'newpassword',
               'old_password': 'testing123'},
-        session=session_cookie
+        cookies=session_cookie
     )
 
     assert response.status_code == 200

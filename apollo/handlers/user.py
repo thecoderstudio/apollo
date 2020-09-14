@@ -40,7 +40,7 @@ def put_user(user_id, user_data: UpdateUserSchema, request: Request,
              session: Session = Depends(get_session)):
     if (user_id !=  request.current_user.id):
         raise HTTPException(status_code=403,
-                            detail='permission denied')
+                            detail='permission denied.')
     user = get_user_by_id(session, user_id)
     data = user_data.dict()
     if not user:
