@@ -35,12 +35,12 @@ def post_user(user_data: CreateUserSchema,
 
 
 @router.put('/user/{user_id}', status_code=200,
-             response_model=UserSchema, permission='user.put')
+            response_model=UserSchema, permission='user.put')
 def put_user(user_id, user_data: UpdateUserSchema, request: Request,
              session: Session = Depends(get_session)):
-    if (user_id !=  request.current_user.id):
+    if (user_id != str(request.current_user.id)):
         raise HTTPException(status_code=403,
-                            detail='permission denied.')
+                            detail='Permission denied.')
     user = get_user_by_id(session, user_id)
     data = user_data.dict()
     if not user:

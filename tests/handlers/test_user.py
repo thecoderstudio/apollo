@@ -1,6 +1,6 @@
 import uuid
 
-from apollo.lib.hash import hash_plaintext
+from apollo.lib.hash import compare_plaintext_to_hash
 from apollo.models.role import get_role_by_name
 from apollo.models.user import User
 
@@ -117,7 +117,7 @@ def test_post_user_as_regular_user(test_client, db_session, user,
 def test_update_password_successful(test_client, db_session, session_cookie,
                                     user):
     response = test_client.put(
-        f'/user/{user.id}',
+        '/user/ccaf8799-b134-4e47-82f1-a4d9a207c040',
         json={'password': 'newpassword', 'password_confirm': 'newpassword',
               'old_password': 'testing123'},
         cookies=session_cookie
@@ -125,11 +125,11 @@ def test_update_password_successful(test_client, db_session, session_cookie,
 
     assert response.status_code == 200
     user = db_session.query(User).get(user.id)
-    assert user.password_hash == hash_plaintext(
-        'newpassword', user.password_salt)
+    assert compare_plaintext_to_hash(
+        'newpassword', user.password_hash, user.password_salt) is True
 
 
-def test_update_password_wrong_password(test_client, db_session, 
+def test_update_password_wrong_password(test_client, db_session,
                                         session_cookie, user):
     response = test_client.put(
         f'/user/{user.id}',
@@ -191,7 +191,7 @@ def test_list_users_successful(test_client, db_session, session_cookie):
         'id': str(user_1_id),
         'username': 'johndoe',
         'role': None,
-        'has_changed_initial_password': False 
+        'has_changed_initial_password': False
     } in users
     assert {
         'id': str(user_2_id),
