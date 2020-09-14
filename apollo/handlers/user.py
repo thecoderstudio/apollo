@@ -9,7 +9,7 @@ from apollo.lib.hash import hash_plaintext, compare_plaintext_to_hash
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.user import (
     CreateUserSchema, UserSchema, UpdateUserSchema)
-from apollo.lib.security import Allow, Admin, Human
+from apollo.lib.security import Allow, Admin, Human, Authenticated
 from apollo.models import get_session, save, delete
 from apollo.models.user import User, get_user_by_id, list_users as query_users
 
@@ -18,7 +18,7 @@ router = SecureRouter([
     (Allow, Admin, 'user.delete'),
     (Allow, Admin, 'user.list'),
     (Allow, Human, 'user.get_current'),
-    (Allow, Human, 'user.put')
+    (Allow, Authenticated, 'user.put')
 ])
 
 
@@ -36,8 +36,11 @@ def post_user(user_data: CreateUserSchema,
 
 @router.put('/user/{user_id}', status_code=200,
              response_model=UserSchema, permission='user.put')
-def put_user(user_id, user_data: UpdateUserSchema,
+def put_user(user_id, user_data: UpdateUserSchema, request: Request,
              session: Session = Depends(get_session)):
+    if (user_id !=  request.current_user.id):
+        raise HTTPException(status_code=403,
+                            detail='permission denied')
     user = get_user_by_id(session, user_id)
     data = user_data.dict()
     if not user:

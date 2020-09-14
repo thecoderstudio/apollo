@@ -1,3 +1,5 @@
+import uuid
+
 from apollo.lib.hash import hash_plaintext
 from apollo.models.role import get_role_by_name
 from apollo.models.user import User
@@ -139,6 +141,17 @@ def test_update_password_wrong_password(test_client, db_session,
 def test_update_user_unauthenticated(test_client, user):
     response = test_client.put(
         f'/user/{user.id}',
+        json={'password': 'newpassword', 'password_confirm': 'newpassword',
+              'old_password': 'testing123'}
+    )
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
+
+
+def test_update_user_forbidden_user(test_client, user):
+    response = test_client.put(
+        f'/user/{uuid.uuid4()}',
         json={'password': 'newpassword', 'password_confirm': 'newpassword',
               'old_password': 'testing123'}
     )
