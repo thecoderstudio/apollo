@@ -117,7 +117,7 @@ def test_post_user_as_regular_user(test_client, db_session, user,
 def test_update_password_successful(test_client, db_session, session_cookie,
                                     user):
     response = test_client.put(
-        '/user/ccaf8799-b134-4e47-82f1-a4d9a207c040',
+        '/user/me',
         json={'password': 'newpassword', 'password_confirm': 'newpassword',
               'old_password': 'testing123'},
         cookies=session_cookie
@@ -132,7 +132,7 @@ def test_update_password_successful(test_client, db_session, session_cookie,
 def test_update_password_wrong_password(test_client, db_session,
                                         session_cookie, user):
     response = test_client.put(
-        f'/user/{user.id}',
+        '/user/me',
         json={'password': 'newpassword', 'old_password': 'wrongpassword',
               'password_confirm': 'newpassword'},
         cookies=session_cookie
@@ -144,7 +144,7 @@ def test_update_password_wrong_password(test_client, db_session,
 
 def test_update_user_unauthenticated(test_client, user):
     response = test_client.put(
-        f'/user/{user.id}',
+        '/user/me',
         json={'password': 'newpassword', 'password_confirm': 'newpassword',
               'old_password': 'testing123'}
     )
@@ -153,16 +153,29 @@ def test_update_user_unauthenticated(test_client, user):
     assert response.json()['detail'] == "Permission denied."
 
 
-def test_update_user_forbidden_user(test_client, user, session_cookie):
+def test_update_user_password_mismatch(test_client, user, session_cookie):
     response = test_client.put(
-        f'/user/{uuid.uuid4()}',
-        json={'password': 'newpassword', 'password_confirm': 'newpassword',
+        '/user/me',
+        json={'password': 'newpassword', 'password_confirm': 'nepassword',
               'old_password': 'testing123'},
         cookies=session_cookie
     )
 
-    assert response.status_code == 403
-    assert response.json()['detail'] == "Permission denied."
+    assert response.status_code == 400
+    assert response.json()['detail'] == "passwords must match"
+
+
+def test_update_user_password_same_as_old_password(test_client, user, 
+                                                   session_cookie):
+    response = test_client.put(
+        '/user/me'
+        json={'password': 'testing123', 'password_confirm': 'testing123',
+              'old_password': 'testing123'},
+        cookies=session_cookie
+    )
+
+    assert response.status_code == 400
+    assert response.json()['detail'] == "password cannot match old password"
 
 
 def test_list_users_unauthenticated(test_client):

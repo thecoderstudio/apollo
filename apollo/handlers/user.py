@@ -34,14 +34,11 @@ def post_user(user_data: CreateUserSchema,
     return get_user_by_id(session, user.id)
 
 
-@router.patch('/user/{user_id}', status_code=200,
+@router.patch('/user/me', status_code=200,
             response_model=UserSchema, permission='user.patch')
-def patch_user(user_id, user_data: UpdateUserSchema, request: Request,
+def patch_user(user_data: UpdateUserSchema, request: Request,
              session: Session = Depends(get_session)):
-    if (user_id != str(request.current_user.id)):
-        raise HTTPException(status_code=403,
-                            detail='Permission denied.')
-    user = get_user_by_id(session, user_id)
+    ser = get_user_by_id(session, request.current_user.id)
     data = user_data.dict()
 
     if data.get('password') and data.get('old_password'):
