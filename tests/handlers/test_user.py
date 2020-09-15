@@ -135,7 +135,7 @@ def test_update_password_successful_authenticated(test_client, db_session,
 
 def test_update_password_successful_uninitialized(
     test_client, db_session, session_cookie_for_uninitialized_user,
-    unitialized_user
+    uninitialized_user 
 ):
     response = test_client.patch(
         '/user/me',
@@ -144,7 +144,8 @@ def test_update_password_successful_uninitialized(
         cookies=session_cookie_for_uninitialized_user
     )
 
-    _validate_succesful_update_password(unitialized_user, response, db_session)
+    _validate_succesful_update_password(uninitialized_user, 
+        response, db_session)
 
 
 def test_update_password_wrong_password(test_client, db_session,
