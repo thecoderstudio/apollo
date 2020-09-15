@@ -24,6 +24,23 @@ from apollo.models.user import User
 from tests import create_http_connection_mock
 
 
+def _create_and_return_user(has_changed_initial_password=True):
+    password_hash, password_salt = hash_plaintext('testing123')
+    user = User(
+        id='ccaf8799-b134-4e47-82f1-a4d9a207c040',
+        username='test_admin',
+        password_hash=password_hash,
+        password_salt=password_salt,
+        role=db_session.query(Role).filter(Role.name == 'admin').one(),
+        has_changed_initial_password=has_changed_initial_password
+    )
+    db_session.add(user)
+    db_session.flush()
+    user_id = user.id
+    db_session.commit()
+    return user_id, db_session.query(User).get(user_id)
+
+
 @fixture
 def test_client():
     return TestClient(app)
@@ -99,24 +116,23 @@ def authenticated_agent_headers(access_token):
 
 @fixture
 def user(db_session):
-    password_hash, password_salt = hash_plaintext('testing123')
-    user = User(
-        id='ccaf8799-b134-4e47-82f1-a4d9a207c040',
-        username='test_admin',
-        password_hash=password_hash,
-        password_salt=password_salt,
-        role=db_session.query(Role).filter(Role.name == 'admin').one()
-    )
-    db_session.add(user)
-    db_session.flush()
-    user_id = user.id
-    db_session.commit()
-    return db_session.query(User).get(user_id)
+    return _create_and_return_user()
+
+
+@fixture
+def unitialized_user(db_session):
+    return _create_and_return_user(has_changed_initial_password=False)
 
 
 @fixture
 def session_cookie(user):
     key_name, cookie = create_session_cookie(user)
+    return {key_name: cookie}
+
+
+@fixture
+def session_cookie_for_uninitialized_user(uninitialized_user):
+    key_name, cookie = create_session_cookie(uninitialized_user)
     return {key_name: cookie}
 
 

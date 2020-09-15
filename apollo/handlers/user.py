@@ -9,7 +9,8 @@ from apollo.lib.hash import hash_plaintext, compare_plaintext_to_hash
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.user import (
     CreateUserSchema, UserSchema, UpdateUserSchema)
-from apollo.lib.security import Allow, Admin, Human, Authenticated
+from apollo.lib.security import (Allow, Admin, Human, Authenticated,
+                                 Uninitialised)
 from apollo.models import get_session, save, delete
 from apollo.models.user import User, get_user_by_id, list_users as query_users
 
@@ -18,7 +19,8 @@ router = SecureRouter([
     (Allow, Admin, 'user.delete'),
     (Allow, Admin, 'user.list'),
     (Allow, Human, 'user.get_current'),
-    (Allow, Authenticated, 'user.patch')
+    (Allow, Authenticated, 'user.patch'),
+    (Allow, Uninitialised, 'user.patch')
 ])
 
 

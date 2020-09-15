@@ -16,6 +16,7 @@ from apollo.models.user import get_user_by_id
 
 Admin = 'role:admin'
 Authenticated = 'Authenticated'
+Uninitialised = 'Uninitialised'
 Allow = 'Allow'
 Agent = 'Agent'
 Deny = 'Deny'
@@ -56,8 +57,13 @@ class AuthorizationPolicy:
 
         authenticated_user = enhanced_http_connection.current_user
         if authenticated_user:
-            principals += [Authenticated, Human,
-                           f"user:{authenticated_user.id}"]
+            principals += [Human, f"user:{authenticated_user.id}"]
+
+            if user.has_changed_initial_password:
+                principal += [Authenticated]
+            else:
+                principal += [Uninitialised]
+
             if authenticated_user.role:
                 principals.append(f"role:{authenticated_user.role.name}")
 
