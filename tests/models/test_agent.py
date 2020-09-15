@@ -1,8 +1,11 @@
+import uuid
+
 import pytest
 from starlette.websockets import WebSocketState
 
 from apollo.lib.websocket.agent import AgentConnection
-from apollo.models.agent import Agent, get_agent_by_name, list_all_agents
+from apollo.models.agent import (Agent, get_agent_by_name, list_all_agents,
+                                 get_agent_by_id)
 from apollo.models.oauth import OAuthClient
 
 
@@ -42,6 +45,25 @@ def test_get_agent_by_name_not_found(db_session):
     db_session.commit()
 
     assert get_agent_by_name(db_session, 'different') is None
+
+
+def test_get_agent_by_id(db_session):
+    agent = Agent(name='test')
+    db_session.add(agent)
+    db_session.flush()
+    agent_id = agent.id
+    db_session.commit()
+
+    persisted_agent = get_agent_by_id(db_session, agent_id)
+    assert persisted_agent.id == agent_id
+
+
+def test_get_agent_by_id_not_found(db_session):
+    agent = Agent(name='test')
+    db_session.add(agent)
+    db_session.commit()
+
+    assert get_agent_by_id(db_session, uuid.uuid4()) is None
 
 
 def test_list_all_agents_size(db_session):
