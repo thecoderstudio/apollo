@@ -9,7 +9,7 @@ from apollo.lib.schemas.message import (Command, CommandSchema,
                                         ShellIOSchema)
 from apollo.lib.websocket.agent import AgentConnection
 from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
-from apollo.models.agent import Agent
+from apollo.models.agent import Agent, get_agent_by_id
 from apollo.models.oauth import OAuthClient
 from tests.lib.websocket import assert_interested_connections_messaged
 
@@ -18,7 +18,8 @@ from tests.lib.websocket import assert_interested_connections_messaged
 @assert_interested_connections_messaged(
     WebSocketObserverInterestType.AGENT_LISTING
 )
-async def test_post_agent_success(async_test_client, session_cookie):
+async def test_post_agent_success(async_test_client, session_cookie,
+                                  db_session):
     response = await async_test_client.post(
         '/agent',
         json={'name': 'test'},
@@ -32,6 +33,11 @@ async def test_post_agent_success(async_test_client, session_cookie):
     assert oauth_client['agent_id'] is not None
     assert oauth_client['secret'] is not None
     assert oauth_client['type'] == 'confidential'
+
+    persisted_agent = get_agent_by_id(db_session, agent['id'])
+    assert persisted_agent.external_ip_address is None
+    assert persisted_agent.operating_system is None
+    assert persisted_agent.architecture is None
 
 
 def test_post_agent_name_exists(test_client, session_cookie):
@@ -146,15 +152,32 @@ def assert_list_agent_response_data(data, agent_id_1, agent_id_2):
     assert agent_data['name'] in ['test', 'test2']
     assert agent_data['id'] in [str(agent_id_1), str(agent_id_2)]
     assert agent_data['connection_state'] == 'disconnected'
+    assert agent_data['external_ip_address'] == '0.0.0.0'
+    assert agent_data['operating_system'] == 'darwin'
+    assert agent_data['architecture'] == 'amd64'
 
 
 def add_multiple_agents(db_session):
     agent_id_1 = uuid.uuid4()
     agent_id_2 = uuid.uuid4()
-    agent = Agent(id=agent_id_1, name='test',
-                  oauth_client=OAuthClient(type='confidential'))
-    agent_2 = Agent(id=agent_id_2, name='test2',
-                    oauth_client=OAuthClient(type='confidential'))
+    platform_info = {
+        'external_ip_address': '0.0.0.0',
+        'operating_system': 'darwin',
+        'architecture': 'amd64'
+    }
+
+    agent = Agent(
+        id=agent_id_1,
+        name='test',
+        oauth_client=OAuthClient(type='confidential'),
+        **platform_info
+    )
+    agent_2 = Agent(
+        id=agent_id_2,
+        name='test2',
+        oauth_client=OAuthClient(type='confidential'),
+        **platform_info
+    )
     db_session.add(agent)
     db_session.add(agent_2)
     db_session.commit()
