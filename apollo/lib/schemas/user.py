@@ -55,7 +55,7 @@ class UpdateUserSchema(BaseModel):
     @validator('password_confirm')
     @classmethod
     def password_must_match(cls, v, values):
-        if v != values['password']:
+        if v != values.get('password'):
             raise ValueError('passwords must match')
 
         return v
