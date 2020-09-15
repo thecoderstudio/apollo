@@ -18,7 +18,7 @@ router = SecureRouter([
     (Allow, Admin, 'user.delete'),
     (Allow, Admin, 'user.list'),
     (Allow, Human, 'user.get_current'),
-    (Allow, Authenticated, 'user.put')
+    (Allow, Authenticated, 'user.patch')
 ])
 
 
@@ -34,9 +34,9 @@ def post_user(user_data: CreateUserSchema,
     return get_user_by_id(session, user.id)
 
 
-@router.put('/user/{user_id}', status_code=200,
-            response_model=UserSchema, permission='user.put')
-def put_user(user_id, user_data: UpdateUserSchema, request: Request,
+@router.patch('/user/{user_id}', status_code=200,
+            response_model=UserSchema, permission='user.patch')
+def patch_user(user_id, user_data: UpdateUserSchema, request: Request,
              session: Session = Depends(get_session)):
     if (user_id != str(request.current_user.id)):
         raise HTTPException(status_code=403,

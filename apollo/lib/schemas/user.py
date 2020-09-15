@@ -43,7 +43,7 @@ class UserSchema(ORMBase):
 
 
 class UpdateUserSchema(BaseModel):
-    old_password: str
+    old_password: constr(min_length=8, strip_whitespace=True)
     password: constr(min_length=8, strip_whitespace=True)
     password_confirm: constr(min_length=8, strip_whitespace=True)
 
@@ -57,5 +57,13 @@ class UpdateUserSchema(BaseModel):
     def password_must_match(cls, v, values):
         if v != values.get('password'):
             raise ValueError('passwords must match')
+
+        return v
+
+    @validator('password')
+    @classmethod
+    def password_cannot_not_match_old_password(cls, v, values):
+        if v != values['old_password']:
+            raise ValueError('password cannot match old password')
 
         return v

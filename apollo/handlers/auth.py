@@ -31,4 +31,5 @@ def login(response: Response, login_data: LoginSchema,
                                      password_salt):
         raise HTTPException(status_code=400,
                             detail="Username and/or password is incorrect")
+
     response.set_cookie(*create_session_cookie(user))
