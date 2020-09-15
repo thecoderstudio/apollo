@@ -114,7 +114,7 @@ def test_post_user_as_regular_user(test_client, db_session, user,
     assert response.json()['detail'] == "Permission denied."
 
 
-def _validate_succesful_update_password(user, response):
+def _validate_succesful_update_password(user, response, db_session):
     assert response.status_code == 200
     user = db_session.query(User).get(user.id)
     assert compare_plaintext_to_hash(
@@ -130,7 +130,7 @@ def test_update_password_successful_authenticated(test_client, db_session,
         cookies=session_cookie
     )
 
-    _validate_succesful_update_password(user, response)
+    _validate_succesful_update_password(user, response, db_session)
 
 
 def test_update_password_successful_uninitialized(
@@ -144,7 +144,7 @@ def test_update_password_successful_uninitialized(
         cookies=session_cookie_for_uninitialized_user
     )
 
-    _validate_succesful_update_password(unitialized_user, response)
+    _validate_succesful_update_password(unitialized_user, response, db_session)
 
 
 def test_update_password_wrong_password(test_client, db_session,
@@ -180,7 +180,7 @@ def test_update_user_password_mismatch(test_client, user, session_cookie):
     )
 
     assert response.status_code == 400
-    assert response.json()['detail'] == "passwords must match"
+    assert response.json()['password_confirm']['msg'] == "passwords must match"
 
 
 def test_update_user_password_same_as_old_password(test_client, user,
@@ -193,7 +193,8 @@ def test_update_user_password_same_as_old_password(test_client, user,
     )
 
     assert response.status_code == 400
-    assert response.json()['detail'] == "password cannot match old password"
+    assert response.json()['password']['msg'] == (
+        "password cannot match old password")
 
 
 def test_list_users_unauthenticated(test_client):
@@ -314,5 +315,5 @@ def test_get_current_user_successful(test_client, user, session_cookie):
         'role': {
             'name': user.role.name
         },
-        'has_changed_initial_password': False
+        'has_changed_initial_password': True 
     }

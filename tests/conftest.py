@@ -120,7 +120,7 @@ def user(db_session):
 
 
 @fixture
-def unitialized_user(db_session):
+def uninitialized_user(db_session):
     return _create_and_return_user(False, db_session)
 
 
