@@ -168,7 +168,7 @@ def test_update_user_password_mismatch(test_client, user, session_cookie):
 def test_update_user_password_same_as_old_password(test_client, user, 
                                                    session_cookie):
     response = test_client.put(
-        '/user/me'
+        '/user/me',
         json={'password': 'testing123', 'password_confirm': 'testing123',
               'old_password': 'testing123'},
         cookies=session_cookie
