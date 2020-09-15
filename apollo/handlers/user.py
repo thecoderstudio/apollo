@@ -57,7 +57,7 @@ def put_user(user_id, user_data: UpdateUserSchema, request: Request,
 
     user.set_fields(data)
     saved_user, _ = save(session, user)
-    return saved_user 
+    return saved_user
 
 
 @router.delete('/user/{user_id}', status_code=204, permission='user.delete')
