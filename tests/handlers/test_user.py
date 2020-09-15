@@ -123,7 +123,7 @@ def _validate_succesful_update_password(user, response):
 
 def test_update_password_successful_authenticated(test_client, db_session,
                                                   session_cookie, user):
-    response = test_client.put(
+    response = test_client.patch(
         '/user/me',
         json={'password': 'newpassword', 'password_confirm': 'newpassword',
               'old_password': 'testing123'},
@@ -137,7 +137,7 @@ def test_update_password_successful_uninitialized(
     test_client, db_session, session_cookie_for_uninitialized_user,
     unitialized_user
 ):
-    response = test_client.put(
+    response = test_client.patch(
         '/user/me',
         json={'password': 'newpassword', 'password_confirm': 'newpassword',
               'old_password': 'testing123'},
@@ -149,7 +149,7 @@ def test_update_password_successful_uninitialized(
 
 def test_update_password_wrong_password(test_client, db_session,
                                         session_cookie, user):
-    response = test_client.put(
+    response = test_client.patch(
         '/user/me',
         json={'password': 'newpassword', 'old_password': 'wrongpassword',
               'password_confirm': 'newpassword'},
@@ -161,7 +161,7 @@ def test_update_password_wrong_password(test_client, db_session,
 
 
 def test_update_user_unauthenticated(test_client, user):
-    response = test_client.put(
+    response = test_client.patch(
         '/user/me',
         json={'password': 'newpassword', 'password_confirm': 'newpassword',
               'old_password': 'testing123'}
@@ -172,7 +172,7 @@ def test_update_user_unauthenticated(test_client, user):
 
 
 def test_update_user_password_mismatch(test_client, user, session_cookie):
-    response = test_client.put(
+    response = test_client.patch(
         '/user/me',
         json={'password': 'newpassword', 'password_confirm': 'nepassword',
               'old_password': 'testing123'},
@@ -185,7 +185,7 @@ def test_update_user_password_mismatch(test_client, user, session_cookie):
 
 def test_update_user_password_same_as_old_password(test_client, user,
                                                    session_cookie):
-    response = test_client.put(
+    response = test_client.patch(
         '/user/me',
         json={'password': 'testing123', 'password_confirm': 'testing123',
               'old_password': 'testing123'},

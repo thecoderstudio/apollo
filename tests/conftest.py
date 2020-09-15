@@ -24,7 +24,7 @@ from apollo.models.user import User
 from tests import create_http_connection_mock
 
 
-def _create_and_return_user(has_changed_initial_password=True):
+def _create_and_return_user(has_changed_initial_password, db_session):
     password_hash, password_salt = hash_plaintext('testing123')
     user = User(
         id='ccaf8799-b134-4e47-82f1-a4d9a207c040',
@@ -38,7 +38,7 @@ def _create_and_return_user(has_changed_initial_password=True):
     db_session.flush()
     user_id = user.id
     db_session.commit()
-    return user_id, db_session.query(User).get(user_id)
+    return db_session.query(User).get(user_id)
 
 
 @fixture
@@ -116,12 +116,12 @@ def authenticated_agent_headers(access_token):
 
 @fixture
 def user(db_session):
-    return _create_and_return_user()
+    return _create_and_return_user(True, db_session)
 
 
 @fixture
 def unitialized_user(db_session):
-    return _create_and_return_user(has_changed_initial_password=False)
+    return _create_and_return_user(False, db_session)
 
 
 @fixture

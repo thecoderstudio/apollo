@@ -32,6 +32,7 @@ def post_user(user_data: CreateUserSchema,
     data['password_hash'], data['password_salt'] = hash_plaintext(
         user_data.password)
     data.pop('password')
+
     user, _ = save(session, User(**data))
     return get_user_by_id(session, user.id)
 
@@ -40,7 +41,7 @@ def post_user(user_data: CreateUserSchema,
             response_model=UserSchema, permission='user.patch')
 def patch_user(user_data: UpdateUserSchema, request: Request,
              session: Session = Depends(get_session)):
-    ser = get_user_by_id(session, request.current_user.id)
+    user = get_user_by_id(session, request.current_user.id)
     data = user_data.dict()
 
     if data.get('password') and data.get('old_password'):
