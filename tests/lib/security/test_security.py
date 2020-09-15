@@ -138,7 +138,7 @@ def test_auth_policy_admin_user_principals(mock_policy, mock_http_connection,
 
 def test_auth_policy_default_user_principals(mock_policy, mock_http_connection,
                                              user, session_cookie, db_session):
-    user.role = None 
+    user.role = None
     db_session.commit()
     policy = mock_policy()
     principals = policy.get_principals(
@@ -154,7 +154,7 @@ def test_auth_policy_default_uninitialized_user_principals(
     mock_policy, mock_http_connection, uninitialized_user,
     session_cookie_for_uninitialized_user, db_session
 ):
-    uninitialized_user.role = None 
+    uninitialized_user.role = None
     db_session.commit()
     policy = mock_policy()
     principals = policy.get_principals(

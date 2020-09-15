@@ -1,5 +1,3 @@
-import uuid
-
 from apollo.lib.hash import compare_plaintext_to_hash
 from apollo.models.role import get_role_by_name
 from apollo.models.user import User
@@ -144,8 +142,8 @@ def test_update_password_successful_uninitialized(
         cookies=session_cookie_for_uninitialized_user
     )
 
-    _validate_succesful_update_password(uninitialized_user, 
-        response, db_session)
+    _validate_succesful_update_password(uninitialized_user,
+                                        response, db_session)
 
 
 def test_update_password_wrong_password(test_client, db_session,
@@ -306,6 +304,7 @@ def test_delete_successful(test_client, db_session, session_cookie):
     assert response.status_code == 204
     assert db_session.query(User).get(user_id) is None
 
+
 def test_get_current_user_successful(test_client, user, session_cookie):
     response = test_client.get('/user/me', cookies=session_cookie)
 
@@ -316,5 +315,5 @@ def test_get_current_user_successful(test_client, user, session_cookie):
         'role': {
             'name': user.role.name
         },
-        'has_changed_initial_password': True 
+        'has_changed_initial_password': True
     }
