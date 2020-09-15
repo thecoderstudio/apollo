@@ -133,7 +133,7 @@ def test_update_password_successful_authenticated(test_client, db_session,
 
 def test_update_password_successful_uninitialized(
     test_client, db_session, session_cookie_for_uninitialized_user,
-    uninitialized_user 
+    uninitialized_user
 ):
     response = test_client.patch(
         '/user/me',
