@@ -14,6 +14,7 @@ requires = [
     'psycopg2',
     'pydantic',
     'pyjwt',
+    'redis',
     'sqlalchemy',
     'uvicorn[watchgodreload]'
 ]
