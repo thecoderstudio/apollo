@@ -114,8 +114,15 @@ def test_post_user_as_regular_user(test_client, db_session, user,
     assert response.json()['detail'] == "Permission denied."
 
 
-def test_update_password_successful(test_client, db_session, session_cookie,
-                                    user):
+def _validate_succesful_update_password(user, response):
+    assert response.status_code == 200
+    user = db_session.query(User).get(user.id)
+    assert compare_plaintext_to_hash(
+        'newpassword', user.password_hash, user.password_salt) is True
+
+
+def test_update_password_successful_authenticated(test_client, db_session,
+                                                  session_cookie, user):
     response = test_client.put(
         '/user/me',
         json={'password': 'newpassword', 'password_confirm': 'newpassword',
@@ -123,10 +130,21 @@ def test_update_password_successful(test_client, db_session, session_cookie,
         cookies=session_cookie
     )
 
-    assert response.status_code == 200
-    user = db_session.query(User).get(user.id)
-    assert compare_plaintext_to_hash(
-        'newpassword', user.password_hash, user.password_salt) is True
+    _validate_succesful_update_password(user, response)
+
+
+def test_update_password_successful_uninitialized(
+    test_client, db_session, session_cookie_for_uninitialized_user,
+    unitialized_user
+):
+    response = test_client.put(
+        '/user/me',
+        json={'password': 'newpassword', 'password_confirm': 'newpassword',
+              'old_password': 'testing123'},
+        cookies=session_cookie_for_uninitialized_user
+    )
+
+    _validate_succesful_update_password(unitialized_user, response)
 
 
 def test_update_password_wrong_password(test_client, db_session,
@@ -165,7 +183,7 @@ def test_update_user_password_mismatch(test_client, user, session_cookie):
     assert response.json()['detail'] == "passwords must match"
 
 
-def test_update_user_password_same_as_old_password(test_client, user, 
+def test_update_user_password_same_as_old_password(test_client, user,
                                                    session_cookie):
     response = test_client.put(
         '/user/me',
