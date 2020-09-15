@@ -59,10 +59,10 @@ class AuthorizationPolicy:
         if authenticated_user:
             principals += [Human, f"user:{authenticated_user.id}"]
 
-            if user.has_changed_initial_password:
-                principal += [Authenticated]
+            if authenticated_user.has_changed_initial_password:
+                principals += [Authenticated]
             else:
-                principal += [Uninitialized]
+                principals += [Uninitialized]
 
             if authenticated_user.role:
                 principals.append(f"role:{authenticated_user.role.name}")
