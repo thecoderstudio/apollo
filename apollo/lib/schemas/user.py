@@ -52,7 +52,7 @@ class UpdateUserSchema(BaseModel):
     def no_whitespace_in_password(cls, value):
         return check_for_whitespace(value)
 
-    @validator('password_confirm') 
+    @validator('password_confirm')
     @classmethod
     def password_must_match(cls, v, values):
         if v != values['password']:
