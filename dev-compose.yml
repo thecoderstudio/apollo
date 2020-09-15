@@ -32,4 +32,6 @@ services:
       - POSTGRES_PASSWORD=testing123
       - POSTGRES_DB=apollo
   redis:
+    ports:
+      - "1973:6379"
     image: redis:6
