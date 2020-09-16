@@ -45,7 +45,10 @@ def add_cors():
 
 
 def init_cache():
-    RedisSession(**settings['redis'])
+    redis_settings = settings['redis']
+    lifetime = redis_settings.pop('default_ttl_in_seconds')
+    redis_session = RedisSession(lifetime)
+    redis_session.configure(**redis_settings)
 
 
 def add_validation_exception_handler():

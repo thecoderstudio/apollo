@@ -82,10 +82,14 @@ def redis_session(patched_settings):
         config = ConfigParser()
         config.read('test.ini')
         redis_settings = config['redis']
-        redis_session = RedisSession(**redis_settings)
+        lifetime = redis_settings.pop('default_ttl_in_seconds')
+
+        redis_session = RedisSession(lifetime)
+        redis_session.configure(**redis_settings)
+
         yield redis_session
     finally:
-        redis_settings.pop('default_item_lifetime')
+        redis_session.session = None
         redis.StrictRedis(**redis_settings).flushall()
 
 
