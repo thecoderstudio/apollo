@@ -1,17 +1,17 @@
 import redis
 
-from apollo.lib.settings import settings
 from apollo.lib.singleton import Singleton
 
 
 class RedisSession(object, metaclass=Singleton):
-    def __init__(self, host, port, db, password):
+    def __init__(self, host, port, db, default_item_lifetime, password=None):
         self.session = redis.StrictRedis(host=host, port=port, db=db,
                                          password=password)
+        self.default_lifetime = default_item_lifetime
 
     def write_to_cache(self, key, value, lifetime=None):
         if not lifetime:
-            lifetime = settings['redis.default_item_lifetime']
+            lifetime = self.default_lifetime
         self.session.set(key, value, ex=lifetime)
 
     def write_dict_to_cache(self, key, value):

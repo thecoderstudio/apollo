@@ -5,8 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from apollo.handlers import agent, auth, oauth, root, user, websocket
 from apollo.lib.initialisation import initialise_if_needed
+from apollo.lib.redis import RedisSession
 from apollo.lib.security.cors import get_origins
-from apollo.lib.settings import update_settings
+from apollo.lib.settings import settings, update_settings
 from apollo.models import init_sqlalchemy
 
 app = FastAPI()
@@ -29,6 +30,7 @@ def configure():
     read_settings_files()
     init_sqlalchemy()
     add_cors()
+    init_cache()
     add_validation_exception_handler()
 
 
@@ -42,8 +44,12 @@ def add_cors():
     )
 
 
+def init_cache():
+    RedisSession(**settings['redis'])
+
+
 def add_validation_exception_handler():
-    from apollo.lib.exceptions import validation
+    from apollo.lib.exceptions import validation  # noqa
 
 
 def read_settings_files():
