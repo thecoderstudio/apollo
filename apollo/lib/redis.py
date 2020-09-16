@@ -30,3 +30,6 @@ class RedisSession(object, metaclass=Singleton):
 
     def get_ttl(self, key):
         return self.session.ttl(key)
+
+    def delete(self, key):
+        self.session.delete(key)

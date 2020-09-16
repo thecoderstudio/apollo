@@ -2,10 +2,11 @@ from fastapi import Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
 from apollo.lib.hash import compare_plaintext_to_hash
-from apollo.lib.redis import RedisSession
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.auth import LoginSchema
 from apollo.lib.security import Allow, Everyone, create_session_cookie
+from apollo.lib.settings import settings
+from apollo.lib.security.shield import RequestShield
 from apollo.models import get_session
 from apollo.models.user import get_user_by_username
 
@@ -19,19 +20,16 @@ FAKE_PASSWORD_SALT = "$2b$12$TEfhqmu/6mXaYqMZUkTAZu"
 @router.post("/auth/login", status_code=200, permission='login')
 def login(response: Response, login_data: LoginSchema,
           session: Session = Depends(get_session)):
-    redis_session = RedisSession()
-    attempt_key = f"login_attempt:{login_data.username}"
-    locked_key = f"locked:{login_data.username}"
-
-    if redis_session.get_from_cache(locked_key, 0):
-        locked_time = redis_session.get_ttl(locked_key)
-        raise HTTPException(
-            status_code=400,
-            detail="This account is locked, "
-            f"try again in {locked_time} seconds"
-        )
+    security_settings = settings['security']
+    shield = RequestShield(
+        'account',
+        int(security_settings['max_login_attempts']),
+        int(security_settings['login_lockout_interval_in_seconds']),
+        int(security_settings['max_login_lockout_in_seconds'])
+    )
 
     user = get_user_by_username(session, login_data.username)
+    shield.lock_if_required(login_data.username)
 
     if user:
         password_hash, password_salt = user.password_hash, user.password_salt
@@ -42,19 +40,9 @@ def login(response: Response, login_data: LoginSchema,
 
     if not compare_plaintext_to_hash(login_data.password, password_hash,
                                      password_salt):
-        login_attempt = int(redis_session.get_from_cache(attempt_key, 0))
-        login_attempt += 1
-        redis_session.write_to_cache(attempt_key, login_attempt)
-
-        if login_attempt >= 3:
-            redis_session.write_to_cache(
-                locked_key,
-                1,
-                min(300 * login_attempt, 10800)
-            )
-
+        shield.increment_attempts(login_data.username)
         raise HTTPException(status_code=400,
                             detail="Username and/or password is incorrect")
 
-    redis_session.delete(attempt_key)
+    shield.clear(login_data.username)
     response.set_cookie(*create_session_cookie(user))
