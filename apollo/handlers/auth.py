@@ -23,13 +23,14 @@ def login(response: Response, login_data: LoginSchema,
     security_settings = settings['security']
     shield = RequestShield(
         'account',
+        login_data.username,
         int(security_settings['max_login_attempts']),
         int(security_settings['login_lockout_interval_in_seconds']),
         int(security_settings['max_login_lockout_in_seconds'])
     )
 
     user = get_user_by_username(session, login_data.username)
-    shield.lock_if_required(login_data.username)
+    shield.raise_if_locked()
 
     if user:
         password_hash, password_salt = user.password_hash, user.password_salt
@@ -40,9 +41,9 @@ def login(response: Response, login_data: LoginSchema,
 
     if not compare_plaintext_to_hash(login_data.password, password_hash,
                                      password_salt):
-        shield.increment_attempts(login_data.username)
+        shield.increment_attempts()
         raise HTTPException(status_code=400,
                             detail="Username and/or password is incorrect")
 
-    shield.clear(login_data.username)
+    shield.clear()
     response.set_cookie(*create_session_cookie(user))

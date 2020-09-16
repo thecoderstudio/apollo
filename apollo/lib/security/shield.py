@@ -4,7 +4,7 @@ from apollo.lib.redis import RedisSession
 
 
 class RequestShield:
-    def __init__(self, resource, max_attempts, lockout_interval,
+    def __init__(self, resource, key, max_attempts, lockout_interval,
                  max_lockout_time):
         self.resource = resource
         self.max_attempts = max_attempts
@@ -12,38 +12,42 @@ class RequestShield:
         self.max_lockout_time = max_lockout_time
         self.redis_session = RedisSession()
 
-    def lock_if_required(self, key):
-        locked_key = self._get_locked_key(key)
-        if self.redis_session.get_from_cache(locked_key, 0):
-            locked_time = self.redis_session.get_ttl(locked_key)
+        self.attempt_key = f"attempt:{key}"
+        self.locked_key = f"locked:{key}"
+
+    def raise_if_locked(self):
+        if self.locked:
             raise HTTPException(
                 status_code=400,
                 detail="This account is locked, "
-                f"try again in {locked_time} seconds"
+                f"try again in {self.time_locked_in_seconds} seconds"
             )
 
-    def increment_attempts(self, key):
-        attempt_key = self._get_attempt_key(key)
-        locked_key = self._get_locked_key(key)
-
-        attempt = int(self.redis_session.get_from_cache(attempt_key, 0))
+    def increment_attempts(self):
+        attempt = int(self.redis_session.get_from_cache(self.attempt_key, 0))
         attempt += 1
-        self.redis_session.write_to_cache(attempt_key, attempt)
+        self.redis_session.write_to_cache(self.attempt_key, attempt)
 
         if attempt >= self.max_attempts:
-            self.redis_session.write_to_cache(locked_key, 1, min(
+            self.redis_session.write_to_cache(self.locked_key, 1, min(
                 self.lockout_interval * attempt,
                 self.max_lockout_time
             ))
 
-    def clear(self, key):
-        self.redis_session.delete(self._get_attempt_key(key))
-        self.redis_session.delete(self._get_locked_key(key))
+    def clear(self):
+        self.redis_session.delete(self.attempt_key)
+        self.redis_session.delete(self.locked_key)
 
-    @staticmethod
-    def _get_attempt_key(key):
-        return f"attempt:{key}"
+    @property
+    def attempts(self):
+        return int(self.redis_session.get_from_cache(self.attempt_key, 0))
 
-    @staticmethod
-    def _get_locked_key(key):
-        return f"locked:{key}"
+    @property
+    def locked(self):
+        return bool(self.redis_session.get_from_cache(
+            self.locked_key
+        ))
+
+    @property
+    def time_locked_in_seconds(self):
+        return self.redis_session.get_ttl(self.locked_key)
