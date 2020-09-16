@@ -47,10 +47,14 @@ def test_get_dict_from_cache(redis_session):
 
 
 def test_get_from_cache(redis_session):
-    data = b'a'
+    data = 'a'
     redis_session.write_to_cache('test', data)
 
     assert redis_session.get_from_cache('test') == data
+
+
+def test_get_from_cache_not_found(redis_session):
+    assert redis_session.get_from_cache('fake', 'test') == 'test'
 
 
 def get_strict_redis():
