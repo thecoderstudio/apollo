@@ -10,15 +10,16 @@ def test_redis_session_singleton(redis_session):
 
 
 def test_write_to_cache(redis_session):
-    strict_redis = get_strict_redis()
+    strict_redis, lifetime = get_strict_redis()
 
     redis_session.write_to_cache('test', 'a')
 
+    assert strict_redis.ttl('test') == int(lifetime)
     assert strict_redis.get('test') == b'a'
 
 
 def test_write_dict_to_cache(redis_session):
-    strict_redis = get_strict_redis()
+    strict_redis, _ = get_strict_redis()
     data = {b'a': b'b'}
 
     redis_session.write_dict_to_cache('data', data)
@@ -44,6 +45,6 @@ def get_strict_redis():
     config = ConfigParser()
     config.read('test.ini')
     redis_settings = config['redis']
-    redis_settings.pop('default_item_lifetime')
+    lifetime = redis_settings.pop('default_item_lifetime')
 
-    return redis.StrictRedis(**redis_settings)
+    return redis.StrictRedis(**redis_settings), lifetime
