@@ -52,9 +52,8 @@ def test_raise_when_locked():
     shield = RequestShield('test', 0, 5, 15)
     shield.increment_attempts()
 
-    with pytest.raises(HTTPException) as e:
+    with pytest.raises(HTTPException):
         shield.raise_if_locked()
-        print(str(e))
 
 
 def test_no_raise_when_not_locked():
