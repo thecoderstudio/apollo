@@ -2,6 +2,7 @@ import contextlib
 from configparser import ConfigParser
 from unittest.mock import AsyncMock
 
+import redis
 from async_asgi_testclient import TestClient as AsyncTestClient
 from fastapi import WebSocket
 from fastapi.testclient import TestClient
@@ -11,6 +12,7 @@ from starlette.websockets import WebSocketState, WebSocketDisconnect
 import apollo.lib.settings
 from apollo import app
 from apollo.lib.hash import hash_plaintext
+from apollo.lib.redis import RedisSession
 from apollo.lib.security import create_session_cookie
 from apollo.lib.websocket import WebSocketManager
 from apollo.lib.websocket.agent import AgentConnectionManager
@@ -72,6 +74,23 @@ def empty_tables():
         for table in reversed(Base.metadata.sorted_tables):
             con.execute(table.delete())
         trans.commit()
+
+
+@fixture
+def redis_session(patched_settings):
+    try:
+        config = ConfigParser()
+        config.read('test.ini')
+        redis_settings = config['redis']
+        lifetime = redis_settings.pop('default_ttl_in_seconds')
+
+        redis_session = RedisSession(lifetime)
+        redis_session.configure(**redis_settings)
+
+        yield redis_session
+    finally:
+        redis_session.session = None
+        redis.StrictRedis(**redis_settings).flushall()
 
 
 @fixture

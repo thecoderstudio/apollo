@@ -6,12 +6,13 @@ services:
     build:
       context: .
     ports:
-      - "1973:8000"
+      - "1974:8000"
     volumes:
       - .:/home/apollo/apollo
       - /home/apollo/apollo/apollo.egg-info
     links:
       - db-test
+      - redis-test
     depends_on:
       - db-test
     tty: true
@@ -29,11 +30,16 @@ services:
     container_name: apollo-test-db
     image: postgres:12
     ports:
-      - "1974:5432"
+      - "1975:5432"
     environment:
       - POSTGRES_USER=apollo
       - POSTGRES_PASSWORD=testing123
       - POSTGRES_DB=apollo-test
+    networks:
+      - apollo-test-network
+  redis-test:
+    container_name: apollo-test-cache
+    image: redis:6
     networks:
       - apollo-test-network
 
