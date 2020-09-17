@@ -46,7 +46,7 @@ class RequestShield:
         attempt += 1
         self.redis_session.write_to_cache(self.attempt_key, attempt)
 
-        if attempt > self.max_attempts:
+        if attempt >= self.max_attempts:
             self.redis_session.write_to_cache(self.locked_key, int(True), min(
                 self.lockout_interval * attempt,
                 self.max_lockout_time

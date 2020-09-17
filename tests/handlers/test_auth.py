@@ -36,7 +36,6 @@ def test_locked_after_too_many_attempts(test_client, db_session):
     test_client.post('/auth/login', json=credentials)
     test_client.post('/auth/login', json=credentials)
     test_client.post('/auth/login', json=credentials)
-    test_client.post('/auth/login', json=credentials)
     response = test_client.post('/auth/login', json=credentials)
 
     assert response.status_code == 400

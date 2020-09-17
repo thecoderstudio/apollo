@@ -29,7 +29,11 @@ class RedisSession(object, metaclass=Singleton):
         return result.decode('utf-8')
 
     def get_ttl(self, key):
-        return self.session.ttl(key)
+        ttl = self.session.ttl(key)
+        if ttl < 0:
+            return None
+
+        return ttl
 
     def delete(self, key):
         self.session.delete(key)

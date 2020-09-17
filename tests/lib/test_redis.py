@@ -63,7 +63,7 @@ def test_get_ttl(redis_session):
 
 
 def test_get_ttl_not_found(redis_session):
-    redis_session.get_ttl('test') is None
+    assert redis_session.get_ttl('test') is None
 
 
 def test_delete(redis_session):

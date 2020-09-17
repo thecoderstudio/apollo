@@ -30,6 +30,7 @@ def login(response: Response, login_data: LoginSchema,
 
     user = get_user_by_username(session, login_data.username)
     shield.raise_if_locked(resource="account")
+    shield.increment_attempts()
 
     if user:
         password_hash, password_salt = user.password_hash, user.password_salt
@@ -40,7 +41,6 @@ def login(response: Response, login_data: LoginSchema,
 
     if not compare_plaintext_to_hash(login_data.password, password_hash,
                                      password_salt):
-        shield.increment_attempts()
         raise HTTPException(status_code=400,
                             detail="Username and/or password is incorrect")
 
