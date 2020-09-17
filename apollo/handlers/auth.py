@@ -22,7 +22,6 @@ def login(response: Response, login_data: LoginSchema,
           session: Session = Depends(get_session)):
     security_settings = settings['security']
     shield = RequestShield(
-        'account',
         login_data.username,
         int(security_settings['max_login_attempts']),
         int(security_settings['login_lockout_interval_in_seconds']),
@@ -30,7 +29,7 @@ def login(response: Response, login_data: LoginSchema,
     )
 
     user = get_user_by_username(session, login_data.username)
-    shield.raise_if_locked()
+    shield.raise_if_locked(resource="account")
 
     if user:
         password_hash, password_salt = user.password_hash, user.password_salt

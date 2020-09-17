@@ -4,26 +4,33 @@ from apollo.lib.redis import RedisSession
 
 
 class RequestShield:
-    def __init__(self, resource, key, max_attempts, lockout_interval,
-                 max_lockout_time):
-        self.resource = resource
+    def __init__(
+        self,
+        key,
+        max_attempts,
+        lockout_interval_in_seconds,
+        max_lockout_time_in_seconds
+    ):
         self.max_attempts = max_attempts
-        self.lockout_interval = lockout_interval
-        self.max_lockout_time = max_lockout_time
+        self.lockout_interval = lockout_interval_in_seconds
+        self.max_lockout_time = max_lockout_time_in_seconds
         self.redis_session = RedisSession()
 
         self.attempt_key = f"attempt:{key}"
         self.locked_key = f"locked:{key}"
 
-    def raise_if_locked(self):
+    def raise_if_locked(self, resource="resource"):
         if self.locked:
             raise HTTPException(
                 status_code=400,
-                detail="This account is locked, "
+                detail=f"This {resource} is locked, "
                 f"try again in {self.time_locked_in_seconds} seconds"
             )
 
     def increment_attempts(self):
+        if self.locked:
+            raise ValueError("Can't reattempt when locked")
+
         attempt = int(self.redis_session.get_from_cache(self.attempt_key, 0))
         attempt += 1
         self.redis_session.write_to_cache(self.attempt_key, attempt)
