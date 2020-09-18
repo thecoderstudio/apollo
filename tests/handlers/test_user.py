@@ -112,7 +112,7 @@ def test_post_user_as_regular_user(test_client, db_session, user,
     assert response.json()['detail'] == "Permission denied."
 
 
-def _validate_succesful_update_password(user, response, db_session):
+def _assert_succesful_update_password(user, response, db_session):
     assert response.status_code == 200
     user = db_session.query(User).get(user.id)
     assert compare_plaintext_to_hash(
@@ -128,7 +128,7 @@ def test_update_password_successful_authenticated(test_client, db_session,
         cookies=session_cookie
     )
 
-    _validate_succesful_update_password(user, response, db_session)
+    _assert_succesful_update_password(user, response, db_session)
 
 
 def test_update_password_successful_uninitialized(
@@ -142,7 +142,7 @@ def test_update_password_successful_uninitialized(
         cookies=session_cookie_for_uninitialized_user
     )
 
-    _validate_succesful_update_password(uninitialized_user,
+    _assert_succesful_update_password(uninitialized_user,
                                         response, db_session)
 
 

@@ -50,7 +50,7 @@ def test_update_user_password_contains_whitespace():
                          password_confirm='pass word')
 
 
-def test_user_passwords_do_not_match():
+def test_update_user_passwords_do_not_match():
     with pytest.raises(ValueError,
                        match="passwords must match"):
         UpdateUserSchema(password='password', old_password='testtest',

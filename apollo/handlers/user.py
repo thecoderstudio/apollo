@@ -14,13 +14,14 @@ from apollo.lib.security import (Allow, Admin, Human, Authenticated,
 from apollo.models import get_session, save, delete
 from apollo.models.user import User, get_user_by_id, list_users as query_users
 
+
 router = SecureRouter([
     (Allow, Admin, 'user.post'),
     (Allow, Admin, 'user.delete'),
     (Allow, Admin, 'user.list'),
     (Allow, Human, 'user.get_current'),
-    (Allow, Authenticated, 'user.patch'),
-    (Allow, Uninitialized, 'user.patch')
+    (Allow, Authenticated, 'user.patch_self'),
+    (Allow, Uninitialized, 'user.patch_self')
 ])
 
 
@@ -38,22 +39,26 @@ def post_user(user_data: CreateUserSchema,
 
 
 @router.patch('/user/me', status_code=200,
-            response_model=UserSchema, permission='user.patch')
+              response_model=UserSchema, permission='user.patch_self')
 def patch_user(user_data: UpdateUserSchema, request: Request,
-             session: Session = Depends(get_session)):
+               session: Session = Depends(get_session)):
     user = get_user_by_id(session, request.current_user.id)
     data = user_data.dict()
 
-    if data.get('password') and data.get('old_password'):
-        if not compare_plaintext_to_hash(user_data.old_password,
-                                         user.password_hash,
-                                         user.password_salt):
-            raise HTTPException(status_code=400,
-                                detail="Invalid password")
-        data['password_hash'], data['password_salt'] = hash_plaintext(
-            user_data.password)
-        data.pop('password')
-        user.has_changed_initial_password = True
+    if not compare_plaintext_to_hash(user_data.old_password,
+                                     user.password_hash,
+                                     user.password_salt):
+        raise HTTPException(
+            status_code=400,
+            old_password={
+                'msg': 'Invalid password',
+                'type': 'value_error'
+            }
+        )
+    data['password_hash'], data['password_salt'] = hash_plaintext(
+        user_data.password)
+    data.pop('password')
+    user.has_changed_initial_password = True
 
     user.set_fields(data)
     saved_user, _ = save(session, user)
