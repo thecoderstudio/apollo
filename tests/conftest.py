@@ -76,7 +76,7 @@ def empty_tables():
         trans.commit()
 
 
-@fixture
+@fixture(autouse=True)
 def redis_session(patched_settings):
     try:
         config = ConfigParser()

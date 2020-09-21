@@ -22,5 +22,18 @@ class RedisSession(object, metaclass=Singleton):
     def get_dict_from_cache(self, key):
         return self.session.hgetall(key)
 
-    def get_from_cache(self, key):
-        return self.session.get(key)
+    def get_from_cache(self, key, default=None):
+        result = self.session.get(key)
+        if result is None:
+            return default
+        return result.decode('utf-8')
+
+    def get_ttl(self, key):
+        ttl = self.session.ttl(key)
+        if ttl < 0:
+            return None
+
+        return ttl
+
+    def delete(self, key):
+        self.session.delete(key)

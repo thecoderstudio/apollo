@@ -47,10 +47,33 @@ def test_get_dict_from_cache(redis_session):
 
 
 def test_get_from_cache(redis_session):
-    data = b'a'
+    data = 'a'
     redis_session.write_to_cache('test', data)
 
     assert redis_session.get_from_cache('test') == data
+
+
+def test_get_from_cache_not_found(redis_session):
+    assert redis_session.get_from_cache('fake', 'test') == 'test'
+
+
+def test_get_ttl(redis_session):
+    redis_session.write_to_cache('test', 'a', 10)
+    assert redis_session.get_ttl('test') == 10
+
+
+def test_get_ttl_not_found(redis_session):
+    assert redis_session.get_ttl('test') is None
+
+
+def test_delete(redis_session):
+    redis_session.write_to_cache('test', 'a')
+    redis_session.delete('test')
+    assert redis_session.get_from_cache('test') is None
+
+
+def test_delete_not_found(redis_session):
+    redis_session.delete('test')
 
 
 def get_strict_redis():
