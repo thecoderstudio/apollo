@@ -156,7 +156,7 @@ def test_update_password_wrong_password(test_client, db_session,
     )
 
     assert response.status_code == 400
-    assert response.json()['detail'] == 'Invalid password'
+    assert response.json()['old_password']['msg'] == 'Invalid password'
 
 
 def test_update_user_unauthenticated(test_client, user):

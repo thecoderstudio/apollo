@@ -26,11 +26,3 @@ def validation_exception_handler(request: Request, exc: RequestValidationError):
         status_code=400,
         content=jsonable_encoder(new_error)
     )
-
-
-@app.exception_handler(ValidationError)
-async def unicorn_exception_handler(request: Request, exc: ValidationError):
-    return JSONResponse(
-        status_code=400,
-        content=jsonable_encoder(exc.errors)
-    )

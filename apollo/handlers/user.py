@@ -2,7 +2,7 @@ import uuid
 from typing import List
 
 from fastapi import Depends, Request
-from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from apollo.lib.exceptions import HTTPException, ValidationError
@@ -14,7 +14,6 @@ from apollo.lib.security import (Allow, Admin, Human, Authenticated,
                                  Uninitialized)
 from apollo.models import get_session, save, delete
 from apollo.models.user import User, get_user_by_id, list_users as query_users
-
 
 router = SecureRouter([
     (Allow, Admin, 'user.post'),
@@ -49,12 +48,15 @@ def patch_user(user_data: UpdateUserSchema, request: Request,
     if not compare_plaintext_to_hash(user_data.old_password,
                                      user.password_hash,
                                      user.password_salt):
-        raise ValidationError({
-            'old_password': {
-                'msg': 'Invalid password',
-                'type': 'value_error'
+        return JSONResponse(
+            status_code=400,
+            content={
+                'old_password': {
+                    'msg': 'Invalid password',
+                    'type': 'value_error'
+                }
             }
-        })
+        )
 
     data['password_hash'], data['password_salt'] = hash_plaintext(
         user_data.password)
