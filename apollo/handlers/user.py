@@ -5,7 +5,7 @@ from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from apollo.lib.exceptions import HTTPException, ValidationError
+from apollo.lib.exceptions import HTTPException
 from apollo.lib.hash import hash_plaintext, compare_plaintext_to_hash
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.user import (
