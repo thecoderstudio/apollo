@@ -11,7 +11,7 @@ from apollo.lib.exceptions.oauth import (
 from apollo.lib.security import (
     Allow, Authenticated, Deny, Everyone, get_auth_method_and_token,
     get_client_id_from_authorization_header, Human, parse_authorization_header,
-    Agent as AgentPrincipal)
+    Agent as AgentPrincipal, Uninitialized)
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
 from tests import create_http_connection_mock
@@ -148,6 +148,22 @@ def test_auth_policy_default_user_principals(mock_policy, mock_http_connection,
     )
 
     assert principals == [Everyone, Authenticated, Human, f"user:{user.id}"]
+
+
+def test_auth_policy_default_uninitialized_user_principals(
+    mock_policy, mock_http_connection, uninitialized_user,
+    session_cookie_for_uninitialized_user, db_session
+):
+    uninitialized_user.role = None
+    db_session.commit()
+    policy = mock_policy()
+    principals = policy.get_principals(
+        policy.enhance_http_connection(mock_http_connection(
+            cookies=session_cookie_for_uninitialized_user
+        ), db_session)
+    )
+
+    assert principals == [Everyone, Uninitialized]
 
 
 @pytest.mark.parametrize('auth_header', [

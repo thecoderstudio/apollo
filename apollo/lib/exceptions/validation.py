@@ -1,5 +1,6 @@
 import json
 
+from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -8,7 +9,7 @@ from apollo import app
 
 
 @app.exception_handler(RequestValidationError)
-def validation_exception_handler(request, exc):
+def validation_exception_handler(request: Request, exc: RequestValidationError):
     new_error = {}
     for error_object in json.loads(exc.json()):
         field = error_object['loc'][-1]

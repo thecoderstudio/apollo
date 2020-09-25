@@ -3,7 +3,8 @@ import uuid
 import pytest
 from pydantic import ValidationError
 
-from apollo.lib.schemas.user import CreateUserSchema, UserSchema
+from apollo.lib.schemas.user import (CreateUserSchema, UserSchema,
+                                     UpdateUserSchema)
 from apollo.models.user import User
 
 
@@ -33,6 +34,36 @@ def test_create_user_password_contains_whitespace(db_session):
         CreateUserSchema(username='johndoe', password='pass word')
 
 
+def test_update_user_valid():
+    user = UpdateUserSchema(password='password', password_confirm='password',
+                            old_password='oldpassword')
+
+    assert user.password == 'password'
+    assert user.old_password == 'oldpassword'
+    assert user.password_confirm == 'password'
+
+
+def test_update_user_password_contains_whitespace():
+    with pytest.raises(ValueError,
+                       match="password can't contain whitespaces"):
+        UpdateUserSchema(password='pass word', old_password='testtest',
+                         password_confirm='pass word')
+
+
+def test_update_user_passwords_do_not_match():
+    with pytest.raises(ValueError,
+                       match="passwords must match"):
+        UpdateUserSchema(password='password', old_password='testtest',
+                         password_confirm='wrongpassword')
+
+
+def test_update_user_old_and_new_password_identical():
+    with pytest.raises(ValueError,
+                       match="password cannot match old password"):
+        UpdateUserSchema(password='password', password_confirm='password',
+                         old_password='password')
+
+
 def test_create_user_missing_fields(db_session):
     message = 'field required'
     with pytest.raises(ValidationError, match=message):
@@ -57,7 +88,9 @@ def test_create_user_username_too_long(db_session):
 
 def test_user_valid(db_session):
     id_ = uuid.uuid4()
-    user = UserSchema(id=id_, username='johndoe')
+    user = UserSchema(id=id_, username='johndoe',
+                      has_changed_initial_password=False)
 
     assert user.id == id_
     assert user.username == 'johndoe'
+    assert user.has_changed_initial_password is False

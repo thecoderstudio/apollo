@@ -1,3 +1,4 @@
+from apollo.lib.hash import compare_plaintext_to_hash
 from apollo.models.role import get_role_by_name
 from apollo.models.user import User
 
@@ -111,6 +112,90 @@ def test_post_user_as_regular_user(test_client, db_session, user,
     assert response.json()['detail'] == "Permission denied."
 
 
+def _assert_succesful_update_password(user, response, db_session):
+    assert response.status_code == 200
+    user = db_session.query(User).get(user.id)
+    assert compare_plaintext_to_hash(
+        'newpassword', user.password_hash, user.password_salt) is True
+
+
+def test_update_password_successful_authenticated(test_client, db_session,
+                                                  session_cookie, user):
+    response = test_client.patch(
+        '/user/me',
+        json={'password': 'newpassword', 'password_confirm': 'newpassword',
+              'old_password': 'testing123'},
+        cookies=session_cookie
+    )
+
+    _assert_succesful_update_password(user, response, db_session)
+
+
+def test_update_password_successful_uninitialized(
+    test_client, db_session, session_cookie_for_uninitialized_user,
+    uninitialized_user
+):
+    response = test_client.patch(
+        '/user/me',
+        json={'password': 'newpassword', 'password_confirm': 'newpassword',
+              'old_password': 'testing123'},
+        cookies=session_cookie_for_uninitialized_user
+    )
+
+    _assert_succesful_update_password(uninitialized_user,
+                                        response, db_session)
+
+
+def test_update_password_wrong_password(test_client, db_session,
+                                        session_cookie, user):
+    response = test_client.patch(
+        '/user/me',
+        json={'password': 'newpassword', 'old_password': 'wrongpassword',
+              'password_confirm': 'newpassword'},
+        cookies=session_cookie
+    )
+
+    assert response.status_code == 400
+    assert response.json()['old_password']['msg'] == 'Invalid password'
+
+
+def test_update_user_unauthenticated(test_client, user):
+    response = test_client.patch(
+        '/user/me',
+        json={'password': 'newpassword', 'password_confirm': 'newpassword',
+              'old_password': 'testing123'}
+    )
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
+
+
+def test_update_user_password_mismatch(test_client, user, session_cookie):
+    response = test_client.patch(
+        '/user/me',
+        json={'password': 'newpassword', 'password_confirm': 'nepassword',
+              'old_password': 'testing123'},
+        cookies=session_cookie
+    )
+
+    assert response.status_code == 400
+    assert response.json()['password_confirm']['msg'] == "passwords must match"
+
+
+def test_update_user_password_same_as_old_password(test_client, user,
+                                                   session_cookie):
+    response = test_client.patch(
+        '/user/me',
+        json={'password': 'testing123', 'password_confirm': 'testing123',
+              'old_password': 'testing123'},
+        cookies=session_cookie
+    )
+
+    assert response.status_code == 400
+    assert response.json()['password']['msg'] == (
+        "password cannot match old password")
+
+
 def test_list_users_unauthenticated(test_client):
     response = test_client.get('/user')
 
@@ -138,14 +223,16 @@ def test_list_users_successful(test_client, db_session, session_cookie):
     assert {
         'id': str(user_1_id),
         'username': 'johndoe',
-        'role': None
+        'role': None,
+        'has_changed_initial_password': False
     } in users
     assert {
         'id': str(user_2_id),
         'username': 'jeffjefferson',
         'role': {
             'name': 'admin'
-        }
+        },
+        'has_changed_initial_password': False
     } in users
     assert response.status_code == 200
 
@@ -227,5 +314,6 @@ def test_get_current_user_successful(test_client, user, session_cookie):
         'username': user.username,
         'role': {
             'name': user.role.name
-        }
+        },
+        'has_changed_initial_password': True
     }
