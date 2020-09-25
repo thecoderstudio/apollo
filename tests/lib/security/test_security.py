@@ -132,8 +132,8 @@ def test_auth_policy_admin_user_principals(mock_policy, mock_http_connection,
         ), db_session)
     )
 
-    assert principals == [Everyone, Human, f"user:{user.id}", Authenticated,
-                          'role:admin']
+    assert principals == [Everyone, Authenticated,
+                          'role:admin', Human, f"user:{user.id}"]
 
 
 def test_auth_policy_default_user_principals(mock_policy, mock_http_connection,
@@ -147,7 +147,7 @@ def test_auth_policy_default_user_principals(mock_policy, mock_http_connection,
         ), db_session)
     )
 
-    assert principals == [Everyone, Human, f"user:{user.id}", Authenticated]
+    assert principals == [Everyone, Authenticated, Human, f"user:{user.id}"]
 
 
 def test_auth_policy_default_uninitialized_user_principals(
@@ -163,8 +163,7 @@ def test_auth_policy_default_uninitialized_user_principals(
         ), db_session)
     )
 
-    assert principals == [Everyone, Human, f"user:{uninitialized_user.id}",
-                          Uninitialized]
+    assert principals == [Everyone, Uninitialized]
 
 
 @pytest.mark.parametrize('auth_header', [

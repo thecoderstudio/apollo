@@ -59,7 +59,7 @@ def patch_user(user_data: UpdateUserSchema, request: Request,
         )
 
     data['password_hash'], data['password_salt'] = hash_plaintext(
-        user_data.pop('password'))
+        data.pop('password'))
     user.has_changed_initial_password = True
 
     user.set_fields(data)
