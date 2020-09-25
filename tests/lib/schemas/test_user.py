@@ -92,4 +92,4 @@ def test_user_valid(db_session):
 
     assert user.id == id_
     assert user.username == 'johndoe'
-    assert user.has_changed_initial_password == False
+    assert user.has_changed_initial_password is False
