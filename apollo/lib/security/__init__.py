@@ -58,8 +58,7 @@ class AuthorizationPolicy:
         authenticated_user = enhanced_http_connection.current_user
         if authenticated_user:
             if authenticated_user.has_changed_initial_password:
-                principals.append(Authenticated)
-                principals += [Human, f"user:{authenticated_user.id}"]
+                principals += [Authenticated, Human, f"user:{authenticated_user.id}"]
             else:
                 principals.append(Uninitialized)
 
