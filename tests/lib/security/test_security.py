@@ -132,8 +132,8 @@ def test_auth_policy_admin_user_principals(mock_policy, mock_http_connection,
         ), db_session)
     )
 
-    assert principals == [Everyone, Authenticated,
-                          'role:admin', Human, f"user:{user.id}"]
+    assert principals == [Everyone, Authenticated, Human, f"user:{user.id}",
+                          'role:admin']
 
 
 def test_auth_policy_default_user_principals(mock_policy, mock_http_connection,
