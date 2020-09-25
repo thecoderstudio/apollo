@@ -10,8 +10,7 @@ from apollo.lib.hash import hash_plaintext, compare_plaintext_to_hash
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.user import (
     CreateUserSchema, UserSchema, UpdateUserSchema)
-from apollo.lib.security import (Allow, Admin, Human, Authenticated,
-                                 Uninitialized)
+from apollo.lib.security import (Allow, Admin, Human, Uninitialized)
 from apollo.models import get_session, save, delete
 from apollo.models.user import User, get_user_by_id, list_users as query_users
 
