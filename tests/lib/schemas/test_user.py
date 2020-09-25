@@ -58,9 +58,18 @@ def test_update_user_passwords_do_not_match():
 
 
 def test_update_user_old_password_missing():
-    with pytest.raises(ValueError,
-                       match="old_password is required when the password field is given"):
+    with pytest.raises(
+        ValueError,
+        match="old_password is required when the password field is given"
+    ):
         UpdateUserSchema(password='password', password_confirm='wrongpassword')
+
+
+def test_update_user_old_and_new_password_identical():
+    with pytest.raises(ValueError,
+                       match="password cannot match old password"):
+        UpdateUserSchema(password='password', password_confirm='password',
+                         old_password='password')
 
 
 def test_create_user_missing_fields(db_session):

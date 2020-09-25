@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from apollo import app
 
+
 @app.exception_handler(RequestValidationError)
 def validation_exception_handler(request: Request, exc: RequestValidationError):
     new_error = {}

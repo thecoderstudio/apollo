@@ -20,7 +20,7 @@ router = SecureRouter([
     (Allow, Admin, 'user.delete'),
     (Allow, Admin, 'user.list'),
     (Allow, Human, 'user.get_current'),
-    (Allow, Authenticated, 'user.patch_self'),
+    (Allow, Human, 'user.patch_self'),
     (Allow, Uninitialized, 'user.patch_self')
 ])
 
@@ -42,7 +42,7 @@ def post_user(user_data: CreateUserSchema,
               response_model=UserSchema, permission='user.patch_self')
 def patch_user(user_data: UpdateUserSchema, request: Request,
                session: Session = Depends(get_session)):
-    user = get_user_by_id(session, request.current_user.id)
+    user = request.current_user
     data = user_data.dict()
 
     if not compare_plaintext_to_hash(user_data.old_password,
@@ -59,8 +59,7 @@ def patch_user(user_data: UpdateUserSchema, request: Request,
         )
 
     data['password_hash'], data['password_salt'] = hash_plaintext(
-        user_data.password)
-    data.pop('password')
+        user_data.pop('password'))
     user.has_changed_initial_password = True
 
     user.set_fields(data)
