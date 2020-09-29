@@ -12,6 +12,7 @@ services:
       - /home/apollo/apollo/apollo.egg-info
     links:
       - db
+      - redis
     depends_on:
       - db
     tty: true
@@ -30,3 +31,8 @@ services:
       - POSTGRES_USER=apollo
       - POSTGRES_PASSWORD=testing123
       - POSTGRES_DB=apollo
+  redis:
+    container_name: apollo-cache
+    ports:
+      - "1973:6379"
+    image: redis:6

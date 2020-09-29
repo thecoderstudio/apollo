@@ -2,6 +2,9 @@
 host = db
 password =
 
+[redis]
+host = redis
+
 [session]
 secret =
 
