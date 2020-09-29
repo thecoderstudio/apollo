@@ -107,6 +107,37 @@ def test_shell_unauthenticated(test_client):
         test_client.websocket_connect(f"/agent/{uuid.uuid4()}/shell")
 
 
+def test_get_agent(test_client, session_cookie, db_session):
+    agent_id, _ = add_multiple_agents(db_session)
+
+    response = test_client.get(f"/agent/{agent_id}", cookies=session_cookie)
+
+    assert response.status_code == 200
+    assert response.json() == {
+        'id': str(agent_id),
+        'name': 'test',
+        'connection_state': 'disconnected',
+        'external_ip_address': '0.0.0.0',
+        'operating_system': 'darwin',
+        'architecture': 'amd64'
+    }
+
+
+def test_get_agent_not_found(test_client, session_cookie):
+    response = test_client.get(f"/agent/{uuid.uuid4()}",
+                               cookies=session_cookie)
+
+    assert response.status_code == 404
+    assert response.json()['detail'] == "Agent not found."
+
+
+def test_get_agent_unauthenticated(test_client):
+    response = test_client.get(f"/agent/{uuid.uuid4()}")
+
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Permission denied."
+
+
 @pytest.mark.asyncio
 async def test_websocket_list_agent_success(db_session, test_client,
                                             session_cookie):
