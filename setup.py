@@ -16,7 +16,7 @@ requires = [
     'pyjwt',
     'redis',
     'sqlalchemy',
-    'uvicorn[watchgodreload]'
+    'uvicorn[standard]'
 ]
 
 test_requires = [
