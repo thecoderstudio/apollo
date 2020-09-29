@@ -143,7 +143,7 @@ def test_update_password_successful_uninitialized(
     )
 
     _assert_succesful_update_password(uninitialized_user,
-                                        response, db_session)
+                                      response, db_session)
 
 
 def test_update_password_wrong_password(test_client, db_session,
@@ -305,9 +305,8 @@ def test_delete_successful(test_client, db_session, session_cookie):
     assert db_session.query(User).get(user_id) is None
 
 
-def test_get_current_user_successful(test_client, user, session_cookie):
-    response = test_client.get('/user/me', cookies=session_cookie)
-
+def _assert_get_current_user_successful(response, user,
+                                        has_changed_initial_password):
     assert response.status_code == 200
     assert response.json() == {
         'id': str(user.id),
@@ -315,5 +314,21 @@ def test_get_current_user_successful(test_client, user, session_cookie):
         'role': {
             'name': user.role.name
         },
-        'has_changed_initial_password': True
+        'has_changed_initial_password': has_changed_initial_password
     }
+
+
+def test_get_current_user_successful(test_client, user, session_cookie):
+    response = test_client.get('/user/me', cookies=session_cookie)
+    _assert_get_current_user_successful(response, user, True)
+
+
+def test_get_current_user_successful_uninitialised(
+    test_client, uninitialized_user,
+    session_cookie_for_uninitialized_user
+):
+    response = test_client.get('/user/me',
+                               cookies=session_cookie_for_uninitialized_user)
+    _assert_get_current_user_successful(response,
+                                        uninitialized_user, False)
+

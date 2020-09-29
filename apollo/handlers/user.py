@@ -19,6 +19,7 @@ router = SecureRouter([
     (Allow, Admin, 'user.delete'),
     (Allow, Admin, 'user.list'),
     (Allow, Human, 'user.get_current'),
+    (Allow, Uninitialized, 'user.get_current'),
     (Allow, Human, 'user.patch_self'),
     (Allow, Uninitialized, 'user.patch_self')
 ])
