@@ -20,7 +20,8 @@ class UserConnectionManager(ConnectionManager):
             await websocket.close(code=TRY_AGAIN_LATER)
             return
 
-        user_connection = UserConnection(websocket)
+        # TODO prototyping, remove non-random ID
+        user_connection = UserConnection(websocket, id_=websocket.current_user.id)
         await self._accept_connection(user_connection)
 
         shell_connection = await ShellConnection.start(
@@ -42,5 +43,6 @@ class UserConnectionManager(ConnectionManager):
 
 
 class UserConnection(Connection):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, id_=uuid.uuid4(), **kwargs)
+    # TODO prototyping, remove non-random ID
+    def __init__(self, *args, id_, **kwargs):
+        super().__init__(*args, id_=id_, **kwargs)

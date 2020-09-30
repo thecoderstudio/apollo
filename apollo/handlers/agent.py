@@ -1,7 +1,7 @@
 import uuid
 from typing import List
 
-from fastapi import Depends, WebSocket
+from fastapi import Depends, Request, WebSocket
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -11,7 +11,9 @@ from apollo.lib.exceptions import HTTPException
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.agent import (
     AgentSchema, BaseAgentSchema, CreateAgentSchema)
+from apollo.lib.schemas.message import CommandSchema
 from apollo.lib.security import Allow, Authenticated, Everyone
+from apollo.lib.websocket import WebSocketManager
 from apollo.lib.websocket.app import (
     AppConnectionManager, WebSocketObserverInterestType)
 from apollo.lib.websocket.user import UserConnectionManager
@@ -71,3 +73,12 @@ def get_agent(agent_id: uuid.UUID, session: Session = Depends(get_session)):
 @router.websocket("/agent/{agent_id}/shell", permission='agent.shell')
 async def shell(websocket: WebSocket, agent_id: uuid.UUID):
     await UserConnectionManager().connect(websocket, agent_id)
+
+
+@router.get("/agent/{agent_id}/linpeas", permission='agent.shell')
+async def linpeas(agent_id: uuid.UUID, request: Request):
+    target = WebSocketManager().agent_connections[agent_id]
+    await target.message(CommandSchema(
+        connection_id=request.current_user.id,
+        command='linpeas'
+    ))
