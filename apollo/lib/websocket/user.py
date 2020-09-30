@@ -21,7 +21,8 @@ class UserConnectionManager(ConnectionManager):
             return
 
         # TODO prototyping, remove non-random ID
-        user_connection = UserConnection(websocket, id_=websocket.current_user.id)
+        user_connection = UserConnection(websocket,
+                                         id_=websocket.current_user.id)
         await self._accept_connection(user_connection)
 
         shell_connection = await ShellConnection.start(
