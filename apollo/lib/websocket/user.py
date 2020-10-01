@@ -2,6 +2,7 @@ import uuid
 
 from fastapi import WebSocket
 
+from apollo.lib.schemas.message import Command
 from apollo.lib.websocket.connection import Connection, ConnectionManager
 from apollo.lib.websocket.agent import AgentConnectionManager
 from apollo.lib.websocket.shell import ShellConnection
@@ -20,16 +21,14 @@ class UserConnectionManager(ConnectionManager):
             await websocket.close(code=TRY_AGAIN_LATER)
             return
 
-        # TODO prototyping, remove non-random ID
-        user_connection = UserConnection(websocket,
-                                         id_=websocket.current_user.id)
+        user_connection = UserConnection(websocket)
         await self._accept_connection(user_connection)
 
         shell_connection = await ShellConnection.start(
             user_connection,
             agent_connection
         )
-        await shell_connection.listen_and_forward()
+        await self._communicate(shell_connection)
         self._remove_connection(user_connection)
         return user_connection
 
@@ -42,8 +41,24 @@ class UserConnectionManager(ConnectionManager):
 
         raise KeyError
 
+    async def _communicate(self, shell_connection: ShellConnection):
+        raise NotImplementedError
+
+
+class UserShellConnectionManager(UserConnectionManager):
+    async def _communicate(self, shell_connection: ShellConnection):
+        await shell_connection.listen_and_forward()
+
+
+class UserCommandConnectionManager(UserConnectionManager):
+    def __init__(self, *args, command: Command, **kwargs):
+        super.__init__(self, *args, **kwargs)
+        self.command = command
+
+    async def _communicate(self, shell_connection: ShellConnection):
+        await shell_connection.send_command(self.command)
+
 
 class UserConnection(Connection):
-    # TODO prototyping, remove non-random ID
-    def __init__(self, *args, id_, **kwargs):
-        super().__init__(*args, id_=id_, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, id_=uuid.uuid4(), **kwargs)

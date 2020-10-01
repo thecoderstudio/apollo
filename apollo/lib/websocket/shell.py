@@ -16,9 +16,12 @@ class ShellConnection:
         return self
 
     async def _alert_target_of_new_connection(self):
+        await self.send_command(Command.NEW_CONNECTION)
+
+    async def send_command(self, command: Command):
         await self.target.message(CommandSchema(
             connection_id=self.origin.id_,
-            command=Command.NEW_CONNECTION
+            command=command
         ))
 
     async def listen_and_forward(self):
