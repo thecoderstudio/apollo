@@ -52,11 +52,13 @@ class UserShellConnectionManager(UserConnectionManager):
 
 class UserCommandConnectionManager(UserConnectionManager):
     def __init__(self, *args, command: Command, **kwargs):
-        super.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.command = command
 
     async def _communicate(self, shell_connection: ShellConnection):
         await shell_connection.send_command(self.command)
+        # TODO remove listen
+        await shell_connection.listen_and_forward()
 
 
 class UserConnection(Connection):
