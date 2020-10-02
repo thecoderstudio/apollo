@@ -37,14 +37,17 @@ class AgentConnection(Connection):
         await self.send_text(message.json())
 
     async def listen_and_forward(self):
-        from apollo.lib.websocket.user import UserConnectionManager
         async for response in self.listen():
-            try:
-                UserConnectionManager.send_message(ShellIOSchema(**response))
-            except ValidationError:
-                UserConnectionManager.process_server_command(
-                    ServerCommandSchema(**response)
-                )
+            await self._process_response(response)
+
+    async def _process_response(self, response: dict):
+        from apollo.lib.websocket.user import UserConnectionManager
+        try:
+            await UserConnectionManager.send_message(ShellIOSchema(**response))
+        except ValidationError:
+            await UserConnectionManager.process_server_command(
+                ServerCommandSchema(**response)
+            )
 
     async def _receive_message(self):
         return await self.receive_json()
