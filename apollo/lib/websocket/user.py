@@ -2,7 +2,8 @@ import uuid
 
 from fastapi import WebSocket
 
-from apollo.lib.schemas.message import Command
+from apollo.lib.schemas.message import (Command, ServerCommand,
+                                        ServerCommandSchema, ShellIOSchema)
 from apollo.lib.websocket.connection import Connection, ConnectionManager
 from apollo.lib.websocket.agent import AgentConnectionManager
 from apollo.lib.websocket.shell import ShellConnection
@@ -44,6 +45,15 @@ class UserConnectionManager(ConnectionManager):
     async def _communicate(self, shell_connection: ShellConnection):
         raise NotImplementedError
 
+    @classmethod
+    async def send_message(cls, message: ShellIOSchema):
+        user_connection = cls.get_connection(message.connection_id)
+        await user_connection.send_text(message.message)
+
+    @classmethod
+    async def process_server_command(cls, command: ServerCommandSchema):
+        pass
+
 
 class UserShellConnectionManager(UserConnectionManager):
     async def _communicate(self, shell_connection: ShellConnection):
@@ -57,8 +67,14 @@ class UserCommandConnectionManager(UserConnectionManager):
 
     async def _communicate(self, shell_connection: ShellConnection):
         await shell_connection.send_command(self.command)
-        # TODO remove listen
-        await shell_connection.listen_and_forward()
+        async for _ in shell_connection.origin.listen():
+            pass
+
+    @classmethod
+    async def process_server_command(cls, command: ServerCommandSchema):
+        super().__init__(command)
+        if command.command is ServerCommand.FINISHED:
+            await cls.get_connection(command.connection_id).close()
 
 
 class UserConnection(Connection):

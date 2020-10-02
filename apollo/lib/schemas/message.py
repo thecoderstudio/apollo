@@ -9,6 +9,10 @@ class Command(Enum):
     LINPEAS = "linpeas"
 
 
+class ServerCommand(Enum):
+    FINISHED = "finished"
+
+
 class BaseMessageSchema(BaseModel):
     connection_id: uuid.UUID
 
@@ -19,3 +23,7 @@ class ShellIOSchema(BaseMessageSchema):
 
 class CommandSchema(BaseMessageSchema):
     command: Command
+
+
+class ServerCommandSchema(BaseMessageSchema):
+    command: ServerCommand

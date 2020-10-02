@@ -1,9 +1,11 @@
 import uuid
 
 from fastapi import WebSocket
+from pydantic import ValidationError
 
 from apollo.lib.decorators import notify_websockets
-from apollo.lib.schemas.message import BaseMessageSchema, ShellIOSchema
+from apollo.lib.schemas.message import (BaseMessageSchema, ServerCommandSchema,
+                                        ShellIOSchema)
 from apollo.lib.websocket.connection import ConnectionManager, Connection
 from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 
@@ -35,20 +37,17 @@ class AgentConnection(Connection):
         await self.send_text(message.json())
 
     async def listen_and_forward(self):
+        from apollo.lib.websocket.user import UserConnectionManager
         async for response in self.listen():
-            await self._message_over_user_connection(ShellIOSchema(**response))
+            try:
+                UserConnectionManager.send_message(ShellIOSchema(**response))
+            except ValidationError:
+                UserConnectionManager.process_server_command(
+                    ServerCommandSchema(**response)
+                )
 
     async def _receive_message(self):
         return await self.receive_json()
-
-    async def _message_over_user_connection(self, message: ShellIOSchema):
-        user_connection = self._get_user_connection(message.connection_id)
-        await user_connection.send_text(message.message)
-
-    @staticmethod
-    def _get_user_connection(connection_id: uuid.UUID):
-        from apollo.lib.websocket.user import UserConnectionManager
-        return UserConnectionManager.get_connection(connection_id)
 
     @notify_websockets(
         observer_interest_type=WebSocketObserverInterestType.AGENT_LISTING)
