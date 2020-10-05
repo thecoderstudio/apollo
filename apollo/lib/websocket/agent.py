@@ -41,11 +41,13 @@ class AgentConnection(Connection):
             await self._process_response(response)
 
     async def _process_response(self, response: dict):
-        from apollo.lib.websocket.user import UserConnectionManager
+        from apollo.lib.websocket.user import (UserShellConnectionManager,
+                                               UserCommandConnectionManager)
         try:
-            await UserConnectionManager.send_message(ShellIOSchema(**response))
+            await UserShellConnectionManager.send_message(
+                ShellIOSchema(**response))
         except ValidationError:
-            await UserConnectionManager.process_server_command(
+            await UserCommandConnectionManager.process_server_command(
                 ServerCommandSchema(**response)
             )
 
