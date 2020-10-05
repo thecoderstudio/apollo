@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from fastapi import WebSocket
@@ -47,7 +48,11 @@ class UserConnectionManager(ConnectionManager):
 
     @classmethod
     async def send_message(cls, message: ShellIOSchema):
-        user_connection = cls.get_connection(message.connection_id)
+        try:
+            user_connection = cls.get_connection(message.connection_id)
+        except KeyError:
+            logging.critical(f"message dropped: {message}")
+            return
         await user_connection.send_text(message.message)
 
     @classmethod
