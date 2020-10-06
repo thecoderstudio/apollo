@@ -4,12 +4,11 @@ from fastapi import WebSocket
 
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.message import Command
-from apollo.lib.security import Allow, Everyone
+from apollo.lib.security import Allow, Authenticated
 from apollo.lib.websocket.user import UserCommandConnectionManager
 
-# TODO change to authenticated
 router = SecureRouter([
-    (Allow, Everyone, 'agent.action')
+    (Allow, Authenticated, 'agent.action')
 ])
 
 
