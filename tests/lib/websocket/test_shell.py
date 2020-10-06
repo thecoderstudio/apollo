@@ -37,6 +37,33 @@ async def test_shell_connection_start(mocker, websocket_mock):
 
 
 @pytest.mark.asyncio
+async def test_shell_connection_send_command(mocker, websocket_mock):
+    agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
+    user_connection = UserConnection(websocket_mock)
+    await agent_connection.accept()
+    await user_connection.accept()
+
+    send_text = mocker.patch(
+        'apollo.lib.websocket.agent.AgentConnection.send_text',
+        wraps=agent_connection.send_text
+    )
+    shell_connection = await ShellConnection.start(user_connection,
+                                                   agent_connection)
+    await shell_connection.send_command(Command.LINPEAS)
+
+    send_text.assert_has_awaits([
+        call(CommandSchema(
+            connection_id=user_connection.id_,
+            command=Command.NEW_CONNECTION
+        ).json()),
+        call(CommandSchema(
+            connection_id=user_connection.id_,
+            command=Command.LINPEAS
+        ).json())
+    ])
+
+
+@pytest.mark.asyncio
 async def test_shell_connection_listen_and_forward(mocker, websocket_mock):
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
     user_connection = UserConnection(websocket_mock)
