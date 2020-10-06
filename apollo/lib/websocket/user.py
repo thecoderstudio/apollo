@@ -55,10 +55,6 @@ class UserConnectionManager(ConnectionManager):
             return
         await user_connection.send_text(message.message)
 
-    @classmethod
-    async def process_server_command(cls, command: ServerCommandSchema):
-        pass
-
 
 class UserShellConnectionManager(UserConnectionManager):
     async def _communicate(self, shell_connection: ShellConnection):
@@ -77,7 +73,6 @@ class UserCommandConnectionManager(UserConnectionManager):
 
     @classmethod
     async def process_server_command(cls, command: ServerCommandSchema):
-        super().__init__(command)
         if command.command is ServerCommand.FINISHED:
             await cls.get_connection(command.connection_id).close()
 

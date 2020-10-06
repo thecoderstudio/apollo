@@ -30,9 +30,25 @@ async def test_user_connection_manager_get_connection(
 
 
 @pytest.mark.asyncio
-async def test_user_connection_manager_connect(
+async def test_user_connection_manager_abstract(
     agent_connection_manager,
     user_connection_manager,
+    websocket_mock
+):
+    agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
+    await agent_connection_manager._accept_connection(agent_connection)
+
+    with pytest.raises(NotImplementedError):
+        await user_connection_manager.connect(
+            websocket_mock,
+            agent_connection.id_
+        )
+
+
+@pytest.mark.asyncio
+async def test_user_shell_connection_manager_connect(
+    agent_connection_manager,
+    user_shell_connection_manager,
     websocket_mock
 ):
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
@@ -46,7 +62,7 @@ async def test_user_connection_manager_connect(
             'apollo.lib.websocket.user.UserConnection.receive_text',
             side_effect=['a', 'b', WebSocketDisconnect]
         ):
-            user_connection = await user_connection_manager.connect(
+            user_connection = await user_shell_connection_manager.connect(
                 websocket_mock,
                 agent_connection.id_
             )
@@ -69,7 +85,7 @@ async def test_user_connection_manager_connect(
 
     assert isinstance(user_connection, UserConnection)
     with pytest.raises(KeyError):
-        user_connection_manager.get_connection(connection_id)
+        user_shell_connection_manager.get_connection(connection_id)
 
 
 @pytest.mark.asyncio
