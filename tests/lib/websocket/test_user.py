@@ -4,8 +4,8 @@ from unittest.mock import call, patch
 import pytest
 from starlette.websockets import WebSocketDisconnect, WebSocketState
 
-from apollo.lib.schemas.message import (Command, CommandSchema,
-                                        ShellIOSchema)
+from apollo.lib.schemas.message import (Command, CommandSchema, ServerCommand,
+                                        ServerCommandSchema, ShellIOSchema)
 from apollo.lib.websocket.agent import AgentConnection
 from apollo.lib.websocket.user import UserConnection, TRY_AGAIN_LATER
 
@@ -43,6 +43,21 @@ async def test_user_connection_manager_abstract(
             websocket_mock,
             agent_connection.id_
         )
+
+
+@pytest.mark.asyncio
+async def test_send_message_to_non_existent_user_connection(
+    user_connection_manager
+):
+    message = ShellIOSchema(
+        connection_id=uuid.uuid4(),
+        message="test"
+    )
+
+    with patch('apollo.lib.websocket.user.logging.critical') as logging_mock:
+        sent = await user_connection_manager.send_message(message)
+        assert sent is False
+        logging_mock.assert_called_once_with(f"message dropped: {message}")
 
 
 @pytest.mark.asyncio
@@ -86,6 +101,48 @@ async def test_user_shell_connection_manager_connect(
     assert isinstance(user_connection, UserConnection)
     with pytest.raises(KeyError):
         user_shell_connection_manager.get_connection(connection_id)
+
+
+@pytest.mark.asyncio
+async def test_user_command_connection_manager_connect(
+    agent_connection_manager,
+    user_command_connection_manager,
+    websocket_mock
+):
+    user_command_connection_manager.command = Command.LINPEAS
+    agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
+    await agent_connection_manager._accept_connection(agent_connection)
+
+    with patch(
+        'apollo.lib.websocket.agent.AgentConnection.send_text',
+        wraps=agent_connection.send_text
+    ) as send_text:
+        user_connection = await user_command_connection_manager.connect(
+            websocket_mock,
+            agent_connection.id_
+        )
+        connection_id = user_connection.id_
+        await user_command_connection_manager.process_server_command(
+            ServerCommandSchema(
+                connection_id=connection_id,
+                command=ServerCommand.FINISHED
+            )
+        )
+
+        send_text.assert_has_awaits([
+            call(CommandSchema(
+                connection_id=connection_id,
+                command=Command.NEW_CONNECTION
+            ).json()),
+            call(CommandSchema(
+                connection_id=connection_id,
+                command=Command.LINPEAS
+            ).json())
+        ])
+
+    assert isinstance(user_connection, UserConnection)
+    with pytest.raises(KeyError):
+        user_command_connection_manager.get_connection(connection_id)
 
 
 @pytest.mark.asyncio

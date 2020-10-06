@@ -13,6 +13,7 @@ import apollo.lib.settings
 from apollo import app
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.redis import RedisSession
+from apollo.lib.schemas.message import Command
 from apollo.lib.security import create_session_cookie
 from apollo.lib.websocket import WebSocketManager
 from apollo.lib.websocket.agent import AgentConnectionManager
@@ -222,7 +223,7 @@ def user_shell_connection_manager(websocket_manager):
 
 @fixture
 def user_command_connection_manager(websocket_manager):
-    manager = UserCommandConnectionManager()
+    manager = UserCommandConnectionManager(command=Command.LINPEAS)
     return setup_user_connection_manager(manager)
 
 

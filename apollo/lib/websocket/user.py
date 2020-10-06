@@ -52,8 +52,9 @@ class UserConnectionManager(ConnectionManager):
             user_connection = cls.get_connection(message.connection_id)
         except KeyError:
             logging.critical(f"message dropped: {message}")
-            return
+            return False
         await user_connection.send_text(message.message)
+        return True
 
 
 class UserShellConnectionManager(UserConnectionManager):
