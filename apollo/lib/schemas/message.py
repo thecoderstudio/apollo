@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 class Command(Enum):
     NEW_CONNECTION = "new connection"
+    CANCEL = "cancel"
     LINPEAS = "linpeas"
 
 
