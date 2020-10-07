@@ -75,7 +75,9 @@ class UserCommandConnectionManager(UserConnectionManager):
     @classmethod
     async def process_server_command(cls, command: ServerCommandSchema):
         if command.command is ServerCommand.FINISHED:
-            await cls.get_connection(command.connection_id).close()
+            connection = cls.get_connection(command.connection_id)
+            await connection.close()
+            cls._remove_connection(connection)
 
 
 class UserConnection(Connection):

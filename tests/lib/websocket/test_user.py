@@ -107,7 +107,8 @@ async def test_user_shell_connection_manager_connect(
 async def test_user_command_connection_manager_connect(
     agent_connection_manager,
     user_command_connection_manager,
-    websocket_mock
+    websocket_mock,
+    event_loop
 ):
     user_command_connection_manager.command = Command.LINPEAS
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
@@ -117,32 +118,57 @@ async def test_user_command_connection_manager_connect(
         'apollo.lib.websocket.agent.AgentConnection.send_text',
         wraps=agent_connection.send_text
     ) as send_text:
-        user_connection = await user_command_connection_manager.connect(
-            websocket_mock,
-            agent_connection.id_
-        )
-        connection_id = user_connection.id_
+        with patch(
+            'apollo.lib.websocket.user.UserConnection.receive_text',
+            side_effect=["test", WebSocketDisconnect]
+        ):
+            user_connection = await user_command_connection_manager.connect(
+                websocket_mock,
+                agent_connection.id_
+            )
+            connection_id = user_connection.id_
+
+            send_text.assert_has_awaits([
+                call(CommandSchema(
+                    connection_id=connection_id,
+                    command=Command.NEW_CONNECTION
+                ).json()),
+                call(CommandSchema(
+                    connection_id=connection_id,
+                    command=Command.LINPEAS
+                ).json())
+            ])
+
+    with pytest.raises(KeyError):
+        user_command_connection_manager.get_connection(connection_id)
+
+
+@pytest.mark.asyncio
+async def test_user_command_connection_manager_process_server_command(
+    agent_connection_manager,
+    user_command_connection_manager,
+    websocket_mock
+):
+    user_command_connection_manager.command = Command.LINPEAS
+    agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
+    await agent_connection_manager._accept_connection(agent_connection)
+
+    user_connection = UserConnection(websocket_mock)
+    with patch(
+        'apollo.lib.websocket.agent.AgentConnection.send_text',
+        wraps=agent_connection.send_text
+    ):
+        await user_command_connection_manager._accept_connection(
+            user_connection)
         await user_command_connection_manager.process_server_command(
             ServerCommandSchema(
-                connection_id=connection_id,
+                connection_id=user_connection.id_,
                 command=ServerCommand.FINISHED
             )
         )
 
-        send_text.assert_has_awaits([
-            call(CommandSchema(
-                connection_id=connection_id,
-                command=Command.NEW_CONNECTION
-            ).json()),
-            call(CommandSchema(
-                connection_id=connection_id,
-                command=Command.LINPEAS
-            ).json())
-        ])
-
-    assert isinstance(user_connection, UserConnection)
     with pytest.raises(KeyError):
-        user_command_connection_manager.get_connection(connection_id)
+        user_command_connection_manager.get_connection(user_connection.id_)
 
 
 @pytest.mark.asyncio

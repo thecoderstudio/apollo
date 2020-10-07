@@ -4,7 +4,8 @@ from unittest.mock import call, patch
 import pytest
 from starlette.websockets import WebSocketDisconnect, WebSocketState
 
-from apollo.lib.schemas.message import BaseMessageSchema, ShellIOSchema
+from apollo.lib.schemas.message import (BaseMessageSchema, ServerCommand,
+                                        ServerCommandSchema, ShellIOSchema)
 from apollo.lib.websocket.agent import AgentConnection
 from apollo.lib.websocket.interest_type import WebSocketObserverInterestType
 from apollo.lib.websocket.user import UserConnection
@@ -65,7 +66,7 @@ async def test_agent_connection_manager_connect(
 
     assert agent_connection_manager.get_connection(
         agent_id
-    )is not None
+    ) is not None
 
 
 @pytest.mark.asyncio
@@ -121,6 +122,11 @@ async def test_agent_connection_listen_and_forward(
     await user_connection_manager._accept_connection(user_connection)
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
 
+    server_command = ServerCommandSchema(
+        connection_id=user_connection.id_,
+        command=ServerCommand.FINISHED
+    )
+
     with patch(
         'apollo.lib.websocket.agent.AgentConnection.receive_json',
         side_effect=[
@@ -132,6 +138,7 @@ async def test_agent_connection_listen_and_forward(
                 connection_id=user_connection.id_,
                 message='b'
             ).dict(),
+            server_command.dict(),
             WebSocketDisconnect
         ]
     ):
@@ -139,9 +146,14 @@ async def test_agent_connection_listen_and_forward(
             'apollo.lib.websocket.user.UserConnection.send_text',
             wraps=user_connection.send_text
         ) as send_text:
-            await agent_connection.listen_and_forward()
+            with patch(
+                'apollo.lib.websocket.user.UserCommandConnectionManager.'
+                'process_server_command'
+            ) as send_command:
+                await agent_connection.listen_and_forward()
 
-            send_text.assert_has_awaits([call('a'), call('b')])
+                send_text.assert_has_awaits([call('a'), call('b')])
+                send_command.assert_awaited_with(server_command)
 
 
 @pytest.mark.asyncio
