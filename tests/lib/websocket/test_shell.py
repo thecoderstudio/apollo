@@ -114,7 +114,7 @@ async def test_shell_connection_agent_connection_recovery(
     send_agent_text = mocker.patch(
         'apollo.lib.websocket.agent.AgentConnection.send_text',
         wraps=agent_connection.send_text,
-        side_effect=[None, SendAfterConnectionClosure, None, None]
+        side_effect=[None, SendAfterConnectionClosure, None, None, None]
     )
     mocker.patch(
         'apollo.lib.websocket.user.UserConnection.receive_text',
@@ -125,7 +125,7 @@ async def test_shell_connection_agent_connection_recovery(
         'apollo.lib.websocket.agent.AgentConnection.client_connected',
         new_callable=mocker.PropertyMock
     ) as connected_mock:
-        connected_mock.side_effect = [False, False, True]
+        connected_mock.side_effect = [False, False, True, True]
         await shell_connection.listen_and_forward()
 
         send_agent_text.assert_has_awaits([
