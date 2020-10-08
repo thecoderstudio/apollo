@@ -96,6 +96,10 @@ async def test_user_shell_connection_manager_connect(
                     connection_id=connection_id,
                     message="b"
                 ).json()),
+                call(CommandSchema(
+                    connection_id=connection_id,
+                    command=Command.CANCEL
+                ).json())
             ])
 
     assert isinstance(user_connection, UserConnection)
@@ -136,6 +140,10 @@ async def test_user_command_connection_manager_connect(
                 call(CommandSchema(
                     connection_id=connection_id,
                     command=Command.LINPEAS
+                ).json()),
+                call(CommandSchema(
+                    connection_id=connection_id,
+                    command=Command.CANCEL
                 ).json())
             ])
 

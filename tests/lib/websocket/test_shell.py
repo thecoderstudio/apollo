@@ -145,6 +145,10 @@ async def test_shell_connection_agent_connection_recovery(
                 connection_id=user_connection.id_,
                 message="c"
             ).json()),
+            call(CommandSchema(
+                connection_id=user_connection.id_,
+                command=Command.CANCEL
+            ).json())
         ])
 
         send_user_text.assert_has_awaits([
@@ -161,3 +165,31 @@ async def test_shell_connection_agent_connection_recovery(
             call(click.style("\n\r\nConnection recovered\n\r\n",
                              fg='green', bold=True)),
         ])
+
+
+@pytest.mark.asyncio
+async def test_shell_connection_cancel_on_target(mocker, websocket_mock):
+    agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
+    user_connection = UserConnection(websocket_mock)
+    await agent_connection.accept()
+    await user_connection.accept()
+    shell_connection = await ShellConnection.start(user_connection,
+                                                   agent_connection)
+    send_agent_text = mocker.patch(
+        'apollo.lib.websocket.agent.AgentConnection.send_text',
+        wraps=agent_connection.send_text
+    )
+
+    with patch(
+        'apollo.lib.websocket.agent.AgentConnection.client_connected',
+        new_callable=mocker.PropertyMock
+    ) as connected_mock:
+        connected_mock.side_effect = [True, False]
+
+        await shell_connection.cancel_on_target()
+        await shell_connection.cancel_on_target()
+
+        send_agent_text.assert_awaited_once_with(CommandSchema(
+            connection_id=user_connection.id_,
+            command=Command.CANCEL
+        ).json())
