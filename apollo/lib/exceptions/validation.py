@@ -11,6 +11,7 @@ from apollo import app
 @app.exception_handler(RequestValidationError)
 def validation_exception_handler(request: Request, exc: RequestValidationError):
     new_error = {}
+    print("********")
     for error_object in json.loads(exc.json()):
         field = error_object['loc'][-1]
         new_error_body = {

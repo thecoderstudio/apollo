@@ -224,7 +224,7 @@ def test_update_user_username_too_short(test_client, session_cookie):
 
 
 def test_update_user_username_contains_whitespace(test_client, session_cookie):
-    response = test_client.post(
+    response = test_client.patch(
         '/user/me',
         json={'username': 'john doe'},
         cookies=session_cookie

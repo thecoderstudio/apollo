@@ -1,20 +1,13 @@
 import uuid
 
-from pydantic import (validator, constr, BaseModel, root_validator,
-                      ValidationError)
-from pydantic.errors import PydanticValueError
-from pydantic.error_wrappers import ErrorWrapper
-
+from pydantic import validator, constr, BaseModel, root_validator
 from typing import Optional
 
 from apollo.lib.decorators import with_db_session
+from apollo.lib.exceptions import PydanticValidationError
 from apollo.lib.schemas import ORMBase
 from apollo.lib.schemas.role import RoleSchema
 from apollo.models.user import get_user_by_username
-
-
-class CustomPydanticError(PydanticValueError):
-    msg_template = 'field required'
 
 
 def check_for_whitespace(value):
@@ -64,61 +57,52 @@ class UpdateUserSchema(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    # @validator('username')
-    # @classmethod
-    # @with_db_session
-    # def unique_username(cls, value, **kwargs):
-    #     return check_for_unique_username(value, kwargs['session'])
+    @validator('username')
+    @classmethod
+    @with_db_session
+    def unique_username(cls, value, **kwargs):
+        return check_for_unique_username(value, kwargs['session'])
 
-    # @validator('password', 'username')
-    # @classmethod
-    # def no_whitespace(cls, value, values):
-    #     return check_for_whitespace(value)
+    @validator('password', 'username')
+    @classmethod
+    def no_whitespace(cls, value, values):
+        return check_for_whitespace(value)
 
-    # @validator('password_confirm')
-    # @classmethod
-    # def password_must_match(cls, v, values):
-    #     if v != values.get('password'):
-    #         raise ValueError('passwords must match')
+    @validator('password_confirm')
+    @classmethod
+    def password_must_match(cls, v, values):
+        if v != values.get('password'):
+            raise ValueError('passwords must match')
 
-    #     return v
+        return v
 
-    # @validator('old_password', always=True)
-    # @classmethod
-    # def old_password_required(cls, v, values):
-    #     print(values)
-    #     if not v and values.get('password'):
-    #         raise ValueError("old password is required when password is given")
+    @validator('old_password', always=True)
+    @classmethod
+    def old_password_required(cls, v, values):
+        print(values)
+        if not v and values.get('password'):
+            raise ValueError("old password is required when password is given")
 
-    #     return v
+        return v
 
-    # @validator('password_confirm', pre=True, always=True)
-    # @classmethod
-    # def password_confirm_required(cls, v, values):
-    #     if not v and values.get('password'):
-    #         raise ValueError(
-    #             "password confirm is required when password is given")
+    @validator('password_confirm', pre=True, always=True)
+    @classmethod
+    def password_confirm_required(cls, v, values):
+        if not v and values.get('password'):
+            raise ValueError(
+                "password confirm is required when password is given")
 
-    #     return v
+        return v
 
     @root_validator
+    @classmethod
     def password_cannot_not_match_old_password(cls, values):
         password = values.get('password')
-        if password:
-            print("&****")
-            # if password == values.get('old_password'):
+        if password and password == values.get('old_password'):
+            raise PydanticValidationError(
+                "password cannot match old password",
+                ('old_password'),
+                cls
+            )
 
-            known_field = cls.__fields__.get('old_password', None)
-            value, error_ = known_field.validate(
-                'aaa', values, loc='old_password', cls=cls)
-
-            print(type(error_))
-            raise ValidationError(
-                [ErrorWrapper(CustomPydanticError(), ('old_password'))], cls)
-            # print(values)
-            # known_field = cls.__pydantic_model__.__fields__.get(
-            #     'old_password', None)
-            print(")(*&(*&")
-            # print(known_field)
-        # raise ValidationError
-        # raise ValueError("password cannot match old password")
+        return values
