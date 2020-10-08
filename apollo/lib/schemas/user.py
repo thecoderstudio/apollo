@@ -47,7 +47,7 @@ class UserSchema(ORMBase):
 
 
 class UpdateUserSchema(BaseModel):
-    username = Optional[
+    username: Optional[
         constr(min_length=1, max_length=36, strip_whitespace=True)]
     old_password: Optional[constr(min_length=8, strip_whitespace=True)]
     password: Optional[constr(min_length=8, strip_whitespace=True)]
@@ -64,31 +64,32 @@ class UpdateUserSchema(BaseModel):
 
     @validator('password', 'username')
     @classmethod
-    def no_whitespace(cls, value):
+    def no_whitespace(cls, value, values):
         return check_for_whitespace(value)
 
     @validator('password_confirm')
     @classmethod
     def password_must_match(cls, v, values):
+        print(values)
         if v != values.get('password'):
             raise ValueError('passwords must match')
 
         return v
 
-    @validator('password')
+    @validator('old_password', pre=True, always=True)
     @classmethod
-    def password_confirm_required(cls, v, values):
-        if not values.get('password_confirm'):
-            raise ValueError(
-                "password confirm is required when password is given")
+    def old_password_required(cls, v, values):
+        if not v and values.get('password'):
+            raise ValueError("old password is required when password is given")
 
         return v
 
-    @validator('password')
+    @validator('password_confirm', pre=True, always=True)
     @classmethod
-    def old_password_required(cls, v, values):
-        if not values.get('old_password'):
-            raise ValueError("old password is required when password is given")
+    def password_confirm_required(cls, v, values):
+        if not v and values.get('password'):
+            raise ValueError(
+                "password confirm is required when password is given")
 
         return v
 
