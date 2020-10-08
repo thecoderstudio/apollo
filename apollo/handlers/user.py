@@ -45,18 +45,19 @@ def patch_user(user_data: UpdateUserSchema, request: Request,
     user = request.current_user
     data = user_data.dict()
 
-    if not compare_plaintext_to_hash(user_data.old_password,
-                                     user.password_hash,
-                                     user.password_salt):
-        return JSONResponse(
-            status_code=400,
-            content={
-                'old_password': {
-                    'msg': 'Invalid password',
-                    'type': 'value_error'
+    if data.get('password'):
+        if not compare_plaintext_to_hash(user_data.old_password,
+                                         user.password_hash,
+                                         user.password_salt):
+            return JSONResponse(
+                status_code=400,
+                content={
+                    'old_password': {
+                        'msg': 'Invalid password',
+                        'type': 'value_error'
+                    }
                 }
-            }
-        )
+            )
 
     data['password_hash'], data['password_salt'] = hash_plaintext(
         data.pop('password'))
