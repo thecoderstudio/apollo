@@ -27,6 +27,13 @@ class ShellConnection:
     async def listen_and_forward(self):
         async for stdin in self.origin.listen():
             await self._message_target(stdin)
+        await self.cancel_on_target()
+
+    async def cancel_on_target(self):
+        if not self.target.client_connected:
+            return
+
+        await self.send_command(Command.CANCEL)
 
     async def _message_target(self, message):
         try:

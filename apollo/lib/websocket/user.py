@@ -72,14 +72,7 @@ class UserCommandConnectionManager(UserConnectionManager):
         async for _ in shell_connection.origin.listen():
             pass
 
-        await self._cancel_if_running()
-
-    async def _cancel_if_running(self, shell_connection: ShellConnection):
-        if not shell_connection.target.client_connected:
-            return
-
-        await shell_connection.send_command(Command.CANCEL)
-        logging.critical("SENT")
+        await shell_connection.cancel_on_target()
 
     @classmethod
     async def process_server_command(cls, command: ServerCommandSchema):
