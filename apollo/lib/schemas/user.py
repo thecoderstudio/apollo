@@ -79,7 +79,6 @@ class UpdateUserSchema(BaseModel):
     @validator('old_password', always=True)
     @classmethod
     def old_password_required(cls, v, values):
-        print(values)
         if not v and values.get('password'):
             raise ValueError("old password is required when password is given")
 
