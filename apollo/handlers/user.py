@@ -43,7 +43,7 @@ def post_user(user_data: CreateUserSchema,
 def patch_user(user_data: UpdateUserSchema, request: Request,
                session: Session = Depends(get_session)):
     user = request.current_user
-    data = user_data.dict()
+    data = user_data.dict(exclude_unset=True)
 
     if data.get('password'):
         if not compare_plaintext_to_hash(user_data.old_password,

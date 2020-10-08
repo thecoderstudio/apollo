@@ -30,7 +30,7 @@ def test_create_user_password_too_short(db_session):
 
 def test_create_user_password_contains_whitespace(db_session):
     with pytest.raises(ValueError,
-                       match="password can't contain whitespaces"):
+                       match="field can't contain whitespaces"):
         CreateUserSchema(username='johndoe', password='pass word')
 
 
@@ -57,7 +57,7 @@ def test_update_user_valid():
 def test_update_user_field_contains_whitespace(values):
     with pytest.raises(ValueError,
                        match="field can't contain whitespaces"):
-        UpdateUserSchema(*values)
+        UpdateUserSchema(**values)
 
 
 def test_update_user_password_contains_whitespace():
@@ -87,7 +87,7 @@ def test_update_password_password_confirm_required():
         ValueError,
         match="password confirm is required when password is given"
     ):
-        UpdateUserSchema(password='password', old_password='password')
+        UpdateUserSchema(password='password', old_password='old_password')
 
 
 def test_update_user_old_and_new_password_identical():

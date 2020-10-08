@@ -129,7 +129,7 @@ def test_update_user_successful_authenticated(test_client, db_session,
     )
 
     _assert_successful_update_password(user, response, db_session)
-    assert db_session.query(User).get(user.id)['username'] == 'newusername'
+    assert db_session.query(User).get(user.id).username == 'newusername'
 
 
 def test_update_password_successful_uninitialized(
@@ -199,7 +199,7 @@ def test_update_user_password_same_as_old_password(test_client, user,
 
 def test_update_user_username_too_long(test_client, session_cookie):
     response = test_client.patch(
-        '/user',
+        '/user/me',
         json={'username': 'johndoeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'},
         cookies=session_cookie
     )
@@ -212,7 +212,7 @@ def test_update_user_username_too_long(test_client, session_cookie):
 
 def test_update_user_username_too_short(test_client, session_cookie):
     response = test_client.patch(
-        '/user',
+        '/user/me',
         json={'username': ''},
         cookies=session_cookie
     )
@@ -225,7 +225,7 @@ def test_update_user_username_too_short(test_client, session_cookie):
 
 def test_update_user_username_contains_whitespace(test_client, session_cookie):
     response = test_client.post(
-        '/user',
+        '/user/me',
         json={'username': 'john doe'},
         cookies=session_cookie
     )
@@ -239,7 +239,7 @@ def test_update_user_username_contains_whitespace(test_client, session_cookie):
 def test_update_user_duplicate_username(
         test_client, db_session, session_cookie, user):
     response = test_client.patch(
-        '/user',
+        '/user/me',
         json={'username': 'test_admin'},
         cookies=session_cookie
     )
