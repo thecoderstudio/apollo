@@ -62,7 +62,6 @@ class UpdateUserSchema(BaseModel):
     def unique_username(cls, value, **kwargs):
         return check_for_unique_username(value, kwargs['session'])
 
-
     @validator('password', 'username')
     @classmethod
     def no_whitespace(cls, value):
@@ -84,7 +83,6 @@ class UpdateUserSchema(BaseModel):
                 "password confirm is required when password is given")
 
         return v
-
 
     @validator('password')
     @classmethod
