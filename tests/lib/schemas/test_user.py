@@ -44,7 +44,7 @@ def test_update_user_valid():
     assert user.password_confirm == 'password'
 
 
-@pytest.mark.parametrize('schema', [
+@pytest.mark.parametrize('values', [
     {
         'password': 'pass word',
         'old_password': 'testtest',
