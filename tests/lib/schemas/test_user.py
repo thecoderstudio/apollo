@@ -57,7 +57,7 @@ def test_update_user_valid():
 ])
 def test_update_user_field_contains_whitespace(values, field):
     with pytest.raises(ValueError,
-                       match=f"${field} can't contain whitespaces"):
+                       match=f"{field} can't contain whitespaces"):
         UpdateUserSchema(**values)
 
 

@@ -46,7 +46,7 @@ def patch_user(user_data: UpdateUserSchema, request: Request,
     data = user_data.dict(exclude_unset=True)
 
     if data.get('password'):
-        user, data, error = compare_plaintext_to_hash(user_data, user, data)
+        user, data, error = update_user_password_and_data(user, data)
         if error:
             return error
 
@@ -55,9 +55,10 @@ def patch_user(user_data: UpdateUserSchema, request: Request,
     return saved_user
 
 
-def update_user_password_and_data(user_data, user, data):
+def update_user_password_and_data(user, data):
     error = None
-    if not compare_plaintext_to_hash(user_data.old_password,
+    print(data)
+    if not compare_plaintext_to_hash(data['old_password'],
                                      user.password_hash,
                                      user.password_salt):
         error = JSONResponse(
@@ -70,9 +71,9 @@ def update_user_password_and_data(user_data, user, data):
             }
         )
 
-        data['password_hash'], data['password_salt'] = hash_plaintext(
-            data.pop('password'))
-        user.has_changed_initial_password = True
+    data['password_hash'], data['password_salt'] = hash_plaintext(
+        data.pop('password'))
+    user.has_changed_initial_password = True
 
     return user, data, error
 
