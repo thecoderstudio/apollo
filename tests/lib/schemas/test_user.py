@@ -3,13 +3,14 @@ import uuid
 import pytest
 from pydantic import ValidationError
 
-from apollo.lib.schemas.user import (CreateUserSchema, UserSchema,
+from apollo.lib.schemas.user import (BaseCreateOrUpdateUserSchema, UserSchema,
                                      UpdateUserSchema)
 from apollo.models.user import User
 
 
 def test_create_user_valid(db_session):
-    user = CreateUserSchema(username='username ', password='testpass')
+    user = BaseCreateOrUpdateUserSchema(
+        username='username ', password='testpass')
 
     assert user.username == 'username'
     assert user.password == 'testpass'
@@ -20,18 +21,18 @@ def test_create_user_username_exists(db_session):
         User(username='username', password_hash='hash', password_salt='salt'))
     db_session.commit()
     with pytest.raises(ValueError, match='username must be unique'):
-        CreateUserSchema(username="username", password="testpass")
+        BaseCreateOrUpdateUserSchema(username="username", password="testpass")
 
 
 def test_create_user_password_too_short(db_session):
     with pytest.raises(ValidationError, match='at least 8 characters'):
-        CreateUserSchema(username='johndoe', password='')
+        BaseCreateOrUpdateUserSchema(username='johndoe', password='')
 
 
 def test_create_user_password_contains_whitespace(db_session):
     with pytest.raises(ValueError,
-                       match="field can't contain whitespaces"):
-        CreateUserSchema(username='johndoe', password='pass word')
+                       match="password can't contain whitespaces"):
+        BaseCreateOrUpdateUserSchema(username='johndoe', password='pass word')
 
 
 def test_update_user_valid():
@@ -44,25 +45,25 @@ def test_update_user_valid():
     assert user.password_confirm == 'password'
 
 
-@pytest.mark.parametrize('values', [
-    {
+@pytest.mark.parametrize('values,field', [
+    ({
         'password': 'pass word',
         'old_password': 'testtest',
         'password_confirm': 'pass word'
-    },
-    {
+    }, 'password'),
+    ({
         'username': 'user name'
-    },
+    }, 'username'),
 ])
-def test_update_user_field_contains_whitespace(values):
+def test_update_user_field_contains_whitespace(values, field):
     with pytest.raises(ValueError,
-                       match="field can't contain whitespaces"):
+                       match=f"${field} can't contain whitespaces"):
         UpdateUserSchema(**values)
 
 
 def test_update_user_password_contains_whitespace():
     with pytest.raises(ValueError,
-                       match="field can't contain whitespaces"):
+                       match="password can't contain whitespaces"):
         UpdateUserSchema(password='pass word', old_password='testtest',
                          password_confirm='pass word')
 
@@ -118,23 +119,23 @@ def test_update_user_username_too_long(db_session):
 def test_create_user_missing_fields(db_session):
     message = 'field required'
     with pytest.raises(ValidationError, match=message):
-        CreateUserSchema(username='johndoe')
+        BaseCreateOrUpdateUserSchema(username='johndoe')
 
     with pytest.raises(ValidationError, match=message):
-        CreateUserSchema(password='testpass')
+        BaseCreateOrUpdateUserSchema(password='testpass')
 
 
 def test_create_user_username_too_short(db_session):
     with pytest.raises(ValidationError,
                        match='ensure this value has at least 1 characters'):
-        CreateUserSchema(username=' ', password='testpass')
+        BaseCreateOrUpdateUserSchema(username=' ', password='testpass')
 
 
 def test_create_user_username_too_long(db_session):
     with pytest.raises(ValidationError,
                        match='ensure this value has at most 36 characters'):
-        CreateUserSchema(username='johndoeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                         password='testpass')
+        BaseCreateOrUpdateUserSchema(username='johndoeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                                     password='testpass')
 
 
 def test_user_valid(db_session):

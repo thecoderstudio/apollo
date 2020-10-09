@@ -10,9 +10,9 @@ from apollo.lib.schemas.role import RoleSchema
 from apollo.models.user import get_user_by_username
 
 
-def check_for_whitespace(value):
+def check_for_whitespace(value, field='field'):
     if ' ' in value:
-        raise ValueError("field can't contain whitespaces")
+        raise ValueError(f"{field} can't contain whitespaces")
 
     return value
 
@@ -24,7 +24,7 @@ def check_for_unique_username(value, session):
     return value
 
 
-class CreateUserSchema(BaseModel):
+class BaseCreateOrUpdateUserSchema(BaseModel):
     username: constr(min_length=1, max_length=36, strip_whitespace=True)
     password: constr(min_length=8, strip_whitespace=True)
 
@@ -34,10 +34,10 @@ class CreateUserSchema(BaseModel):
     def username_must_be_unique(cls, value, **kwargs):
         return check_for_unique_username(value, kwargs['session'])
 
-    @validator('password')
+    @validator('password', 'username')
     @classmethod
-    def no_whitespace_in_password(cls, value):
-        return check_for_whitespace(value)
+    def no_whitespace(cls, value, field):
+        return check_for_whitespace(value, field)
 
 
 class UserSchema(ORMBase):
@@ -47,9 +47,7 @@ class UserSchema(ORMBase):
     role: Optional[RoleSchema]
 
 
-class UpdateUserSchema(BaseModel):
-    username: Optional[
-        constr(min_length=1, max_length=36, strip_whitespace=True)]
+class UpdateUserSchema(BaseCreateOrUpdateUserSchema):
     password: Optional[constr(min_length=8, strip_whitespace=True)]
     password_confirm: Optional[constr(min_length=8, strip_whitespace=True)]
     old_password: Optional[constr(min_length=8, strip_whitespace=True)]
@@ -57,41 +55,30 @@ class UpdateUserSchema(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    @validator('username')
-    @classmethod
-    @with_db_session
-    def unique_username(cls, value, **kwargs):
-        return check_for_unique_username(value, kwargs['session'])
-
-    @validator('password', 'username')
-    @classmethod
-    def no_whitespace(cls, value, values):
-        return check_for_whitespace(value)
-
     @validator('password_confirm')
     @classmethod
-    def password_must_match(cls, v, values):
-        if v != values.get('password'):
+    def password_must_match(cls, value, values):
+        if value != values.get('password'):
             raise ValueError('passwords must match')
 
-        return v
+        return value
 
     @validator('old_password', always=True)
     @classmethod
-    def old_password_required(cls, v, values):
-        if not v and values.get('password'):
+    def old_password_required(cls, value, values):
+        if not value and values.get('password'):
             raise ValueError("old password is required when password is given")
 
-        return v
+        return value
 
     @validator('password_confirm', pre=True, always=True)
     @classmethod
-    def password_confirm_required(cls, v, values):
-        if not v and values.get('password'):
+    def password_confirm_required(cls, value, values):
+        if not value and values.get('password'):
             raise ValueError(
                 "password confirm is required when password is given")
 
-        return v
+        return value
 
     @root_validator
     @classmethod

@@ -51,7 +51,7 @@ def test_post_user_password_contains_whitespace(test_client, session_cookie):
 
     assert response.status_code == 400
     assert response.json()['password']['msg'] == (
-        "field can't contain whitespaces"
+        "password can't contain whitespaces"
     )
 
 
@@ -232,7 +232,7 @@ def test_update_user_username_contains_whitespace(test_client, session_cookie):
 
     assert response.status_code == 400
     assert response.json()['username']['msg'] == (
-        "field can't contain whitespaces"
+        "username can't contain whitespaces"
     )
 
 

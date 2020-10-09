@@ -9,7 +9,7 @@ from apollo.lib.exceptions import HTTPException
 from apollo.lib.hash import hash_plaintext, compare_plaintext_to_hash
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.user import (
-    CreateUserSchema, UserSchema, UpdateUserSchema)
+    BaseCreateOrUpdateUserSchema, UserSchema, UpdateUserSchema)
 from apollo.lib.security import (Allow, Admin, Human, Uninitialized)
 from apollo.models import get_session, save, delete
 from apollo.models.user import User, get_user_by_id, list_users as query_users
@@ -27,7 +27,7 @@ router = SecureRouter([
 
 @router.post('/user', status_code=201, response_model=UserSchema,
              permission='user.post')
-def post_user(user_data: CreateUserSchema,
+def post_user(user_data: BaseCreateOrUpdateUserSchema,
               session: Session = Depends(get_session)):
     data = user_data.dict()
     data['password_hash'], data['password_salt'] = hash_plaintext(
@@ -46,26 +46,35 @@ def patch_user(user_data: UpdateUserSchema, request: Request,
     data = user_data.dict(exclude_unset=True)
 
     if data.get('password'):
-        if not compare_plaintext_to_hash(user_data.old_password,
-                                         user.password_hash,
-                                         user.password_salt):
-            return JSONResponse(
-                status_code=400,
-                content={
-                    'old_password': {
-                        'msg': 'Invalid password',
-                        'type': 'value_error'
-                    }
+        user, data, error = compare_plaintext_to_hash(user_data, user, data)
+        if error:
+            return error
+
+    user.set_fields(data)
+    saved_user, _ = save(session, user)
+    return saved_user
+
+
+def update_user_password_and_data(user_data, user, data):
+    error = None
+    if not compare_plaintext_to_hash(user_data.old_password,
+                                     user.password_hash,
+                                     user.password_salt):
+        error = JSONResponse(
+            status_code=400,
+            content={
+                'old_password': {
+                    'msg': 'Invalid password',
+                    'type': 'value_error'
                 }
-            )
+            }
+        )
 
         data['password_hash'], data['password_salt'] = hash_plaintext(
             data.pop('password'))
         user.has_changed_initial_password = True
 
-    user.set_fields(data)
-    saved_user, _ = save(session, user)
-    return saved_user
+    return user, data, error
 
 
 @router.delete('/user/{user_id}', status_code=204, permission='user.delete')
