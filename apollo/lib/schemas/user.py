@@ -27,7 +27,7 @@ class BaseCreateOrUpdateUserSchema(BaseModel):
     @classmethod
     def no_whitespace(cls, value, field):
         if ' ' in value:
-            raise ValueError(f"{field} can't contain whitespaces")
+            raise ValueError(f"{field.name} can't contain whitespaces")
 
         return value
 
