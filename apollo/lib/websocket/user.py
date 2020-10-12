@@ -1,7 +1,10 @@
+import logging
 import uuid
 
 from fastapi import WebSocket
 
+from apollo.lib.schemas.message import (Command, ServerCommand,
+                                        ServerCommandSchema, ShellIOSchema)
 from apollo.lib.websocket.connection import Connection, ConnectionManager
 from apollo.lib.websocket.agent import AgentConnectionManager
 from apollo.lib.websocket.shell import ShellConnection
@@ -27,7 +30,7 @@ class UserConnectionManager(ConnectionManager):
             user_connection,
             agent_connection
         )
-        await shell_connection.listen_and_forward()
+        await self._communicate(shell_connection)
         self._remove_connection(user_connection)
         return user_connection
 
@@ -39,6 +42,44 @@ class UserConnectionManager(ConnectionManager):
             return agent_connection
 
         raise KeyError
+
+    async def _communicate(self, shell_connection: ShellConnection):
+        raise NotImplementedError
+
+    @classmethod
+    async def send_message(cls, message: ShellIOSchema):
+        try:
+            user_connection = cls.get_connection(message.connection_id)
+        except KeyError:
+            logging.critical(f"message dropped: {message}")
+            return False
+        await user_connection.send_text(message.message)
+        return True
+
+
+class UserShellConnectionManager(UserConnectionManager):
+    async def _communicate(self, shell_connection: ShellConnection):
+        await shell_connection.listen_and_forward()
+
+
+class UserCommandConnectionManager(UserConnectionManager):
+    def __init__(self, *args, command: Command, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.command = command
+
+    async def _communicate(self, shell_connection: ShellConnection):
+        await shell_connection.send_command(self.command)
+        async for _ in shell_connection.origin.listen():
+            pass
+
+        await shell_connection.cancel_on_target()
+
+    @classmethod
+    async def process_server_command(cls, command: ServerCommandSchema):
+        if command.command is ServerCommand.FINISHED:
+            connection = cls.get_connection(command.connection_id)
+            await connection.close()
+            cls._remove_connection(connection)
 
 
 class UserConnection(Connection):

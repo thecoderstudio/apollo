@@ -13,11 +13,15 @@ import apollo.lib.settings
 from apollo import app
 from apollo.lib.hash import hash_plaintext
 from apollo.lib.redis import RedisSession
+from apollo.lib.schemas.message import Command
 from apollo.lib.security import create_session_cookie
 from apollo.lib.websocket import WebSocketManager
 from apollo.lib.websocket.agent import AgentConnectionManager
 from apollo.lib.websocket.app import AppConnectionManager
-from apollo.lib.websocket.user import UserConnectionManager, UserConnection
+from apollo.lib.websocket.user import (
+    UserCommandConnectionManager, UserConnectionManager, UserConnection,
+    UserShellConnectionManager
+)
 from apollo.models import Base, init_sqlalchemy, SessionLocal
 from apollo.models.agent import Agent
 from apollo.models.oauth import OAuthAccessToken, OAuthClient
@@ -208,8 +212,24 @@ def agent_connection_manager(websocket_manager):
 @fixture
 def user_connection_manager(websocket_manager):
     manager = UserConnectionManager()
-    manager.websocket_manager = websocket_manager
-    return manager
+    return setup_user_connection_manager(manager)
+
+
+@fixture
+def user_shell_connection_manager(websocket_manager):
+    manager = UserShellConnectionManager()
+    return setup_user_connection_manager(manager)
+
+
+@fixture
+def user_command_connection_manager(websocket_manager):
+    manager = UserCommandConnectionManager(command=Command.LINPEAS)
+    return setup_user_connection_manager(manager)
+
+
+def setup_user_connection_manager(user_connection_manager):
+    user_connection_manager.websocket_manager = websocket_manager
+    return user_connection_manager
 
 
 # autouse set to true so that the interested agents get wiped so that the

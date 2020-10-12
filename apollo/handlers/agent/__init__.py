@@ -14,7 +14,7 @@ from apollo.lib.schemas.agent import (
 from apollo.lib.security import Allow, Authenticated, Everyone
 from apollo.lib.websocket.app import (
     AppConnectionManager, WebSocketObserverInterestType)
-from apollo.lib.websocket.user import UserConnectionManager
+from apollo.lib.websocket.user import UserShellConnectionManager
 from apollo.models import get_session, save
 from apollo.models.agent import Agent, list_all_agents, get_agent_by_id
 from apollo.models.oauth import OAuthClient
@@ -70,4 +70,4 @@ def get_agent(agent_id: uuid.UUID, session: Session = Depends(get_session)):
 
 @router.websocket("/agent/{agent_id}/shell", permission='agent.shell')
 async def shell(websocket: WebSocket, agent_id: uuid.UUID):
-    await UserConnectionManager().connect(websocket, agent_id)
+    await UserShellConnectionManager().connect(websocket, agent_id)

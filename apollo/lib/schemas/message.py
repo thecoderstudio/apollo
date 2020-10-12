@@ -6,6 +6,12 @@ from pydantic import BaseModel
 
 class Command(Enum):
     NEW_CONNECTION = "new connection"
+    CANCEL = "cancel"
+    LINPEAS = "linpeas"
+
+
+class ServerCommand(Enum):
+    FINISHED = "finished"
 
 
 class BaseMessageSchema(BaseModel):
@@ -18,3 +24,7 @@ class ShellIOSchema(BaseMessageSchema):
 
 class CommandSchema(BaseMessageSchema):
     command: Command
+
+
+class ServerCommandSchema(BaseMessageSchema):
+    command: ServerCommand

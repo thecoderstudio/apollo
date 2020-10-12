@@ -16,14 +16,24 @@ class ShellConnection:
         return self
 
     async def _alert_target_of_new_connection(self):
+        await self.send_command(Command.NEW_CONNECTION)
+
+    async def send_command(self, command: Command):
         await self.target.message(CommandSchema(
             connection_id=self.origin.id_,
-            command=Command.NEW_CONNECTION
+            command=command
         ))
 
     async def listen_and_forward(self):
         async for stdin in self.origin.listen():
             await self._message_target(stdin)
+        await self.cancel_on_target()
+
+    async def cancel_on_target(self):
+        if not self.target.client_connected:
+            return
+
+        await self.send_command(Command.CANCEL)
 
     async def _message_target(self, message):
         try:
