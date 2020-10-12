@@ -10,7 +10,6 @@ class HTTPException(FastAPIHTTPException):
 
 
 class PydanticValidationError(ValidationError):
-
     def __init__(self, message, location, schemaObject, *args, **kwargs):
         super().__init__(
             [ErrorWrapper(PydanticError(message), location)],

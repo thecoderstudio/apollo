@@ -134,8 +134,9 @@ def test_create_user_username_too_short(db_session):
 def test_create_user_username_too_long(db_session):
     with pytest.raises(ValidationError,
                        match='ensure this value has at most 36 characters'):
-        BaseCreateOrUpdateUserSchema(username='johndoeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                                     password='testpass')
+        BaseCreateOrUpdateUserSchema(
+            username='johndoeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+            password='testpass')
 
 
 def test_user_valid(db_session):

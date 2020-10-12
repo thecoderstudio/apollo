@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 services:
   apollo-test:
     container_name: apollo-test

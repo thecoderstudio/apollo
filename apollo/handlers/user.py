@@ -1,3 +1,4 @@
+import copy
 import uuid
 from typing import List
 
@@ -46,9 +47,10 @@ def patch_user(user_data: UpdateUserSchema, request: Request,
     data = user_data.dict(exclude_unset=True)
 
     if data.get('password'):
-        user, data, error = update_user_password_and_data(user, data)
+        data, error = update_user_password_and_data(user, data)
         if error:
             return error
+        user.has_changed_initial_password = True
 
     user.set_fields(data)
     saved_user, _ = save(session, user)
@@ -56,8 +58,8 @@ def patch_user(user_data: UpdateUserSchema, request: Request,
 
 
 def update_user_password_and_data(user, data):
+    data = copy.copy(data)
     error = None
-    print(data)
     if not compare_plaintext_to_hash(data['old_password'],
                                      user.password_hash,
                                      user.password_salt):
@@ -73,9 +75,8 @@ def update_user_password_and_data(user, data):
 
     data['password_hash'], data['password_salt'] = hash_plaintext(
         data.pop('password'))
-    user.has_changed_initial_password = True
 
-    return user, data, error
+    return data, error
 
 
 @router.delete('/user/{user_id}', status_code=204, permission='user.delete')
