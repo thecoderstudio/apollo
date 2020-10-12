@@ -1,4 +1,5 @@
 from fastapi import HTTPException as FastAPIHTTPException
+from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 from pydantic.errors import PydanticValueError
 from pydantic.error_wrappers import ErrorWrapper
@@ -17,6 +18,12 @@ class PydanticValidationError(ValidationError):
             *args,
             **kwargs
         )
+
+
+class RequestValidationErrorWrapper(RequestValidationError):
+    def __init__(self, message, location, *args, **kwargs):
+        super().__init__([ErrorWrapper(PydanticError(message), location)],
+                         *args, **kwargs)
 
 
 class PydanticError(PydanticValueError):

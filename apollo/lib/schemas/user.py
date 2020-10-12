@@ -76,6 +76,7 @@ class UpdateUserSchema(BaseCreateOrUpdateUserSchema):
     def password_cannot_not_match_old_password(cls, values):
         password = values.get('password')
         if password and password == values.get('old_password'):
+            print("&&&&&&")
             raise PydanticValidationError(
                 "password cannot match old password",
                 ('password'),

@@ -3,10 +3,10 @@ import uuid
 from typing import List
 
 from fastapi import Depends, Request
-from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from apollo.lib.exceptions import HTTPException
+from apollo.lib.exceptions import HTTPException, RequestValidationErrorWrapper
+
 from apollo.lib.hash import hash_plaintext, compare_plaintext_to_hash
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.user import (
@@ -63,15 +63,8 @@ def update_user_password_and_data(user, data):
     if not compare_plaintext_to_hash(data['old_password'],
                                      user.password_hash,
                                      user.password_salt):
-        error = JSONResponse(
-            status_code=400,
-            content={
-                'old_password': {
-                    'msg': 'Invalid password',
-                    'type': 'value_error'
-                }
-            }
-        )
+        raise RequestValidationErrorWrapper(
+            "Invalid password", ('old_password'))
 
     data['password_hash'], data['password_salt'] = hash_plaintext(
         data.pop('password'))
@@ -79,7 +72,7 @@ def update_user_password_and_data(user, data):
     return data, error
 
 
-@router.delete('/user/{user_id}', status_code=204, permission='user.delete')
+@ router.delete('/user/{user_id}', status_code=204, permission='user.delete')
 def delete_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
     user = get_user_by_id(session, user_id)
     if not user:
@@ -90,13 +83,13 @@ def delete_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
     delete(session, user)
 
 
-@router.get('/user', status_code=200, response_model=List[UserSchema],
-            permission='user.list')
+@ router.get('/user', status_code=200, response_model=List[UserSchema],
+             permission='user.list')
 def list_users(session: Session = Depends(get_session)):
     return query_users(session)
 
 
-@router.get('/user/me', permission='user.get_current',
-            response_model=UserSchema)
+@ router.get('/user/me', permission='user.get_current',
+             response_model=UserSchema)
 def get_current_user(request: Request):
     return request.current_user
