@@ -10,9 +10,12 @@ from apollo.lib.websocket.agent import AgentConnection
 from apollo.lib.websocket.user import UserConnection, TRY_AGAIN_LATER
 
 
-def test_user_connection_random_id_on_construction(websocket_mock):
-    a = UserConnection(websocket_mock)
-    b = UserConnection(websocket_mock)
+def test_user_connection_random_id_on_construction(
+    user_connection_manager,
+    websocket_mock
+):
+    a = UserConnection(user_connection_manager, websocket_mock)
+    b = UserConnection(user_connection_manager, websocket_mock)
     assert a.id_ != b.id_
 
 

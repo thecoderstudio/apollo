@@ -13,9 +13,13 @@ from apollo.lib.websocket.user import UserConnection
 
 
 @pytest.mark.asyncio
-async def test_shell_connection_start(mocker, websocket_mock):
+async def test_shell_connection_start(
+    mocker,
+    websocket_mock,
+    user_connection_manager
+):
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
-    user_connection = UserConnection(websocket_mock)
+    user_connection = UserConnection(user_connection_manager, websocket_mock)
     await agent_connection.accept()
     await user_connection.accept()
 
@@ -37,9 +41,13 @@ async def test_shell_connection_start(mocker, websocket_mock):
 
 
 @pytest.mark.asyncio
-async def test_shell_connection_send_command(mocker, websocket_mock):
+async def test_shell_connection_send_command(
+    mocker,
+    websocket_mock,
+    user_connection_manager
+):
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
-    user_connection = UserConnection(websocket_mock)
+    user_connection = UserConnection(user_connection_manager, websocket_mock)
     await agent_connection.accept()
     await user_connection.accept()
 
@@ -64,9 +72,13 @@ async def test_shell_connection_send_command(mocker, websocket_mock):
 
 
 @pytest.mark.asyncio
-async def test_shell_connection_listen_and_forward(mocker, websocket_mock):
+async def test_shell_connection_listen_and_forward(
+    mocker,
+    websocket_mock,
+    user_connection_manager
+):
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
-    user_connection = UserConnection(websocket_mock)
+    user_connection = UserConnection(user_connection_manager, websocket_mock)
     await agent_connection.accept()
     await user_connection.accept()
     shell_connection = await ShellConnection.start(user_connection,
@@ -98,10 +110,11 @@ async def test_shell_connection_listen_and_forward(mocker, websocket_mock):
 @pytest.mark.asyncio
 async def test_shell_connection_agent_connection_recovery(
     mocker,
-    websocket_mock
+    websocket_mock,
+    user_connection_manager
 ):
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
-    user_connection = UserConnection(websocket_mock)
+    user_connection = UserConnection(user_connection_manager, websocket_mock)
     await agent_connection.accept()
     await user_connection.accept()
     shell_connection = await ShellConnection.start(user_connection,
@@ -168,9 +181,13 @@ async def test_shell_connection_agent_connection_recovery(
 
 
 @pytest.mark.asyncio
-async def test_shell_connection_cancel_on_target(mocker, websocket_mock):
+async def test_shell_connection_cancel_on_target(
+    mocker,
+    websocket_mock,
+    user_connection_manager
+):
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
-    user_connection = UserConnection(websocket_mock)
+    user_connection = UserConnection(user_connection_manager, websocket_mock)
     await agent_connection.accept()
     await user_connection.accept()
     shell_connection = await ShellConnection.start(user_connection,

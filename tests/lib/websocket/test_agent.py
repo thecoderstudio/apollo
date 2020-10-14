@@ -39,7 +39,7 @@ async def test_agent_connection_manager_connect(
         await agent_connection_manager._accept_connection(AgentConnection(
             websocket_mock, agent_id))
 
-    user_connection = UserConnection(websocket_mock)
+    user_connection = UserConnection(user_connection_manager, websocket_mock)
     await user_connection_manager._accept_connection(user_connection)
 
     with patch(
@@ -118,7 +118,7 @@ async def test_agent_connection_listen_and_forward(
     user_connection_manager,
     websocket_mock
 ):
-    user_connection = UserConnection(websocket_mock)
+    user_connection = UserConnection(user_connection_manager, websocket_mock)
     await user_connection_manager._accept_connection(user_connection)
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
 
