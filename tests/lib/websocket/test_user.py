@@ -21,7 +21,7 @@ async def test_user_connection_manager_get_connection(
     user_connection_manager,
     websocket_mock
 ):
-    user_connection = UserConnection(websocket_mock)
+    user_connection = UserConnection(user_connection_manager, websocket_mock)
     await user_connection_manager._accept_connection(user_connection)
     fetched_connection = user_connection_manager.get_connection(
         user_connection.id_)
@@ -46,16 +46,16 @@ async def test_user_connection_manager_abstract(
 
 
 @pytest.mark.asyncio
-async def test_send_message_to_non_existent_user_connection(
+async def test_process_agent_response_to_non_existent_user_connection(
     user_connection_manager
 ):
-    message = ShellIOSchema(
-        connection_id=uuid.uuid4(),
-        message="test"
-    )
+    message = {
+        'connection_id': uuid.uuid4(),
+        'message': 'test'
+    }
 
     with patch('apollo.lib.websocket.user.logging.critical') as logging_mock:
-        sent = await user_connection_manager.send_message(message)
+        sent = await user_connection_manager.process_agent_response(message)
         assert sent is False
         logging_mock.assert_called_once_with(f"message dropped: {message}")
 
@@ -161,7 +161,8 @@ async def test_user_command_connection_manager_process_server_command(
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
     await agent_connection_manager._accept_connection(agent_connection)
 
-    user_connection = UserConnection(websocket_mock)
+    user_connection = UserConnection(user_command_connection_manager,
+                                     websocket_mock)
     with patch(
         'apollo.lib.websocket.agent.AgentConnection.send_text',
         wraps=agent_connection.send_text
