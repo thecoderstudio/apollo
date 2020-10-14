@@ -61,18 +61,19 @@ class UserConnectionManager(ConnectionManager):
     @classmethod
     async def process_agent_response(cls, response: dict):
         base_message = BaseMessageSchema(**response)
-        connection = cls.get_connection(base_message.connection_id)
+        try:
+            connection = cls.get_connection(base_message.connection_id)
+        except KeyError:
+            logging.critical(f"message dropped: {response}")
+            return False
+
         await connection.manager.process_agent_response(response)
+        return True
 
     @classmethod
-    async def send_message(cls, message: ShellIOSchema):
-        try:
-            user_connection = cls.get_connection(message.connection_id)
-        except KeyError:
-            logging.critical(f"message dropped: {message}")
-            return False
+    async def _send_message(cls, message: ShellIOSchema):
+        user_connection = cls.get_connection(message.connection_id)
         await user_connection.send_text(message.message)
-        return True
 
 
 class UserShellConnectionManager(UserConnectionManager):
@@ -81,7 +82,7 @@ class UserShellConnectionManager(UserConnectionManager):
 
     @classmethod
     async def process_agent_response(cls, response: dict):
-        await cls.send_message(ShellIOSchema(**response))
+        await cls._send_message(ShellIOSchema(**response))
 
 
 class UserCommandConnectionManager(UserConnectionManager):
@@ -99,7 +100,7 @@ class UserCommandConnectionManager(UserConnectionManager):
     @classmethod
     async def process_agent_response(cls, response: dict):
         try:
-            await cls.send_message(ShellIOSchema(**response))
+            await cls._send_message(ShellIOSchema(**response))
         except ValidationError:
             await cls.process_server_command(ServerCommandSchema(**response))
 
