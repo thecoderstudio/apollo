@@ -23,7 +23,7 @@ class UserConnectionManager(ConnectionManager):
             await websocket.close(code=TRY_AGAIN_LATER)
             return
 
-        user_connection = UserConnection(websocket)
+        user_connection = self._create_user_connection(websocket)
         await self._accept_connection(user_connection)
 
         shell_connection = await ShellConnection.start(
@@ -42,6 +42,10 @@ class UserConnectionManager(ConnectionManager):
             return agent_connection
 
         raise KeyError
+
+    @staticmethod
+    def _create_user_connection(websocket: WebSocket):
+        return UserConnection(websocket)
 
     async def _communicate(self, shell_connection: ShellConnection):
         raise NotImplementedError
