@@ -32,7 +32,8 @@ class UserConnectionManager(ConnectionManager):
             await websocket.close(code=TRY_AGAIN_LATER)
             return
 
-        user_connection = self._create_user_connection(websocket)
+        user_connection = self._create_user_connection(websocket,
+                                                       target_agent_id)
         await self._accept_connection(user_connection)
 
         shell_connection = await ShellConnection.start(
@@ -52,7 +53,11 @@ class UserConnectionManager(ConnectionManager):
 
         raise KeyError
 
-    def _create_user_connection(self, websocket: WebSocket):
+    def _create_user_connection(
+        self,
+        websocket: WebSocket,
+        target_agent_id: uuid.UUID
+    ):
         return UserConnection(self, websocket)
 
     async def _communicate(self, shell_connection: ShellConnection):
