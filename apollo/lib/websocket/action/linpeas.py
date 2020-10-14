@@ -1,4 +1,4 @@
-import logging
+import re
 import uuid
 
 from fastapi import WebSocket
@@ -46,8 +46,18 @@ class LinPEASManager(UserCommandConnectionManager):
         await super()._close_connection(connection)
         connection.persist_report()
 
-    @staticmethod
-    def get_report(target_agent_id: uuid.UUID):
-        return RedisSession().get_from_cache(
+    @classmethod
+    def get_report(cls, target_agent_id: uuid.UUID, ansi: bool = False):
+        report = RedisSession().get_from_cache(
             REPORT_CACHE_KEY_FORMAT.format(target_agent_id=target_agent_id)
         )
+
+        if not ansi:
+            return cls._filter_ansi_escape_codes(report)
+
+        return report
+
+    @staticmethod
+    def _filter_ansi_escape_codes(data: str):
+        ansi_escape = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
+        return ansi_escape.sub('', data)

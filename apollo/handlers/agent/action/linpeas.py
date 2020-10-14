@@ -24,8 +24,8 @@ async def linpeas(agent_id: uuid.UUID, websocket: WebSocket):
 
 @router.get("/agent/{agent_id}/action/linpeas/export",
             permission='agent.action')
-def export_linpeas(agent_id: uuid.UUID):
-    report = LinPEASManager.get_report(agent_id)
+def export_linpeas(agent_id: uuid.UUID, ansi: bool = False):
+    report = LinPEASManager.get_report(agent_id, ansi)
     return PlainTextResponse(
         headers={
             'Content-Disposition': "attachment; filename=report.txt"
