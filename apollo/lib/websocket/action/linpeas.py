@@ -51,6 +51,8 @@ class LinPEASManager(UserCommandConnectionManager):
         report = RedisSession().get_from_cache(
             REPORT_CACHE_KEY_FORMAT.format(target_agent_id=target_agent_id)
         )
+        if not report:
+            return None
 
         if not ansi:
             return cls._filter_ansi_escape_codes(report)

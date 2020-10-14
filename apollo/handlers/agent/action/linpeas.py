@@ -4,6 +4,7 @@ from fastapi import Depends, WebSocket
 from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
 
+from apollo.lib.exceptions import HTTPException
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.message import Command
 from apollo.lib.security import Allow, Authenticated
@@ -33,6 +34,9 @@ def export_linpeas(
     session: Session = Depends(get_session)
 ):
     report = LinPEASManager.get_report(agent_id, ansi)
+    if not report:
+        raise HTTPException(status_code=404, detail="No LinPEAS report found.")
+
     if not filename:
         agent = get_agent_by_id(session, agent_id)
         filename = f"LinPEAS-{agent.name}.txt"
