@@ -2,14 +2,23 @@ import logging
 import uuid
 
 from fastapi import WebSocket
+from pydantic import ValidationError
 
-from apollo.lib.schemas.message import (Command, ServerCommand,
-                                        ServerCommandSchema, ShellIOSchema)
+from apollo.lib.schemas.message import (
+    BaseMessageSchema, Command, ServerCommand, ServerCommandSchema,
+    ShellIOSchema
+)
 from apollo.lib.websocket.connection import Connection, ConnectionManager
 from apollo.lib.websocket.agent import AgentConnectionManager
 from apollo.lib.websocket.shell import ShellConnection
 
 TRY_AGAIN_LATER = 1013
+
+
+class UserConnection(Connection):
+    def __init__(self, manager: 'UserConnectionManager', *args, **kwargs):
+        super().__init__(*args, id_=uuid.uuid4(), **kwargs)
+        self.manager = manager
 
 
 class UserConnectionManager(ConnectionManager):
@@ -43,12 +52,17 @@ class UserConnectionManager(ConnectionManager):
 
         raise KeyError
 
-    @staticmethod
-    def _create_user_connection(websocket: WebSocket):
-        return UserConnection(websocket)
+    def _create_user_connection(self, websocket: WebSocket):
+        return UserConnection(self, websocket)
 
     async def _communicate(self, shell_connection: ShellConnection):
         raise NotImplementedError
+
+    @classmethod
+    async def process_agent_response(cls, response: dict):
+        base_message = BaseMessageSchema(**response)
+        connection = cls.get_connection(base_message.connection_id)
+        await connection.manager.process_agent_response(response)
 
     @classmethod
     async def send_message(cls, message: ShellIOSchema):
@@ -65,6 +79,10 @@ class UserShellConnectionManager(UserConnectionManager):
     async def _communicate(self, shell_connection: ShellConnection):
         await shell_connection.listen_and_forward()
 
+    @classmethod
+    async def process_agent_response(cls, response: dict):
+        await cls.send_message(ShellIOSchema(**response))
+
 
 class UserCommandConnectionManager(UserConnectionManager):
     def __init__(self, *args, command: Command, **kwargs):
@@ -79,13 +97,20 @@ class UserCommandConnectionManager(UserConnectionManager):
         await shell_connection.cancel_on_target()
 
     @classmethod
+    async def process_agent_response(cls, response: dict):
+        try:
+            await cls.send_message(ShellIOSchema(**response))
+        except ValidationError:
+            await cls.process_server_command(ServerCommandSchema(**response))
+
+    @classmethod
     async def process_server_command(cls, command: ServerCommandSchema):
         if command.command is ServerCommand.FINISHED:
-            connection = cls.get_connection(command.connection_id)
-            await connection.close()
-            cls._remove_connection(connection)
+            await cls._close_connection(
+                cls.get_connection(command.connection_id)
+            )
 
-
-class UserConnection(Connection):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, id_=uuid.uuid4(), **kwargs)
+    @classmethod
+    async def _close_connection(cls, connection: UserConnection):
+        await connection.close()
+        cls._remove_connection(connection)
