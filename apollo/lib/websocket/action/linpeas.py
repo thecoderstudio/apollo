@@ -4,6 +4,7 @@ import uuid
 from fastapi import WebSocket
 
 from apollo.lib.redis import RedisSession
+from apollo.lib.schemas.message import Command
 from apollo.lib.websocket.user import (UserCommandConnectionManager,
                                        UserConnection)
 
@@ -34,6 +35,9 @@ class LinPEASConnection(UserConnection):
 
 
 class LinPEASManager(UserCommandConnectionManager):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, command=Command.LINPEAS, **kwargs)
+
     def _create_user_connection(
         self,
         websocket: WebSocket,

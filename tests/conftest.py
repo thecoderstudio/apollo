@@ -16,6 +16,7 @@ from apollo.lib.redis import RedisSession
 from apollo.lib.schemas.message import Command
 from apollo.lib.security import create_session_cookie
 from apollo.lib.websocket import WebSocketManager
+from apollo.lib.websocket.action.linpeas import LinPEASManager
 from apollo.lib.websocket.agent import AgentConnectionManager
 from apollo.lib.websocket.app import AppConnectionManager
 from apollo.lib.websocket.user import (
@@ -218,6 +219,12 @@ def user_connection_manager(websocket_manager):
 @fixture
 def user_shell_connection_manager(websocket_manager):
     manager = UserShellConnectionManager()
+    return setup_user_connection_manager(manager)
+
+
+@fixture
+def linpeas_manager(websocket_manager):
+    manager = LinPEASManager()
     return setup_user_connection_manager(manager)
 
 
