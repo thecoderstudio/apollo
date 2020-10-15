@@ -82,12 +82,12 @@ def delete_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.get('/user', status_code=200, response_model=List[UserSchema],
-             permission='user.list')
+            permission='user.list')
 def list_users(session: Session = Depends(get_session)):
     return query_users(session)
 
 
 @router.get('/user/me', permission='user.get_current',
-             response_model=UserSchema)
+            response_model=UserSchema)
 def get_current_user(request: Request):
     return request.current_user
