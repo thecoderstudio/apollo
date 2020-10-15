@@ -48,9 +48,28 @@ def test_connection_persist_report(
     redis_session.get_ttl(key) == REPORT_CACHE_TTL_IN_SECONDS
 
 
-@pytest.mark.parametrize('ansi', [True, False])
-def test_manager_get_report(ansi):
-    pass
+@pytest.mark.parametrize('ansi, expected_result', [
+    (True, 'test'),
+    (False, 'test')
+])
+def test_manager_get_report(
+    redis_session,
+    linpeas_manager,
+    ansi,
+    expected_result
+):
+    target_agent_id = uuid.uuid4()
+    redis_session.write_to_cache(
+        REPORT_CACHE_KEY_FORMAT.format(
+            target_agent_id=target_agent_id
+        ),
+        'test'
+    )
+
+    assert linpeas_manager.get_report(
+        target_agent_id,
+        ansi
+    ) == expected_result
 
 
 def test_manager_connect():
