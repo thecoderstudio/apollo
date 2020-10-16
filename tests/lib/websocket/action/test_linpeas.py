@@ -3,6 +3,8 @@ from unittest.mock import call, patch
 
 import pytest
 
+from apollo.lib.schemas.message import (ServerCommand, ServerCommandSchema)
+from apollo.lib.websocket.agent import AgentConnection
 from apollo.lib.websocket.action.linpeas import (
     LinPEASConnection, REPORT_CACHE_TTL_IN_SECONDS, REPORT_CACHE_KEY_FORMAT)
 
@@ -48,6 +50,7 @@ def test_connection_persist_report(
     redis_session.get_ttl(key) == REPORT_CACHE_TTL_IN_SECONDS
 
 
+# TODO add ansi text
 @pytest.mark.parametrize('ansi, expected_result', [
     (True, 'test'),
     (False, 'test')
@@ -72,5 +75,39 @@ def test_manager_get_report(
     ) == expected_result
 
 
-def test_manager_connect():
-    pass
+def test_manager_get_report_not_found(linpeas_manager):
+    assert linpeas_manager.get_report(uuid.uuid4()) is None
+
+
+@pytest.mark.asyncio
+async def test_linpeas_manager_process_server_command(
+    agent_connection_manager,
+    linpeas_manager,
+    websocket_mock
+):
+    agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
+    await agent_connection_manager._accept_connection(agent_connection)
+
+    linpeas_connection = LinPEASConnection(
+        linpeas_manager,
+        agent_connection.id_,
+        websocket_mock
+    )
+    with patch(
+        'apollo.lib.websocket.agent.AgentConnection.send_text',
+        wraps=agent_connection.send_text
+    ):
+        await linpeas_manager._accept_connection(
+            linpeas_connection)
+        await linpeas_connection.send_text('a')
+        await linpeas_connection.send_text('b')
+        await linpeas_manager.process_server_command(
+            ServerCommandSchema(
+                connection_id=linpeas_connection.id_,
+                command=ServerCommand.FINISHED
+            )
+        )
+
+    assert linpeas_manager.get_report(agent_connection.id_) == 'ab'
+    with pytest.raises(KeyError):
+        linpeas_manager.get_connection(linpeas_connection.id_)
