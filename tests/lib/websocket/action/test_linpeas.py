@@ -3,10 +3,11 @@ from unittest.mock import call, patch
 
 import pytest
 
+from apollo.lib.settings import settings
 from apollo.lib.schemas.message import (ServerCommand, ServerCommandSchema)
 from apollo.lib.websocket.agent import AgentConnection
 from apollo.lib.websocket.action.linpeas import (
-    LinPEASConnection, REPORT_CACHE_TTL_IN_SECONDS, REPORT_CACHE_KEY_FORMAT)
+    LinPEASConnection, REPORT_CACHE_KEY_FORMAT)
 
 
 @pytest.mark.asyncio
@@ -46,8 +47,10 @@ def test_connection_persist_report(
     connection.persist_report()
 
     key = REPORT_CACHE_KEY_FORMAT.format(target_agent_id=target_agent_id)
-    redis_session.get_from_cache(key) == report
-    redis_session.get_ttl(key) == REPORT_CACHE_TTL_IN_SECONDS
+    assert redis_session.get_from_cache(key) == report
+    assert redis_session.get_ttl(key) == int(
+        settings['action']['linpeas_report_ttl_in_seconds']
+    )
 
 
 @pytest.mark.parametrize('ansi, expected_result', [
