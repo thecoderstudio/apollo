@@ -51,7 +51,7 @@ def test_connection_persist_report(
 
 
 @pytest.mark.parametrize('ansi, expected_result', [
-    (True, '[1;31mtest[0m'),
+    (True, '\x1b[1;31mtest\x1b[0m'),
     (False, 'test')
 ])
 def test_manager_get_report(
@@ -65,7 +65,7 @@ def test_manager_get_report(
         REPORT_CACHE_KEY_FORMAT.format(
             target_agent_id=target_agent_id
         ),
-        '[1;31mtest[0m'
+        '\x1b[1;31mtest\x1b[0m'
     )
 
     assert linpeas_manager.get_report(

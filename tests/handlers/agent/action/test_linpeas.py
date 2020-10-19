@@ -54,7 +54,7 @@ def test_linpeas_export_success(session_cookie, test_client, access_token):
     agent_id = access_token.client.agent_id
 
     with patch('apollo.lib.redis.RedisSession.get_from_cache',
-               return_value='[1;32mab'):
+               return_value='\x1b[1;32mab\x1b[0m'):
         response = test_client.get(
             f"/agent/{agent_id}/action/linpeas/export",
             cookies=session_cookie
@@ -71,14 +71,14 @@ def test_linpeas_export_success_ansi(session_cookie, test_client,
     agent_id = access_token.client.agent_id
 
     with patch('apollo.lib.redis.RedisSession.get_from_cache',
-               return_value='[1;32mab'):
+               return_value='\x1b[1;32mab\x1b[0m'):
         response = test_client.get(
             f"/agent/{agent_id}/action/linpeas/export?ansi=true",
             cookies=session_cookie
         )
 
         assert response.status_code == 200
-        assert response.text == '[1;32mab'
+        assert response.text == '\x1b[1;32mab\x1b[0m'
 
 
 def test_linpeas_export_success_custom_filename(session_cookie, test_client,
@@ -86,7 +86,7 @@ def test_linpeas_export_success_custom_filename(session_cookie, test_client,
     agent_id = access_token.client.agent_id
 
     with patch('apollo.lib.redis.RedisSession.get_from_cache',
-               return_value='[1;32mab'):
+               return_value='\x1b[1;32mab\x1b[0m'):
         response = test_client.get(
             f"/agent/{agent_id}/action/linpeas/export?filename='custom.txt'",
             cookies=session_cookie
@@ -95,7 +95,7 @@ def test_linpeas_export_success_custom_filename(session_cookie, test_client,
         assert response.status_code == 200
         assert response.text == 'ab'
         assert response.headers['Content-Disposition'] == (
-            "attachment; filename=custom.txt")
+            "attachment; filename='custom.txt'")
 
 
 def test_linpeas_export_agent_not_found(test_client, session_cookie):
