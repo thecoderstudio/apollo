@@ -4,11 +4,11 @@ import uuid
 from fastapi import WebSocket
 
 from apollo.lib.redis import RedisSession
+from apollo.lib.settings import settings
 from apollo.lib.schemas.message import Command
 from apollo.lib.websocket.user import (UserCommandConnectionManager,
                                        UserConnection)
 
-REPORT_CACHE_TTL_IN_SECONDS = 1800
 REPORT_CACHE_KEY_FORMAT = "linpeas_{target_agent_id}"
 
 
@@ -19,6 +19,8 @@ class LinPEASConnection(UserConnection):
                  *args, **kwargs):
         super().__init__(manager, *args, **kwargs)
         self.target_agent_id = target_agent_id
+        self.report_ttl_in_seconds = settings['action'][
+            'linpeas_report_ttl_in_seconds']
 
     async def send_text(self, text: str):
         await super().send_text(text)
@@ -30,7 +32,7 @@ class LinPEASConnection(UserConnection):
                 target_agent_id=self.target_agent_id
             ),
             self.total_report,
-            REPORT_CACHE_TTL_IN_SECONDS
+            self.report_ttl_in_seconds
         )
 
 
