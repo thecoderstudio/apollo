@@ -29,7 +29,7 @@ async def test_agent_connection_manager_get_connection(
 @pytest.mark.parametrize('existing_agent', [True, False])
 async def test_agent_connection_manager_connect(
     agent_connection_manager,
-    user_connection_manager,
+    user_shell_connection_manager,
     websocket_mock,
     existing_agent
 ):
@@ -39,8 +39,9 @@ async def test_agent_connection_manager_connect(
         await agent_connection_manager._accept_connection(AgentConnection(
             websocket_mock, agent_id))
 
-    user_connection = UserConnection(websocket_mock)
-    await user_connection_manager._accept_connection(user_connection)
+    user_connection = UserConnection(user_shell_connection_manager,
+                                     websocket_mock)
+    await user_shell_connection_manager._accept_connection(user_connection)
 
     with patch(
         'apollo.lib.websocket.agent.AgentConnection.receive_json',
@@ -115,11 +116,12 @@ async def test_agent_connection_message(websocket_mock):
 
 @pytest.mark.asyncio
 async def test_agent_connection_listen_and_forward(
-    user_connection_manager,
+    user_command_connection_manager,
     websocket_mock
 ):
-    user_connection = UserConnection(websocket_mock)
-    await user_connection_manager._accept_connection(user_connection)
+    user_connection = UserConnection(user_command_connection_manager,
+                                     websocket_mock)
+    await user_command_connection_manager._accept_connection(user_connection)
     agent_connection = AgentConnection(websocket_mock, uuid.uuid4())
 
     server_command = ServerCommandSchema(

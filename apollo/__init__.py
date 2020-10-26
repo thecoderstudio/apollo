@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from apollo.handlers import agent, auth, oauth, root, user, websocket
-from apollo.handlers.agent import action
+from apollo.handlers.agent.action import linpeas
 from apollo.lib.initialisation import initialise_if_needed
 from apollo.lib.redis import RedisSession
 from apollo.lib.security.cors import get_origins
@@ -13,7 +13,7 @@ from apollo.models import init_sqlalchemy
 
 app = FastAPI()
 
-app.include_router(action.router)
+app.include_router(linpeas.router)
 app.include_router(agent.router)
 app.include_router(auth.router)
 app.include_router(oauth.router)
