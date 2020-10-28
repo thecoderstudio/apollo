@@ -1,15 +1,16 @@
+import copy
 import uuid
 from typing import List
 
 from fastapi import Depends, Request
-from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from apollo.lib.exceptions import HTTPException
+from apollo.lib.exceptions import HTTPException, RequestValidationError
+
 from apollo.lib.hash import hash_plaintext, compare_plaintext_to_hash
 from apollo.lib.router import SecureRouter
 from apollo.lib.schemas.user import (
-    CreateUserSchema, UserSchema, UpdateUserSchema)
+    BaseCreateOrUpdateUserSchema, UserSchema, UpdateUserSchema)
 from apollo.lib.security import (Allow, Admin, Human, Uninitialized)
 from apollo.models import get_session, save, delete
 from apollo.models.user import User, get_user_by_id, list_users as query_users
@@ -27,7 +28,7 @@ router = SecureRouter([
 
 @router.post('/user', status_code=201, response_model=UserSchema,
              permission='user.post')
-def post_user(user_data: CreateUserSchema,
+def post_user(user_data: BaseCreateOrUpdateUserSchema,
               session: Session = Depends(get_session)):
     data = user_data.dict()
     data['password_hash'], data['password_salt'] = hash_plaintext(
@@ -43,28 +44,30 @@ def post_user(user_data: CreateUserSchema,
 def patch_user(user_data: UpdateUserSchema, request: Request,
                session: Session = Depends(get_session)):
     user = request.current_user
-    data = user_data.dict()
+    data = user_data.dict(exclude_unset=True)
 
-    if not compare_plaintext_to_hash(user_data.old_password,
-                                     user.password_hash,
-                                     user.password_salt):
-        return JSONResponse(
-            status_code=400,
-            content={
-                'old_password': {
-                    'msg': 'Invalid password',
-                    'type': 'value_error'
-                }
-            }
-        )
+    if data.get('password'):
+        data = update_user_password_and_data(user, data)
 
-    data['password_hash'], data['password_salt'] = hash_plaintext(
-        data.pop('password'))
-    user.has_changed_initial_password = True
+        user.has_changed_initial_password = True
 
     user.set_fields(data)
     saved_user, _ = save(session, user)
     return saved_user
+
+
+def update_user_password_and_data(user, data):
+    data = copy.copy(data)
+    if not compare_plaintext_to_hash(data['old_password'],
+                                     user.password_hash,
+                                     user.password_salt):
+        raise RequestValidationError(
+            "Invalid password", ('old_password'))
+
+    data['password_hash'], data['password_salt'] = hash_plaintext(
+        data.pop('password'))
+
+    return data
 
 
 @router.delete('/user/{user_id}', status_code=204, permission='user.delete')

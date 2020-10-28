@@ -112,23 +112,24 @@ def test_post_user_as_regular_user(test_client, db_session, user,
     assert response.json()['detail'] == "Permission denied."
 
 
-def _assert_succesful_update_password(user, response, db_session):
+def _assert_successful_update_password(user, response, db_session):
     assert response.status_code == 200
     user = db_session.query(User).get(user.id)
     assert compare_plaintext_to_hash(
         'newpassword', user.password_hash, user.password_salt) is True
 
 
-def test_update_password_successful_authenticated(test_client, db_session,
-                                                  session_cookie, user):
+def test_update_user_successful_authenticated(test_client, db_session,
+                                              session_cookie, user):
     response = test_client.patch(
         '/user/me',
         json={'password': 'newpassword', 'password_confirm': 'newpassword',
-              'old_password': 'testing123'},
+              'old_password': 'testing123', 'username': 'newusername'},
         cookies=session_cookie
     )
 
-    _assert_succesful_update_password(user, response, db_session)
+    _assert_successful_update_password(user, response, db_session)
+    assert db_session.query(User).get(user.id).username == 'newusername'
 
 
 def test_update_password_successful_uninitialized(
@@ -142,8 +143,8 @@ def test_update_password_successful_uninitialized(
         cookies=session_cookie_for_uninitialized_user
     )
 
-    _assert_succesful_update_password(uninitialized_user,
-                                      response, db_session)
+    _assert_successful_update_password(uninitialized_user,
+                                       response, db_session)
 
 
 def test_update_password_wrong_password(test_client, db_session,
@@ -194,6 +195,57 @@ def test_update_user_password_same_as_old_password(test_client, user,
     assert response.status_code == 400
     assert response.json()['password']['msg'] == (
         "password cannot match old password")
+
+
+def test_update_user_username_too_long(test_client, session_cookie):
+    response = test_client.patch(
+        '/user/me',
+        json={'username': 'johndoeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'},
+        cookies=session_cookie
+    )
+
+    assert response.status_code == 400
+    assert response.json()['username']['msg'] == (
+        'ensure this value has at most 36 characters'
+    )
+
+
+def test_update_user_username_too_short(test_client, session_cookie):
+    response = test_client.patch(
+        '/user/me',
+        json={'username': ''},
+        cookies=session_cookie
+    )
+
+    assert response.status_code == 400
+    assert response.json()['username']['msg'] == (
+        'ensure this value has at least 1 characters'
+    )
+
+
+def test_update_user_username_contains_whitespace(test_client, session_cookie):
+    response = test_client.patch(
+        '/user/me',
+        json={'username': 'john doe'},
+        cookies=session_cookie
+    )
+
+    assert response.status_code == 400
+    assert response.json()['username']['msg'] == (
+        "username can't contain whitespaces"
+    )
+
+
+def test_update_user_duplicate_username(
+        test_client, db_session, session_cookie, user):
+    response = test_client.patch(
+        '/user/me',
+        json={'username': 'test_admin'},
+        cookies=session_cookie
+    )
+
+    assert response.status_code == 400
+    assert response.json()['username']['msg'] == 'username must be unique'
 
 
 def test_list_users_unauthenticated(test_client):
@@ -331,4 +383,3 @@ def test_get_current_user_successful_uninitialised(
                                cookies=session_cookie_for_uninitialized_user)
     _assert_get_current_user_successful(response,
                                         uninitialized_user, False)
-
