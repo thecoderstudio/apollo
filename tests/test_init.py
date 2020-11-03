@@ -71,7 +71,8 @@ def test_add_cors(mocker, patched_settings):
         'allow_origins': ('http://localhost:1234', 'https://localhost:1234'),
         'allow_credentials': True,
         'allow_methods': ['*'],
-        'allow_headers': ['*']
+        'allow_headers': ['*'],
+        'expose_headers': ['Content-Disposition']
     }
 
 

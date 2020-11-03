@@ -42,7 +42,8 @@ def add_cors():
         allow_origins=get_origins(),
         allow_credentials=True,
         allow_methods=['*'],
-        allow_headers=['*']
+        allow_headers=['*'],
+        expose_headers=['Content-Disposition']
     )
 
 
