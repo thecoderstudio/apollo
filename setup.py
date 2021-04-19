@@ -13,9 +13,9 @@ requires = [
     'fastapi',
     'psycopg2',
     'pydantic',
-    'pyjwt',
+    'pyjwt~=1.7.1',
     'redis',
-    'sqlalchemy',
+    'sqlalchemy~=1.3.24',
     'uvicorn[standard]'
 ]
 
