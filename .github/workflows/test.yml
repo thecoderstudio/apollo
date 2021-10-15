@@ -23,10 +23,16 @@ jobs:
       - name: Upload coverage report
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-          CODECOV_BASH_URL: https://codecov.io/bash
-          CODECOV_SHASUM_URL: https://raw.githubusercontent.com/codecov/codecov-bash/master/SHA256SUM
+          CODECOV_BINARY_URL: https://uploader.codecov.io/latest/linux/codecov
+          CODECOV_SHASUM_URL: https://uploader.codecov.io/latest/linux/codecov.SHA256SUM
+          CODECOV_SHASUM_SIGNATURE_URL: https://uploader.codecov.io/latest/linux/codecov.SHA256SUM.sig
+          CODECOV_PGP_KEY_URL: https://keybase.io/codecovsecurity/pgp_keys.asc
         run: |
-          curl -s $CODECOV_BASH_URL > codecov
+          curl -s $CODECOV_BINARY_URL > codecov
           chmod +x codecov
-          curl --location --show-error --silent -s $CODECOV_SHASUM_URL | head -1 | sha256sum --check \
-              && ./codecov
+          curl $CODECOV_PGP_KEY_URL | gpg --import
+          curl -Os $CODECOV_SHASUM_URL
+          curl -Os $CODECOV_SHASUM_SIGNATURE_URL
+          gpg --verify codecov.SHA256SUM.sig codecov.SHA256SUM  \
+            && sha256sum --check codecov.SHA256SUM \
+            && ./codecov
